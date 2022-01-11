@@ -1,0 +1,12 @@
+image: python:latest
+pages:
+  stage: deploy
+  only: 
+    - main
+  script:
+    - pip install mkdocs-material
+    - pip install mkdocs-enumerate-headings-plugin
+    - mkdocs build --site-dir public
+  artifacts:
+    paths:
+      - public
