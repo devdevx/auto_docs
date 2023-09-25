@@ -9,8 +9,8 @@ repo_url: https://gitlab.com/devdevx/docs/pages
 plugins:
   - search
   # https://github.com/timvink/mkdocs-enumerate-headings-plugin
-  - enumerate-headings:
-      increment_across_pages: false
+#  - enumerate-headings:
+#      increment_across_pages: false
 theme:
   name: material
   icon:
