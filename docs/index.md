@@ -18,20 +18,14 @@ For full documentation visit [mkdocs.org](https://www.mkdocs.org).
 
 # MkDocs
 
+Init project
 ````
 docker run --rm -it -v "%cd%":/docs squidfunk/mkdocs-material new .
 ````
 
+Live reload
 ````
 docker run --rm -it -p 8000:8000 -v "%cd%":/docs squidfunk/mkdocs-material
-````
-
-````
-<username>.gitlab.io/<repository>
-````
-
-````
-<username>.github.io/<repository>
 ````
 
 Github only allows pages in public repos for free tier
