@@ -1,5 +1,24 @@
 # Security
 
+## Links
+
+(Tutorial: Web Lab)[https://github.com/takito1812/web-hacking-playground]
+(Web hacking techniques)[https://portswigger.net/research/top-10-web-hacking-techniques-of-2022-nominations-open]
+(HackTheBox)[https://www.hackthebox.com/hacker]
+(Notes)[https://github.com/0xsyr0/Awesome-Cybersecurity-Handbooks]
+(Async Vulnerabilities)[https://portswigger.net/research/hunting-asynchronous-vulnerabilities]
+(Labs)[https://portswigger.net/web-security/all-labs]
+
+## Dorks
+
+site:http://s3.amazonaws.com "target[.]com"
+site:http://blob.core.windows.net "target[.]com"
+site:http://googleapis.com "target[.]com"
+site:http://drive.google.com "target[.]com"
+site:http://blob.core.windows.net "target[.]com"
+
+site:http://s3.amazonaws.com | site:http://blob.core.windows.net | site:http://googleapis.com | site:http://drive.google.com | site:http://blob.core.windows.net "target[.]com"
+
 ## Learn
 
 https://portswigger.net/web-security/all-materials/detailed

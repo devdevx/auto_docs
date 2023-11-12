@@ -1,5 +1,14 @@
 # Rust
 
+## Links
+
+(Comprehensive Rust)[https://google.github.io/comprehensive-rust/]
+(Practice with Advent of Code)[https://adventofcode.com/]
+(Patterns)[https://github.com/lpxxn/rust-design-pattern]
+(Desktop app demo)[https://blog.logrocket.com/build-desktop-app-qt-rust/]
+(API demo)[https://dev.to/francescoxx/rust-crud-rest-api-3n45]
+(Protobub demo)[https://dev.to/martinp/roll-your-own-auth-with-rust-and-protobuf-24ke?es_id=11c25f5690]
+
 ## Commands
 
 Install toolchain

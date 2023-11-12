@@ -1,5 +1,9 @@
 # Spring Boot
 
+## Links
+
+(Spring Boot Academy)[https://spring.academy/courses]
+
 ## Developer tips
 
 TODO live reload and h2 in file

@@ -1,5 +1,13 @@
 # Git
 
+## Messages
+
+- Use present verb
+- Avoid dots
+- Max 50 characters
+- Use body (git commit -m "Add summary of commit" -m "This is a message to add more context.")
+- Use semantic commits (type: description)
+
 ## SSH
 
 **Generate key**
