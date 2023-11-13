@@ -1,5 +1,9 @@
 # Redis
 
+## Links
+
+(Redis University)[https://university.redis.com/]
+
 ## Use cases
 
 - String: Session, Cache, Distributed lock

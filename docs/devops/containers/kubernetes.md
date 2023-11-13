@@ -3,6 +3,8 @@
 ## Links
 
 (Should i use K8s?)[https://thenewstack.io/kubernetes-isnt-always-the-right-choice/]
+(Patterns)[https://dev.to/theyasirr/kubernetes-designing-and-building-applications-222c]
+
 
 ## Install `kubectl`
 
