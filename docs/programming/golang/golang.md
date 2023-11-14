@@ -2,10 +2,10 @@
 
 ## Links
 
-(Tutorial Hexagonal Architecture API)[https://dev.to/bagashiz/building-restful-api-with-hexagonal-architecture-in-go-1mij]
-(MongoDB and Chi API)[https://dev.to/deeshath/rest-api-using-gogin-mongo-33i3]
-(Rest APIs)[https://dev.to/kashifsoofi/series/23407]
-(Clean architecture)[https://dev.to/michinoins/building-a-crud-app-with-mysql-gorm-echo-and-clean-architecture-in-go-h6d?utm_source=dormosheio&utm_campaign=dormosheio]
+[Tutorial Hexagonal Architecture API](https://dev.to/bagashiz/building-restful-api-with-hexagonal-architecture-in-go-1mij)
+[MongoDB and Chi API](https://dev.to/deeshath/rest-api-using-gogin-mongo-33i3)
+[Rest APIs](https://dev.to/kashifsoofi/series/23407)
+[Clean architecture](https://dev.to/michinoins/building-a-crud-app-with-mysql-gorm-echo-and-clean-architecture-in-go-h6d?utm_source=dormosheio&utm_campaign=dormosheio)
 
 ## Commands
 

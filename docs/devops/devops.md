@@ -1,7 +1,7 @@
 # DevOps
 
 ## Links
-(Exercises)[https://github.com/bregman-arie/devops-exercises]
+[Exercises](https://github.com/bregman-arie/devops-exercises)
 
 ## Learn
 

@@ -2,8 +2,8 @@
 
 ## Links
 
-(Spring Boot Academy)[https://spring.academy/courses]
-(Clean architecture)[https://github.com/spember/spring-shoestore]
+[Spring Boot Academy](https://spring.academy/courses)
+[Clean architecture](https://github.com/spember/spring-shoestore)
 
 ## Developer tips
 

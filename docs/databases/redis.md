@@ -2,7 +2,7 @@
 
 ## Links
 
-(Redis University)[https://university.redis.com/]
+[Redis University](https://university.redis.com/)
 
 ## Use cases
 

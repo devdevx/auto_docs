@@ -2,5 +2,5 @@
 
 ## Links
 
-(Vite listenings)[https://www.youtube.com/@VietFCE/videos]
+[Vite listenings](https://www.youtube.com/@VietFCE/videos)
 

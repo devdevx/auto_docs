@@ -2,8 +2,8 @@
 
 ## Links
 
-(Tutorial AWS Provider)[https://hector-reyesaleman.medium.com/terraform-aws-provider-everything-you-need-to-know-about-multi-account-authentication-and-f2343a4afd4b]
-(Course)[https://courses.devopsdirective.com/terraform-beginner-to-pro/lessons/03-basic-terraform-usage/03-terraform-plan-apply-destroy]
+[Tutorial AWS Provider](https://hector-reyesaleman.medium.com/terraform-aws-provider-everything-you-need-to-know-about-multi-account-authentication-and-f2343a4afd4b)
+[Course](https://courses.devopsdirective.com/terraform-beginner-to-pro/lessons/03-basic-terraform-usage/03-terraform-plan-apply-destroy)
 
 ## Install
 

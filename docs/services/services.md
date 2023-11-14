@@ -2,4 +2,4 @@
 
 ## Free APIs
 
-(Email Sending)[https://resend.com]
+[Email Sending](https://resend.com)

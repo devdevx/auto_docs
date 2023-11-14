@@ -2,12 +2,12 @@
 
 ## Links
 
-(Tutorial: Web Lab)[https://github.com/takito1812/web-hacking-playground]
-(Web hacking techniques)[https://portswigger.net/research/top-10-web-hacking-techniques-of-2022-nominations-open]
-(HackTheBox)[https://www.hackthebox.com/hacker]
-(Notes)[https://github.com/0xsyr0/Awesome-Cybersecurity-Handbooks]
-(Async Vulnerabilities)[https://portswigger.net/research/hunting-asynchronous-vulnerabilities]
-(Labs)[https://portswigger.net/web-security/all-labs]
+[Tutorial: Web Lab](https://github.com/takito1812/web-hacking-playground)
+[Web hacking techniques](https://portswigger.net/research/top-10-web-hacking-techniques-of-2022-nominations-open)
+[HackTheBox](https://www.hackthebox.com/hacker)
+[Notes](https://github.com/0xsyr0/Awesome-Cybersecurity-Handbooks)
+[Async Vulnerabilities](https://portswigger.net/research/hunting-asynchronous-vulnerabilities)
+[Labs](https://portswigger.net/web-security/all-labs)
 
 ## Dorks
 

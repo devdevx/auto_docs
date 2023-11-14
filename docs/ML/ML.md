@@ -2,8 +2,8 @@
 
 ## Links
 
-(Tutorial: 175 problems solved)[https://python.plainenglish.io/85-data-science-projects-c03c8750599e]
-(Full course)[https://mega.nz/folder/TgsyjIqB#i_l58GoxRPBY_Scwj0xHgQ]
+[Tutorial: 175 problems solved](https://python.plainenglish.io/85-data-science-projects-c03c8750599e)
+[Full course](https://mega.nz/folder/TgsyjIqB#i_l58GoxRPBY_Scwj0xHgQ)
 
 ## Explore
 
