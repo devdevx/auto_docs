@@ -3,9 +3,14 @@
 ## Links
 
 [Tutorial: Face detection](https://github.com/marlenezw/face-and-body-detector-with-mediapipe)
+
 [Tutorial: Home surveillance](https://github.com/harshitroy2605/Home-surveillance-system-using-Python?ref=morioh.com&utm_source=morioh.com)
+
 [Facial expression recognition](https://github.com/rondinellimorais/facial-expression-recognition)
+
 [Face detection](https://github.com/computervisioneng/face-attendance-system?ref=morioh.com&utm_source=morioh.com)
+
+[Podcast](https://talkpython.fm/episodes/all)
 
 ## Pipenv
 
