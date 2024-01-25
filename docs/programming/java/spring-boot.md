@@ -5,9 +5,59 @@
 [Spring Boot Academy](https://spring.academy/courses)
 [Clean architecture](https://github.com/spember/spring-shoestore)
 
-## Developer tips
+## Recipes
 
-TODO live reload and h2 in file
+### Show build info in log and actuator info endpoint
+
+**NOTE**: Some values are not available until is executed from jar
+
+In `application.properties`
+```
+spring.config.import=optional:classpath:/git.properties
+
+spring.application.name=@project.name@
+spring.application.version=@project.version@
+
+info.app.name=@project.name@
+info.app.description=@project.description@
+info.app.version=@project.version@
+
+management.info.java.enabled=true
+management.info.build.enabled=true
+management.info.env.enabled=true
+management.info.defaults.enabled=true
+management.info.git.enabled=true
+management.info.os.enabled=true
+
+management.endpoint.info.enabled=true
+
+management.endpoint.health.probes.enabled=true
+management.endpoint.health.show-details=always
+
+management.endpoints.web.exposure.include=health,info
+```
+
+In `banner.txt`
+```
+Spring Boot: ${spring-boot.version}
+Application: ${application.title} ${application.version}
+Git: ${git.branch} ${git.commit.id.abbrev} ${git.tags} ${git.commit.time}
+```
+
+In `pom.xml`
+```
+...
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+...
+<plugin>
+    <groupId>io.github.git-commit-id</groupId>
+    <artifactId>git-commit-id-maven-plugin</artifactId>
+</plugin>
+...
+```
 
 ## Controller annotation interceptor
 

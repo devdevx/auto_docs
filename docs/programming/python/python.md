@@ -12,6 +12,25 @@
 
 [Podcast](https://talkpython.fm/episodes/all)
 
+## Poetry
+
+Basic commands
+```bash
+poetry new <project_name>
+poetry install
+poetry add <pk1> <pk2>
+poetry remove <pk1>
+poetry update
+poetry shell
+```
+After the 'shell', you can open an editor and place new files next to the 'init' folder.
+
+Manager development dependencies
+```bash
+poetry add -D <dpk1> <dpk2>
+poetry remove -D <dpk1>
+```
+
 ## Pipenv
 
 ###  Commands
