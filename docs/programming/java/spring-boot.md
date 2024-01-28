@@ -40,7 +40,7 @@ management.endpoints.web.exposure.include=health,info
 In `banner.txt`
 ```
 Spring Boot: ${spring-boot.version}
-Application: ${application.title} ${application.version}
+Application: ${spring.application.name} ${spring.application.version}
 Git: ${git.branch} ${git.commit.id.abbrev} ${git.tags} ${git.commit.time}
 ```
 
@@ -55,6 +55,17 @@ In `pom.xml`
 <plugin>
     <groupId>io.github.git-commit-id</groupId>
     <artifactId>git-commit-id-maven-plugin</artifactId>
+</plugin>
+...
+```
+
+**Note:** In Spring Boot 2 use this for the git plugin.
+
+```
+...
+<plugin>
+    <groupId>pl.project13.maven</groupId>
+    <artifactId>git-commit-id-plugin</artifactId>
 </plugin>
 ...
 ```
