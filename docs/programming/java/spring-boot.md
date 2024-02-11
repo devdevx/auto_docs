@@ -2,8 +2,9 @@
 
 ## Links
 
-[Spring Boot Academy](https://spring.academy/courses)
-[Clean architecture](https://github.com/spember/spring-shoestore)
+- [Spring Boot Academy](https://spring.academy/courses)
+- [SpringDeveloper YT channel](https://www.youtube.com/@SpringSourceDev/videos)
+- [Clean architecture](https://github.com/spember/spring-shoestore)
 
 ## Recipes
 
@@ -11,7 +12,8 @@
 
 **NOTE**: Some values are not available until is executed from jar
 
-In `application.properties`
+1. In `application.properties` configure
+
 ```
 spring.config.import=optional:classpath:/git.properties
 
@@ -37,14 +39,16 @@ management.endpoint.health.show-details=always
 management.endpoints.web.exposure.include=health,info
 ```
 
-In `banner.txt`
+2. In `banner.txt` define
+
 ```
 Spring Boot: ${spring-boot.version}
 Application: ${spring.application.name} ${spring.application.version}
 Git: ${git.branch} ${git.commit.id.abbrev} ${git.tags} ${git.commit.time}
 ```
 
-In `pom.xml`
+3. In `pom.xml` declare
+
 ```
 ...
 <dependency>
@@ -68,6 +72,131 @@ In `pom.xml`
     <artifactId>git-commit-id-plugin</artifactId>
 </plugin>
 ...
+```
+### Integrate Sentry
+
+1. In `pom.xml` declare
+
+```
+<dependency>
+    <groupId>io.sentry</groupId>
+    <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
+    <version>7.3.0</version>
+</dependency>
+```
+
+**Note:** In Spring Boot 2 use this for the git plugin.
+
+```
+<dependency>
+    <groupId>io.sentry</groupId>
+    <artifactId>sentry-spring-boot-starter</artifactId>
+    <version>7.3.0</version>
+</dependency>
+```
+
+2. Configure the `SENTRY_AUTH_TOKEN` and `SENTRY_DSN` env vars.
+
+3. Optionally user context data (In web filters, event pre processors, etc).
+
+```
+import io.sentry.Sentry;
+import io.sentry.protocol.User;
+
+...
+
+User user = new User();
+user.setEmail(email);
+user.setName(name);
+user.setUsername(username);
+user.setData(Map.of("prop", prop));
+Sentry.setUser(user);
+```
+
+4. Configure the `@ControllerAdvice` to send unexpected web originated exceptions.
+
+```
+@ExceptionHandler(Exception.class)
+public ResponseEntity<...> unexpectedException(Exception e) {
+    Sentry.captureException(e);
+    return ResponseEntity.internalServerError().body(...);
+}
+```
+
+5. Capture the exceptions originated from scheduled tasks.
+
+```
+@Component
+public class SentryThreadPoolTaskSchedulerCustomizer implements ThreadPoolTaskSchedulerCustomizer {
+    @Override
+    public void customize(ThreadPoolTaskScheduler taskScheduler) {
+        taskScheduler.setErrorHandler(Sentry::captureException);
+    }
+}
+```
+
+**Note:**: In Spring Boot 2 use this instead.
+
+```
+@Component
+public class SentryTaskSchedulerCustomizer implements TaskSchedulerCustomizer {
+    @Override
+    public void customize(ThreadPoolTaskScheduler taskScheduler) {
+        taskScheduler.setErrorHandler(Sentry::captureException);
+    }
+}
+```
+
+6. Configure the async executor to handle sentry data between threads and the exception handler to manage exceptions from `@Async`.
+
+```
+public class AsyncHandler implements AsyncUncaughtExceptionHandler {
+
+    @Override
+    public void handleUncaughtException(Throwable ex, Method method, Object... params) {
+        Sentry.captureException(ex);
+    }
+}
+```
+
+```
+@Configuration
+public class SentryAsyncConfigurer implements AsyncConfigurer {
+
+    @Override
+    public Executor getAsyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setTaskDecorator(new SentryTaskDecorator());
+        executor.initialize();
+        return executor;
+    }
+
+    @Override
+    public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+        return new AsyncHandler();
+    }
+}
+```
+
+**Note:**: In Spring Boot 2 use this instead.
+
+```
+@Configuration
+public class SentryAsyncConfigurerSupport extends AsyncConfigurerSupport {
+
+    @Override
+    public Executor getAsyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setTaskDecorator(new SentryTaskDecorator());
+        executor.initialize();
+        return executor;
+    }
+
+    @Override
+    public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+        return new AsyncHandler();
+    }
+}
 ```
 
 ## Controller annotation interceptor
