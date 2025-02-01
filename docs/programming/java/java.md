@@ -18,32 +18,6 @@ echo Java 17 activated.
 6. Add the script folder to `Path` env var 
 7. Execute the file name of the script each time you want to change the version
 
-## Libraries
-
-[Openhtmltopdf: HTML to PDF](https://github.com/danfickle/openhtmltopdf/wiki/Integration-Guide)
-
-[Moneta: Manage money](https://mvnrepository.com/artifact/org.javamoney/moneta)
-
-[Apache POI: Manage EXCEL files](https://mvnrepository.com/artifact/org.apache.poi/poi)
-
-[Spring Boot: Framework](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter)
-
-[Liquibase: SQL Changelog](https://mvnrepository.com/artifact/org.liquibase/liquibase-core)
-
-[MongoCK: MongoDB Changelog](https://www.mongock.io/)
-
-[JSONassert](https://github.com/skyscreamer/JSONassert)
-
-### Containerize
-
-https://snyk.io/blog/best-practices-to-build-java-containers-with-docker/
-
-## Patterns
-
-https://java-design-patterns.com/patterns/
-
-## Procedures
-
 ### Detect memory leak
 
 #### VisualVM
@@ -63,119 +37,252 @@ java
 -jar app.jar
 ````
 
-#### MAT (Eclipse Memory Analyzer Tool)
+## Libraries
+
+[Openhtmltopdf: HTML to PDF](https://mvnrepository.com/artifact/io.github.openhtmltopdf/openhtmltopdf-core) ([Repo](https://github.com/openhtmltopdf/openhtmltopdf))
+
+[Moneta: Manage money](https://mvnrepository.com/artifact/org.javamoney/moneta) ([Repo](https://github.com/JavaMoney/jsr354-ri))
+
+[Apache POI: Manage EXCEL files](https://mvnrepository.com/artifact/org.apache.poi/poi)
+
+[Spring Boot: Framework](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter) ([Repo](https://github.com/spring-projects/spring-boot))
+
+[Liquibase: SQL Changelog](https://mvnrepository.com/artifact/org.liquibase/liquibase-core) ([Repo](https://github.com/liquibase/liquibase))
+
+[MongoCK: MongoDB Changelog](hhttps://mvnrepository.com/artifact/io.mongock/mongock-api) ([Repo](https://github.com/mongock/mongock))
+
+[JSONassert](https://mvnrepository.com/artifact/org.skyscreamer/jsonassert) ([Repo](https://github.com/skyscreamer/JSONassert))
+
+## Containerize
+
+[Good practices](https://snyk.io/blog/best-practices-to-build-java-containers-with-docker/)
+
+## Patterns
+
+[List](https://java-design-patterns.com/patterns/)
 
 ## Releases
 
-https://openjdk.java.net/jeps/0
+### Java 25 (LTS)
 
-https://blogs.oracle.com/java/post/the-arrival-of-java-16
+### Java 24
 
-### Java 8
+### Java 23
 
-### Java 9
+#### Pattern Matching for Primitive Types
 
-### Java 10
+```java
+int x = 55;
+switch (x) {
+    case 200 -> System.out.println("OK");
+    case 404 -> System.out.println("Resource Not Found");
+    case 500 -> System.out.println("Internal Server Error");
+    case int k -> System.out.println("Unknown status: " + k);
+}
+```
 
-### Java 11
+### Java 22
 
-### Java 12
+#### Structured Concurrency
 
-### Java 13
+```java
+import java.util.concurrent.*;
 
-### Java 14
+public void downloadFiles(List<String> fileUrls) throws InterruptedException, ExecutionException {
+    try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+        List<Future<?>> futures = new ArrayList<>();
+        for (String url : fileUrls) {
+            futures.add(executor.submit(() -> downloadFile(url)));
+        }
+        for (Future<?> future : futures) {
+            future.get();
+        }
+    }
+}
+```
 
-### Java 15
+#### Statements Before Super
 
-### Java 16
+```java
+public class Rectangle extends Shape {
+    private int width;
+    private int height;
 
-#### 1. New Language Features
+    public Rectangle(int width, int height, String color) {
+        this.width = width;
+        this.height = height;
+        super(color);
+  }
+}
+```
 
-##### **[JEP 394](https://openjdk.java.net/jeps/394)** **Pattern Matching for** **instanceof**
+#### Unnamed Variables
 
-##### **[JEP 395](https://openjdk.java.net/jeps/395)** Records
+```java
+String result = switch (expression) {
+    case Integer _ -> "Integer";
+    case String _ -> "String";
+    default -> "Unknown";
+};
+```
 
-#### 2. JVM Improvements
+#### String Literal (Preview)
 
-##### [JEP 376](https://openjdk.java.net/jeps/376) ZGC Concurrent Thread Processing
+```java
+String name = "Bob";
+String welcomeText = STR."Welcome \{name}";
+```
 
-##### [JEP 387](https://openjdk.java.net/jeps/387) Elastic Metaspace
+```java
+double price1 = 10.5;
+double price2 = 20.75;
+String result = FMT."$%.2f\{price1} + $%.2f\{price2} = $%.2f\{price1 + price2}";
+```
 
-#### 3. New Tools and Libraries
+### Java 21 (LTS)
 
-##### [JEP 380](https://openjdk.java.net/jeps/380) Unix-Domain Socket Channels
+#### Record Patterns
 
-##### [JEP 392](https://openjdk.java.net/jeps/392) Packaging Tool
+```java
+record Point(int x, int y) {}
+ 
+public static int recordPattern(Object obj) {
+    if(obj instanceof Point(int x, int y)) {
+        return x+y;
+    }
+    return 0;
+}
+```
 
-#### 4. Futureproofing Your Work
+#### Pattern Matching for switch
 
-##### **[JEP 390](https://openjdk.java.net/jeps/390)** Warning for Value-Based Classes
+```java
+double result = 0;
+switch (account) {
+    case null -> throw new RuntimeException("No account");
+    case SavingsAccount sa -> result = sa.getSavings();
+    case TermAccount ta -> result = ta.getTermAccount();
+    case CurrentAccount ca -> result = ca.getCurrentAccount();
+    default -> result = account.getBalance();
+};
+```
 
-##### **[JEP 396](https://openjdk.java.net/jeps/396)** Strongly Encapsulate JDK Internals by default
+```java
+String output = null;
+switch(input) {
+    case null -> output = "NULL";
+    case String s when "Yes".equalsIgnoreCase(s) -> output = "Yes";
+    case String s when "No".equalsIgnoreCase(s) -> output = "No";
+    case String s -> output = "Try Again";
+}
+return output;
+```
 
-#### 5. Incubator and Preview Features
+#### Virtual Threads
 
-##### **[JEP 338](https://openjdk.java.net/jeps/338) Vector API (Incubator)**
+Virtual threads are lightweight threads with the purpose of reducing the effort of developing high-concurrent applications. Many virtual threads can share OS threads to run their code.
 
-##### **[JEP 389](https://openjdk.java.net/jeps/389) Foreign Linker API (Incubator)**
+```java
+try(var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+    IntStream.rangeClosed(1, 10_000).forEach(i -> {
+        executor.submit(() -> {
+            System.out.println(i);
+            try {
+                Thread.sleep(Duration.ofSeconds(1));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+    });
+}
+```
 
-##### **[JEP 393](https://openjdk.java.net/jeps/393) Foreign Memory Access API (3rd Incubator)**
+#### Sequenced Collections
 
-##### **[JEP 397](https://openjdk.java.net/jeps/397) Sealed Classes (2nd Preview)**
+```java
+interface SequencedCollection<E> extends Collection<E> {
+    SequencedCollection<E> reversed();
+    void addFirst(E);
+    void addLast(E);
+    E getFirst();
+    E getLast();
+    E removeFirst();
+    E removeLast();
+}
+```
 
-#### 6. Improving Productivity for OpenJDK Developers
+```java
+interface SequencedSet<E> extends Set<E>, SequencedCollection<E> {
+    SequencedSet<E> reversed();
+}
+```
 
-##### **[JEP 347](https://openjdk.java.net/jeps/347) Enable C++14 Language Features (in JDK source code)**
+```java
+interface SequencedMap<K, V> extends Map<K, V> {
+    SequencedMap<K, V> reversed();
+    SequencedSet<K> sequencedKeySet();
+    SequencedCollection<V> sequencedValues();
+    SequencedSet<Entry<K, V>> sequencedEntrySet();
+    V putFirst(K, V);
+    V putLast(K, V);
+    Entry<K, V> firstEntry();
+    Entry<K, V> lastEntry();
+    Entry<K, V> pollFirstEntry();
+    Entry<K, V> pollLastEntry();
+}
+```
 
-##### **[JEP 357](https://openjdk.java.net/jeps/357) Migrate from Mercurial to Git**
+### Java 17 (LTS)
 
-##### **[JEP 369](https://openjdk.java.net/jeps/369) Migrate to GitHub**
+#### Pattern matching
 
-##### **[JEP 386](https://openjdk.java.net/jeps/386) Alpine Linux Port**
+```java
+if (obj instanceof String s) {
+    System.out.println(s.length());
+}
+```
 
-##### **[JEP 388](https://openjdk.java.net/jeps/388) Windows/AArch64 Port**
+#### Switch expression
 
-### Java 17 LTS
+```java
+int day = 3;
+String result = switch (day) {
+    case 1 -> "Monday";
+    case 2 -> "Tuesday";
+    case 3 -> "Wednesday";
+    default -> "Invalid day";
+};
+```
 
-#### 1. Language features
+### Java 11 (LTS)
 
-##### [JEP 409](https://openjdk.java.net/jeps/409): Sealed classes
+#### `var`
 
-#### 2. Updates and Improvements on Core Libraries
+```java
+var value = "the value";
+```
 
-##### [JEP 306](https://openjdk.java.net/jeps/306): Restore Always-Strict Floating-Point Semantics
+#### `String` methods
 
-##### [JEP 356](https://openjdk.java.net/jeps/356): Enhanced Pseudo-Random Number Generators
+```java
+String str = " Java 11 ";
+str.isBlank();
+str.strip();
+str.lines();
+```
 
-##### [JEP 382](https://openjdk.java.net/jeps/382): New macOS Rendering Pipeline
+#### `Files` methods
 
-##### [JEP 415](https://openjdk.java.net/jeps/415): Context-Specific Deserialization Filters
+```java
+Files.writeString(Paths.get("example.txt"), "Hello, Java 11");
+```
 
-#### 3. New Platform Support
+#### HTTP Client API
 
-##### [JEP 391](https://openjdk.java.net/jeps/391): macOS AArch 64 Port
-
-#### 4. Previews and Incubators
-
-##### [JEP 406](https://openjdk.java.net/jeps/406): Pattern Matching for switch (Preview)
-
-##### [JEP 412](https://openjdk.java.net/jeps/412): Foreign Function and Memory API (Incubator)
-
-##### [JEP 414](https://openjdk.java.net/jeps/414): Vector API (Second Incubator)
-
-#### 5. Future Proofing Java Programs
-
-##### [JEP 403](https://openjdk.java.net/jeps/403): Strongly Encapsulate JDK Internals
-
-#### 6. Deprecations and Removals
-
-##### [JEP 411](https://openjdk.java.net/jeps/411): Deprecate the Security Manager for Removal
-
-##### [JEP 398](https://openjdk.java.net/jeps/398): Deprecate the Applet API for Removal
-
-##### [JEP 407](https://openjdk.java.net/jeps/407): Remove RMI Activation
-
-#### 7. For OpenJDK Contributors
-
-##### [JEP 410](https://openjdk.java.net/jeps/410): Remove the Experimental AOT and JIT Compiler
-
+```java
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://example.com"))
+    .build();
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+```
