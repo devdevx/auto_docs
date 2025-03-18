@@ -8,6 +8,7 @@
 - IdP can assume roles too.
 - Access keys allows the user to use the cli.
 - Most IAM policies are stored in AWS as JSON documents. They have several policy elements, including a Version, Effect, Action, and Resource (also Condition).
+-  IAM policies have a 2 kb size limit for users, 5 kb for groups, and a 10 kb for roles.
 
 ## Networking
 
@@ -618,6 +619,16 @@ stateDiagram
 - You can enforce write-once-read-many (WORM) policies with S3 Object Lock. In Governance mode can remove objects if correct IAM permissions, in Compliance mode none can.
 - You can configure S3 Event Notifications to trigger workflows, alerts, and invoke AWS Lambda when a specific change is made to your S3 resources.
 - You can use Amazon Macie to discover and protect sensitive data stored in Amazon S3.
+- Amazon S3 supports a bucket policy size limit of up 20 kb.
+- Because bucket policies grant access to another AWS account or IAM user, you must specify the principal, or the user to whom you are granting access, as a "Principal" in the bucket policy.
+- Use bucket policy if you need to grant cross-account permissions without IAM roles, or IAM policies reach size limits or you prefer to keep access control in the S3 environment.
+- Use IAM user policies if you want centralized management or have numerous S3 buckets with different permissions requirements or prefer to only use IAM environment.
+- Someone who has permission to perform the operation must create the presigned URL.
+- Presigned url generated from IAM user have a maximum expiration time of 7 days (12 hours if in web console).
+- If you created a presigned URL using a temporary token (Security Token Service), then the URL expires when the token expires (up to 36 hours), even if you created the URL with a later expiration time.
+- If you create a presigned URL using an IAM instance profile, it is valid up to 6 hours, even if you specify a later expiration date.
+- You can define a policy with the `s3:signatureAge` condition to deny any presigned url with signature more than X seconds old.
+- Access Analyzer for Amazon S3 alerts you to buckets configured to allow access to anyone on the internet or other AWS accounts, including AWS accounts outside of your organization. For each public or shared bucket, you receive findings that report the source and level of public or shared access.
 
 #### Storage classes
 
@@ -632,10 +643,26 @@ stateDiagram
 | S3 Glacier Deep Archive       | Has default retrieval time of 12h. Designed to meet regulatory compliance requirements and store data sets for 7-10 years.                         |
 | S3 on Outpost                 | Delivers object storage to your on-premise                                                                                                         |
 
+#### Encryption
+
 #### Analytics
 
 - S3 Storage Lens: Delivers organization-wide visibility into object storage usage and activity trends. Usage metrics describe the size, quantity, and characteristics of your storage. Provides recommendations. Includes drill-down options to generate insights at the organization, account, Region, bucket, or even prefix level.
 - S3 Storage Class Analysis: Analyzes storage access patterns to help you determine when to transition less frequently accessed storage to a lower-cost storage class. You can configure by bucket, prefix and or tags.
+
+#### Amazon S3 Block Public Access settings
+
+- Block all public access
+- Block public access granted through new ACLs
+- Block public access granted through any ACLs
+- Block public access granted through new public bucket policies (recommended at account level)
+- Block public and cross-account access granted through any public bucket policies (If you have any ACLs granting public access to buckets and objects will remain publicly accessible)
+
+#### Amazon S3 Object Ownership
+
+- With Amazon S3 Object Ownership, the bucket owner, now has full control of the objects, and may own any new objects written by other accounts automatically.
+- Object writer – The account that is writing the object owns the object.
+- Bucket owner preferred – The bucket owner will own the object if uploaded with the bucket-owner-full-control canned ACL. Without this setting and canned ACL, the object is uploaded to the bucket but remains owned by the uploading account (add a bucket policy to require all Amazon S3 PUT operations to include the bucket-owner-full-control canned ACL).
 
 #### Online data transfer services
 
@@ -657,7 +684,7 @@ stateDiagram
 - AWS Direct Connect: Dedicated network connection from your on-premise data center to AWS.
 - AWS Storage Gateway: AWS Storage Gateway configured as a File Gateway enables you to connect your Amazon S3 bucket using either the Network File System (NFS) or Server Message Block (SMB) protocol with local caching.
 
-##### unmanaged cloud data migration tools
+#### Unmanaged cloud data migration tools
 
 - rsync and 3rd party tools
 - Amazon S3 and the AWS CLI
