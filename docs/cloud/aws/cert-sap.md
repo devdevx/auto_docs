@@ -532,7 +532,7 @@ stateDiagram
 - Ideal if you host applications that replicate data to other EC2 instances, such as Hadoop clusters. For these cluster-based workloads, having the speed of locally attached volumes and the resiliency of replicated data helps you achieve data distribution at high performance.
 - It's also ideal for temporary storage of information that changes frequently, such as buffers, caches, scratch data, and other temporary content.
 - As ephemeral storage, instance stores are not replicated or spread across multiple devices to improve durability and availability.
-- If an instance reboots (intentionally or unintentionally), data in the instance store persists. However, data in the instance store is lost if disck drive fails, instance stops, hibernates or terminates.
+- If an instance reboots (intentionally or unintentionally), data in the instance store persists. However, data in the instance store is lost if disc drive fails, instance stops, hibernates or terminates.
 
 ### Amazon EBS
 
@@ -541,7 +541,9 @@ stateDiagram
 - We can de-attach from one instance and attach to another.
 - Depending on the instance type and EBS volume, you can have the same volume attached to multiple instances (EBS Multi-Attach).
 - Multi-attach feature that permits Provisioned IOPS SSD (io1 or io2) volumes to be attached to multiple EC2 instances at one time. This feature is not available for all instance types, and all instances must be in the same Availability Zone.
+- Multi-attach allows a single EBS volume to be concurrently attached to up to 16 Nitro-based EC2 instances within the same Availability Zone.
 - Backups are incremental snapshots.
+- Amazon EBS does not manage data consistency for multiple writers. Your application or operating system environment must manage data consistency operations.
 - Increase the volume size only if it doesn't increase above the maximum size limit. Depending on the volume selected, Amazon EBS currently supports a maximum volume size of 64 tebibytes (TiB).
 - Attach multiple volumes to a single EC2 instance. Amazon EC2 has a one-to-many relationship with EBS volumes. You can add these additional volumes during or after EC2 instance creation to provide more storage capacity for your hosts.
 - Boot and root volumes can be used to store an operating system.
@@ -559,20 +561,138 @@ stateDiagram
 - Pay only for the storage and resources that you provision.
 - Root EBS volumes created with an EC2 instance are terminated with the instance by default. However, you can modify the volume to be persistent.
 - The Elastic Volumes feature makes it easier to adapt your resources to changing application demands. You can make modifications in the future as your business needs change.
+- With Elastic Volumes, volume sizes can only be increased within the same volumes. To decrease a volume size, you must copy the EBS volume data to a new smaller EBS volume.
 - Amazon EBS volumes are designed to provide 99.8–99.9 percent durability with an annual failure rate (AFR) of 0.1–0.2 percent.
 - Amazon EBS offers a higher durability io2 volume that is designed to provide 99.999 percent durability with an AFR of 0.001 percent.
+- Performance metrics, such as bandwidth, throughput, latency, and average queue length, are available through the AWS Management Console.
+- The maximum amount of data that a volume type counts as a single I/O is 256 KiB for SSD and 1024 KiB for HDD. When small IO operations are physically contiguous, EBS attempts to merge them.
+- Throughput is the measurement the volume of data transferred.
+- For some SSD-backed and the HDD-backed EBS volume types, you are able to burst your performance above your provisioned baseline limits. They accumulate and you use them when needed.
+- Latency is the true round trip time of an I/O operation or the elapsed time, between sending an I/O to Amazon EBS and receiving an acknowledgement from Amazon EBS that the I/O read or write operation is complete.
+- Volume queue length can affect latency. The volume queue length is the number of pending I/O requests for a device. Queue length must be correctly calibrated with I/O size and latency to avoid creating bottlenecks, either on the guest operating system or on the network link to Amazon EBS.
+- Your account has a limit on the number of EBS volumes that you can use and the total storage available to you. You can request an increase in your limits if required.
+- For gp3 and io2 volumes types, you can dynamically change the provisioned IOPS or provisioned throughput performance settings for your volume.
+- Once your EBS volumes are in operation, you can monitor them and verify that your volumes are providing optimal performance and cost effectiveness using AWS Compute Optimizer.
+- EBS Snapshot events are tracked through CloudWatch events.
+- You can copy any accessible snapshot that has a completed status.
+- Pricing is based on provisioned volume size, IOPS and throughput billed per second (prices in months are 30 days based). When calculated you need to take into account the default IOPS and throughput (gp3 3000 and 125).
+- Striped volumes: The striped configuration uses a RAID 0 style process to increase the volume size and increase performance for the combined EBS volumes.
+- You can encrypt both the EBS boot and data volumes of an EC2 instance.
+
+#### Snapshot encryption
+
+- Snapshots of encrypted volumes are automatically encrypted.
+- Volumes created from encrypted snapshots are automatically encrypted.
+- Volumes created from an unencrypted snapshot can be encrypted during the creation process.
+- When you copy an unencrypted snapshot, you can encrypt it during the copy process.
+- When you copy an encrypted snapshot, you can re-encrypt it with a different encryption key during the copy process.
+- The first snapshot taken of an encrypted volume that was created from an unencrypted snapshot is always a full snapshot.
+- The first snapshot taken of a re-encrypted volume that has a different encryption key from the source snapshot is always a full snapshot.
+- 
+
+#### Workload characteristics questions
+
+- Is your workload more IOPS-intensive or throughput-intensive? If IOPS then SSD else then HDD.
+- Do the workload requirements exceed the maximum performance characteristics for a selected EBS volume type? If yes eliminate the volume type from consideration.
+- What is the application's latency sensitivity? If low up to 1 digit then io2 Provisioned IOPS. If single or two digits then gp3. if no latency requirements then HDD could be most cost effective choice.
+- Do you prefer to optimize for price or performance? When multiple types could satisfy the requirements.
 
 #### Volume types
 
 | Category | Type              | Description                                                                                                                                                        | Size             | Max IOPS per volume | Max throughput per volume | EBS Multi-attach |
 | -------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------- | ------------------- | ------------------------- | ---------------- |
-| SSD      | gp3               | Balance of price and performance for transactional workloads. Use cases like virtual desktops, test and development environments, interactive gaming applications. | 1 GiB - 16 TiB   | 16.000              | 1.000 MiB/s               | No               |
-| SSD      | gp2               | Balance of price and performance for transactional workloads. Use cases like virtual desktops, test and development environments, interactive gaming applications. | 1 GiB - 16 TiB   | 16.000              | 250 MiB/s                 | No               |
+| SSD      | gp3               | Balance of price and performance for transactional workloads. Use cases like virtual desktops, test and development environments, interactive gaming applications. | 1 GiB - 16 TiB   | 16.000 (3.000 min)  | 1.000 MiB/s               | No               |
+| SSD      | gp2               | Balance of price and performance for transactional workloads. Use cases like virtual desktops, test and development environments, interactive gaming applications. | 1 GiB - 16 TiB   | 16.000 (100 min)    | 250 MiB/s                 | No               |
 | SSD      | io2 Block Express | High performance designed for latency-sensitive transactional workloads. Use cases like SAP HANA, Microsoft SQL Server, and IBM DB2.                               | 4 GiB - 64 TiB   | 256.000             | 4.000 MiB/s               | Yes              |
 | SSD      | io2               | High performance designed for latency-sensitive transactional workloads. Use cases like SAP HANA, Microsoft SQL Server, and IBM DB2.                               | 4 GiB - 16 TiB   | 64.000              | 1.000 MiB/s               | Yes              |
 | SSD      | io1               | High performance designed for latency-sensitive transactional workloads. Use cases like SAP HANA, Microsoft SQL Server, and IBM DB2.                               | 4 GiB - 16 TiB   | 64.000              | 1.000 MiB/s               | Yes              |
 | HHD      | st1               | Low cost designed for frequently accessed, throughput intensive workloads                                                                                          | 125 GiB - 16 TiB | 500                 | 500 MiB/s                 | No               |
 | HHD      | sc1               | Lowest cost designed for less frequently accessed workloads                                                                                                        | 125 GiB - 16 TiB | 250                 | 250 MiB/s                 | No               |
+
+##### gp2 General Purpose SSD volumes
+
+- These volumes deliver single-digit millisecond latencies and the ability for smaller volumes to burst to 3,000 IOPS for extended periods of time.
+- Baseline performance scales linearly at 3 IOPS per GiB of volume size.
+- Performance ranges from a minimum of 100 IOPS at 33.33 GiB and below to a maximum of 16,000 IOPS at 5,334 GiB and above.
+- A flat-rate pricing model is based on the provisioned volume size.
+
+##### gp2 I/O burst credits and burst performance
+
+- I/O credits represent the available bandwidth that your gp2 volume can use to burst large amounts of I/O when more than the baseline performance is needed. 
+- Larger volumes have higher baseline performance levels and accumulate I/O credits faster.
+- Each volume receives an initial I/O credit balance of 5.4 million I/O credits, which is enough to sustain the maximum burst performance of 3,000 IOPS for at least 30 minutes.
+- gp2 volumes earn I/O credits at the baseline performance rate of 3 IOPS per GiB of provisioned volume size.
+- When your volume uses fewer I/O credits than it earns in a second, unused I/O credits are added to the I/O credit balance. 
+- When your volume requires more than the baseline performance I/O level, it draws on I/O credits in the credit balance to burst to the required performance level up to a maximum of 3.000 IOPS.
+- When the baseline performance of a volume is higher than maximum burst performance, I/O credits are never spent.  
+
+##### gp3 General Purpose SSD volumes
+
+- gp3 consistent baseline performance of 3.000 IOPS and 125 MB/s throughput is included with the price of storage.
+- The maximum ratio of provisioned IOPS to provisioned volume size is 500 IOPS per GiB up to 32 GiB.
+- The maximum ratio of provisioned throughput to provisioned IOPS is 0.25 MB/s per provisioned IOPS (with 8 GiB you reach the limit of 1000 MB/s).
+
+##### io1 and io2 Provisioned IOPS SSD volume comparison
+
+- Provisioned IOPS SSD volumes can range in size from 4 GiB to 16 TiB. You can provision 100–64.000 IOPS per volume on instances built on the Nitro System and up to 32.000 on other instances.
+- Provisioned IOPS SSD volumes provisioned with up to 32.000 IOPS support a maximum I/O size of 256 KiB and yield as much as 500 MiB/s of throughput. With the I/O size at the maximum, peak throughput is reached at 2.000 IOPS.
+- A volume provisioned with more than 32.000 IOPS (up to the cap of 64.000 IOPS) supports a maximum I/O size of 16 KiB and yields as much as 1.000 MiB/s of throughput.
+
+##### io1 and io2 Provisioned IOPS SSD volume differences
+
+- io2 durability is better than io1 (99.999 vs 99.8-99.9)
+- io1 are available to all EC2 instance types, io2 not for R5b.
+- The maximum ratio of provisioned IOPS to requested volume size (in GiB) is 50:1 for io1 volumes and 500:1 for io2 volumes.
+
+##### Throughput Optimized HDD (st1)
+
+- This volume type is a good fit for large, sequential workloads such as Amazon EMR, data warehouses, log processing, and extract, transform, and load (ETL) workloads.
+- Maximum IOPS is based on 1MB I/O size, with a baseline throughput of 40MB/s per TB of volume size for st1 volumes. 
+- Sustained throughput performance ranges from 5 MB/s at 125 GiB to a maximum of 500 MB/s at 12,775 GiB and above.
+- Baseline burst performance scales from 40 MB/s per TiB to 500 MB/s.
+- st1 volumes are designed to deliver their provisioned performance 90 percent of the time.
+- st1 volume size can range from 125 GiB to 16 TiB.
+- For a 1-TiB st1 volume, burst throughput is limited to 250 MB/s. Larger volumes scale these limits linearly with throughput capped at a maximum of 500 MB/s.
+- The bucket fills with credits at 40 MB/s, and it can hold up to 1 TiB of credits.
+- When the baseline performance of a volume is higher than maximum burst performance, I/O credits are never spent.
+
+##### Cold HDD (sc1)
+
+- Maximum IOPS is based on 1MB I/O size, with a baseline throughput of 12 MB/s per TB of volume size for sc1 volumes.
+- Sustained throughput performance ranges from 1.5 MB/s at 125 GiB to a maximum of 192 MB/s at 16,384 GiB.
+- Baseline burst performance scales from 12 MB/s per TiB to 250 MB/s.
+- sc1 volumes are designed to deliver their provisioned performance 90 percent of the time.
+- sc1 volume size can range from 125 GiB to 16 TiB.
+- For a 1-TiB st1 volume, burst throughput is limited to 80 MB/s. Larger volumes scale these limits linearly, with throughput capped at a maximum of 250 MB/s.
+- The bucket fills with credits at 12 MB/s, and it can hold up to 1 TiB of credits.
+
+##### Magnetic volumes
+
+- Magnetic is a previous-generation EBS volume type that is still in use in some customer production environments and available on AWS Management Console.
+- AWS recommends General Purpose SSD gp3 volumes for new workloads. gp3 volumes deliver higher performance and better consistency than Magnetic volumes.
+
+#### Amazon EBS metrics
+
+- All EBS volume types automatically send 1-minute metrics to CloudWatch.
+
+| Metric                     | Description                                                                                                                                                                                                                                                                                                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| VolumeReadBytes            | Provides information on the read operations in a specified period of time                                                                                                                                                                                                                                                                                          |
+| VolumeWriteBytes           | Provides information on the write operations in a specified period of time                                                                                                                                                                                                                                                                                         |
+| VolumeReadOps              | The total number of read operations in a specified period of time                                                                                                                                                                                                                                                                                                  |
+| VolumeWriteOps             | The total number of write operations in a specified period of time                                                                                                                                                                                                                                                                                                 |
+| VolumeTotalReadTime        | The total number of seconds spent by all read operations that completed in a specified period of time. If multiple requests are submitted at the same time, this total could be greater than the length of the period. (Not supported with multi-attach enabled volumes)                                                                                           |
+| VolumeTotalWriteTime       | The total number of seconds spent by all write operations that completed in a specified period of time. If multiple requests are submitted at the same time, this total could be greater than the length of the period. (Not supported with multi-attach enabled volumes)                                                                                          |
+| VolumeIdleTime             | The total number of seconds in a specified period of time when no read or write operations were submitted. (Not supported with multi-attach enabled volumes)                                                                                                                                                                                                       |
+| VolumeQueueLength          | The number of read and write operation requests waiting to be completed in a specified period of time.                                                                                                                                                                                                                                                             |
+| VolumeThroughputPercentage | Used with Provisioned IOPS SSD volumes only. The percentage of I/O operations per second (IOPS) delivered of the total IOPS provisioned for an Amazon EBS volume. (Not supported with multi-attach enabled volumes)                                                                                                                                                |
+| VolumeConsumedReadWriteOps | Used with Provisioned IOPS SSD volumes only. The total amount of read and write operations (normalized to 256K capacity units) consumed in a specified period of time.                                                                                                                                                                                             |
+| BurstBalance               | Used with General Purpose SSD (gp2), Throughput Optimized HDD (st1), and Cold HDD (sc1) volumes only. Provides information about the percentage of I/O credits (for gp2) or throughput credits (for st1 and sc1) remaining in the burst bucket. Data is reported to CloudWatch only when the volume is active. If the volume is not attached, no data is reported. |
+
+#### Amazon CloudWatch events for Amazon EBS
+
+- createVolume, deleteVolume, attachVolume, reattachVolume and modifyVolume
+- createSnapshot, createSnapshots, copySnapshot and shareSnapshot
 
 ### S3
 
