@@ -1099,11 +1099,11 @@ stateDiagram
 - The subnet that will be designated to your DB should not have access to internet.
 - Use Amazon RDS encryption to secure your DB instances and snapshots at rest.
 - Can scale components independently (memory, processor size, allocated storage, IOPS)
-
-#### Aurora
-
-- Scales up to 128 TiB
-- Supports PostgreSQL and MySQL
+- Online transaction processing (OLTP) databases focus on recording Update, Insertion, and Deletion data transactions. OLTP queries are simple and short, which requires less time and space to process.
+- The best practice to restrict access to your database is by placing it inside of a VPC.
+- Security groups are used to control access to a database instance. Amazon RDS can use three types of security groups: database, VPC, and EC2.
+- Data in transit is protected by SSL.
+- Amazon RDS uses the industry-standard AES-256 bit encryption algorithm to encrypt the data while at rest.
 
 #### Backup
 
@@ -1111,6 +1111,56 @@ stateDiagram
 - Setting automated backups to 0 days stops them and it will also delete all existing automated backups.
 - Point-in-time recovery provides more granularity by restoring the full backup an rolling back transactions up to the specified time range.
 - Manual snapshots can retain backups longe than 35 days. When restored, it creates a new DB instance using the data from the snapshot.
+
+#### Disaster recovery architecture
+
+- RDS or a lambda generate a snapshot and store it to S3
+- S3 storing generates an SNS event
+- The SNS event triggers a lambda that copies the snapshot to another bucket in a different AZ.
+
+#### Real-time data analytics architecture
+
+- The RDS can use stored procedures to integrate with lambda functions (for example trigger when a record is inserted).
+- The lambda function gathers the data and passes it to Kinesis Data Firehose.
+- Kinesis Data Firehose stores the data in S3.
+- Athena is used to query the records in S3 in real time.
+- QuickSight uses the results of Athena to build reports and dashboards (can refresh and load all new records in real time).
+
+### Aurora
+
+- Scales up to 128 TiB
+- Supports PostgreSQL and MySQL
+- Maintains 6 copies of data in 3 AZ and will automatically attempt to recover the database in a healthy AZ with no data loss.
+- You can create up to 15 read replicas that can serve read-only traffic as well as failover.
+- You can get five times the throughput of standard MySQL and three times the throughput of standard PostgreSQL.
+- Amazon Aurora Serverless is an on-demand, auto scaling configuration. It was designed to enable databases to run in the cloud without managing individual database instances.
+- Three ways that you can pay for your instance. On-Demand Instance pricing lets you pay for compute by the hour. Reserved Instance pricing lets you secure a one- or three-year contract in exchange for discounts over the On-Demand rates. Serverless pricing is based on capacity, because there are no instances to manage.
+- You pay for the storage and I/O, consumed by your database. Storage is billed per gigabyte per month, and the I/O is billed per million requests. There is no additional charge for the built-in backups. User-initiated backups, however, are billed per GB per month.
+- There is a charge for data transferred out to the internet and other AWS Regions. You never pay for data transfers between AWS services in the same Region.
+- Aurora supports two types of instances: memory-optimized and burstable performance. Memory-optimized instances are suitable for most Aurora databases. Burstable performance instances are best when your database may experience short-lived bursts of high activity.
+- The Amazon Aurora Global Database is a feature available for Aurora MySQL that allows a single Aurora database to span multiple AWS Regions.
+- The best practice to restrict access to your database is by placing it inside of a VPC.
+- Security groups are used to control access to a database instance. Can use three types of security groups: database, VPC, and EC2.
+- Data in transit is protected by SSL.
+- Amazon RDS uses the industry-standard AES-256 bit encryption algorithm to encrypt the data while at rest.
+
+#### Public source data ingestion architecture
+
+- Data is gathered from a website and sent to Kinesis Data Firehose.
+- Lambda takes the data from the data stream and transforms it before storing it in S3.
+- AWS DMS takes the data from the S3 and loads it into Aurora.
+
+#### Log analytics architecture
+
+- Aurora generate logs in CloudWatch.
+- Amazon Elasticsearch gathers data from CloudWatch and catalogs it, allowing to be visualized by Quicksight.
+- You can store the logs from CloudWatch to S3 and use Athena to query the data.
+
+### Redshift
+
+- Enterprise-level, petabyte scale, fully managed data warehousing service.
+- Online analytical processing (OLAP) databases store historical data that has been input by OLTP. OLAP databases allow users to view different summaries of multidimensional data. Using OLAP, you can extract information from a large database and analyze it for decision-making.
+- Run queries across petabytes of data in your Amazon Redshift data warehouse and exabytes of data directly from your data lake built on Amazon Simple Storage Service (Amazon S3) with Amazon Redshift Spectrum.
 
 ### DynamoDB
 
