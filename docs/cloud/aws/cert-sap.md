@@ -333,7 +333,7 @@ stateDiagram
 - Support for cloud bursting from your on-premises data repositories.
 - FSx for Lustre maintains read-after-write close consistency for file sharing for your high-performance computing workloads.
 - SSD storage is optimized for latency-sensitive workloads or workloads requiring the highest levels of IOPS and throughput.
-- HDD storage is optimized for throughput-focused workloads that aren’t latency-sensitive.
+- HDD storage is optimized for throughput-focused workloads that aren't latency-sensitive.
 - For HDD-based file systems, the optional SSD cache improves performance by placing your most frequently read data on SSD automatically.
 - The number of Amazon S3 PUT and GET requests to load and save your data are minimized retaining data used in FSx, which helps optimize costs.
 - You can launch and delete FSx for Lustre file systems in minutes.
@@ -366,7 +366,7 @@ stateDiagram
 
 - Administration: With FSx for ONTAP, you can use both AWS-native and NetApp management tools to set up, manage, and monitor your file systems.
 - Data migration: FSx for ONTAP fully supports NetApp SnapMirror replication. You can configure SnapMirror to replicate your files, file metadata, and file system configuration, in a matter of minutes.
-- Point-in-time, instantaneous cloning: FSx for ONTAP supports NetApp’s FlexClone feature, enabling you to create a clone of the volumes in your file system instantaneously.
+- Point-in-time, instantaneous cloning: FSx for ONTAP supports NetApp's FlexClone feature, enabling you to create a clone of the volumes in your file system instantaneously.
 
 ##### Accessibility
 
@@ -404,7 +404,7 @@ stateDiagram
 
 ##### Security and Compliance
 
-- Network isolation: You access your FSx for ONTAP file system from the Amazon VPC that it’s associated with, or from any network that you peer with your VPC. You can also optionally use ONTAP export policies to configure which clients can read and write to the volumes.
+- Network isolation: You access your FSx for ONTAP file system from the Amazon VPC that it's associated with, or from any network that you peer with your VPC. You can also optionally use ONTAP export policies to configure which clients can read and write to the volumes.
 - Resource-level permissions: FSx for ONTAP is integrated with IAM. You can also tag your Amazon FSx for NetApp ONTAP resources and control the actions that your IAM users and groups can take based on those tags.
 - Identity-based authentication: FSx for ONTAP supports identity-based authentication over NFS or SMB if you join your file system to an Active Directory (AD). Your users can then use their existing AD-based user identities to authenticate themselves. Once authenticated, users can access the ﬁle system and control access to individual files and folders.
 - Encryption: All data is automatically encrypted using KMS. Also supports Kerberos-based encryption in transit if you join your file system to Active Directory.
@@ -1049,7 +1049,7 @@ stateDiagram
 
 - Includes CloudEndure Migration, is a highly automated lift-and-shift (rehost) solution.
 - You can use AWS MGN or CloudEndure Migration by itself to quickly lift-and-shift physical, virtual, or cloud servers without compatibility issues, performance impact, or long cutover windows.
-- Continuously replicates your source servers to your AWS account. When you’re ready to migrate, it automatically converts and launches your servers on AWS.
+- Continuously replicates your source servers to your AWS account. When you're ready to migrate, it automatically converts and launches your servers on AWS.
 - AWS MGN provides similar capabilities as CloudEndure Migration, but it is available on the AWS Management Console.
 - Replication Agent on your source servers continuously replicates the data to staging EBS. When you launch test or cutover instances, converts your source servers to run natively on AWS.
 - For each source server you have a free period of 2.160 hours (90 days). Then your are charged per hour.
@@ -1085,10 +1085,23 @@ stateDiagram
 
 ## Databases
 
+### Server based vs serverless
+
+#### Server based
+
+- Amazon RDS: AWS manages the entire process of database configuration, management and maintenance.
+- EC2: Full control.
+
+#### Serverless
+
+- Amazon DynamoDB
+- Amazon Aurora Serverless
+
 ### Amazon RDS
 
 - Relational databases.
 - Supports MySql, PostgreSQL, MariaDB, SqlServer, Oracle
+- Offers On-Demand and Reserved instance types.
 - Multi-AZ deployment is recommended.
 - Multi-AZ provides automatic failover and protect DB performance by backing up from the standby instance.
 - When you create a DB instance, a Domain Name System (DNS) name is provided. AWS uses that DNS name to fail over to the standby database.
@@ -1130,6 +1143,7 @@ stateDiagram
 
 - Scales up to 128 TiB
 - Supports PostgreSQL and MySQL
+- Offers On-Demand, Reserved and serverless pricing methods.
 - Maintains 6 copies of data in 3 AZ and will automatically attempt to recover the database in a healthy AZ with no data loss.
 - You can create up to 15 read replicas that can serve read-only traffic as well as failover.
 - You can get five times the throughput of standard MySQL and three times the throughput of standard PostgreSQL.
@@ -1161,28 +1175,66 @@ stateDiagram
 - Enterprise-level, petabyte scale, fully managed data warehousing service.
 - Online analytical processing (OLAP) databases store historical data that has been input by OLTP. OLAP databases allow users to view different summaries of multidimensional data. Using OLAP, you can extract information from a large database and analyze it for decision-making.
 - Run queries across petabytes of data in your Amazon Redshift data warehouse and exabytes of data directly from your data lake built on Amazon Simple Storage Service (Amazon S3) with Amazon Redshift Spectrum.
+- Data is indexed using columnar indexing.
+- With Concurrency Scaling, you can support virtually unlimited concurrent users and concurrent queries. When enabled, Amazon Redshift automatically adds additional cluster capacity when you need it to process an increase in concurrent read queries. When the demand decreases, the additional capacity is removed.
+- Internally Amazon Redshift is broken down into nodes. There is a single leader node and several compute nodes. Clients access Amazon Redshift via a SQL endpoint on the leader node. The client sends a query to the endpoint. You can use any application that uses an industry standard JDBC or ODBC driver for PostgreSQL.
+- The leader node creates jobs based on the query logic and sends them in parallel to the compute nodes. The compute nodes contain the actual data the queries need. The compute nodes find the required data, perform operations, and return results to the leader node. The leader node then aggregates the results from all of the compute nodes and sends a report back to the client.
+-  Compute nodes partition the job into slices. Each slice is allocated a portion of the node's memory and disk space. It is in these slices where the node processes its assigned portion of the job.
+- You start by choosing the cluster node types that meet your needs. Each cluster node includes memory, storage, and I/O. The node type is billed per hour. There are four pricing types.
+- On-Demand pricing has no upfront costs. You simply pay an hourly rate based on the type and number of nodes in your cluster.
+- With Concurrency Scaling pricing, you simply pay a per-second on-demand rate for usage that exceeds the free daily credits. Each cluster earns up to one hour of free Concurrency Scaling credits per day, which is sufficient for most customers.
+- Reserved Instance pricing enables you to save up to 75 percent over On-Demand rates by committing to using Amazon Redshift for a 1- or 3-year term.
+- Amazon Redshift Spectrum pricing is applied when you begin using this feature. In addition to the cluster pricing, you pay for the number of bytes scanned on Amazon S3.
+- There is no charge for data transferred between Amazon Redshift and Amazon S3 within the same AWS Region for backup, restore, load, and unload operations. For all other data transfers, you are billed using the standard AWS data transfer rates.
 
 ### DynamoDB
 
-- NoSQL.
-- Serverless.
+- NoSQL that combines the types of document store and key-value database.
+- A database that can easily scale over time to meet the changing demands of online activity. One that can support ACID compliance, encryption at rest, and point-in-time recovery.
+- It's a fully managed, serverless service that only requires you to provide the capacity your application requires.
+- The service stores data in the form of tables, items, and attributes. When you create a table, you define a partition key attribute to uniquely identify each item in that table. This way, no two items can have the same key. You can also assign other attributes, like a sort key attribute.
+- DynamoDB charges for reading, writing, and storing data, along with any optional features you choose to enable.
+- In on-demand capacity mode, you are billed for each read and write that your application performs. Best for new tables with unknown workloads or unpredictable traffic.
+- In provisioned capacity mode, you specify the number of reads and writes per second that you expect your application to require. You then use auto scaling to tell DynamoDB to automatically adjust your table's capacity within those limits. Best for predictable application traffic or consistent traffic that ramps up or down gradually. 
 - For high-scale applications and serverless applications.
 - Work for nearly all online transaction processing (OLTP).
-- Pricing by reads and writes.
-- Create tables to store data.
-- A table contain items.
-- Each item can have different attributes.
 - Scale up/down the tables throughput without downtime or performance degradation.
 - Monitor resource usage and performance metrics.
 - All the data is automatically replicated across multiple AZ in a region.
-- All data is fully encrypted at rest (using KMS).
-- IAM can control permissions at item level.
+- You can replicate tables across multiple AWS Regions.
 - When activity occurs, is recorded in a CloudTrail event. For an ongoing record of events you can create a trail to deliver log files to S3.
+- DynamoDB uses partition keys to find each item in the database. Data is distributed on physical storage nodes. DynamoDB uses the partition key to determine which of those nodes the item is located on.
+- DynamoDB items can have an optional sort key to store related attributes in a sorted order. This allows multiple items to be queried as a collection, which simplifies access patterns.
+- Each table has a primary key, which represents the table's key or keys. If there is no sort key, the primary and partition keys are the same. If there is a sort key, the primary key is a combination of the partition and sort keys called a composite primary key.
+- You can have a table without an index.
+- DynamoDB has two types of secondary indexes: local and global.
+- A local secondary index uses the table’s partition key with a unique sort key. You are allowed five per table. Local indexes must be created when you create the table.
+- A global secondary index uses a partition key and sort key that can be different from those on the table. This allows you to model very complex data access patterns that differ from the original table. You are allowed up to 20 global indexes per table. Global indexes can be created and edited at any time.
+- IAM allows you to control access at the table and item levels.
+- DynamoDB provides end-to-end enterprise-grade encryption for data that is both in transit and at rest. All DynamoDB tables have encryption at rest enabled by default. This provides enhanced security by encrypting all your data using encryption keys stored in the AWS Key Management System.
+- You can use Amazon DynamoDB Accelerator (DAX), which is an in-memory store for DynamoDB, without the need to modify application logic.
+
+#### Mobile application backend architecture
+
+- Mobile app send requests to api gateway that is linked to a lambda function.
+- Lambda uses DynamoDB to search friend list of users and send notifications via SNS.
+
+#### IoT sensor data capture architecture
+
+- Lambda function reads events from SQS queue and stores them to DynamoDB.
+- Amazon EMR gathers data from DynamoDB and stores it in S3.
+- Amazon Athena is used to query the data in S3.
 
 ### ElastiCache
 
 - Caching solution.
-- Supports Redis and Memcached.
+- Supports Valkey, Redis and Memcached.
+- ElastiCache is a popular choice for gaming, advertising technology (ad tech), financial service, healthcare, and Internet of Things (IoT) apps.
+- Amazon ElastiCache offers a fast, in-memory data store to power live streaming use cases.
+
+### Elasticsearch Service (EDS)
+
+- Elasticsearch like service offering full-text search.
 
 ### MemoryDB
 
@@ -1203,7 +1255,21 @@ stateDiagram
 ### Neptune
 
 - Graph database.
-- Often used for recommendation engines, fraud detection and knowledge graphs.
+- Often used for recommendation engines, social network, fraud detection and knowledge graphs.
+- Supports Gremlin (Apache TinkerPop), openCypher and RDF/SPARQL.
+- Neptune uses database instances. Of these, the primary database instance supports read and write operations and performs all the data modifications to the cluster volume. There can only be one primary database instance.
+- Neptune also uses replicas. A Neptune replica connects to the same storage volume as the primary database instance and only supports read-only operations. There can be up to 15 of these replicas.
+- Neptune uses a cluster volume. The cluster volume is where Neptune data is stored. It is designed for reliability and high availability. The cluster volume consists of copies of the data across multiple Availability Zones in a single Region.
+- A cluster endpoint connects to the current primary database instance for the database cluster. There is only one cluster endpoint.
+- A reader endpoint connects to one of the available Neptune replicas. Each replica has its own endpoint.
+- An instance endpoint connects to a specific database instance. Each database instance in a database cluster has its own unique instance endpoint. The instance endpoint provides direct control over connections to the DB cluster.
+- Your data at rest in the database is encrypted using the industry standard AES-256 bit encryption algorithm on the server that hosts your Neptune instance. Keys can also be used, which are managed through AWS Key Management Service (AWS KMS).
+- Can be configured to use IAM DB authentication (manage database user credentials through IAM users and roles).
+- You can load data in it from S3 (calling the loader in the api).
+- You pay for the instance hosting the databases, known as an On-Demand Instance. You pay for your database by the hour with no long-term commitments or upfront fees.
+- You pay for the storage consumed by your database. This is billed per gigabyte per month, and the first 50 gigabytes of backup storage is offered at no cost.
+- You pay for the number of requests to the database.
+- You pay for the amount of data transferred out of the database. You never pay for moving data into your database.
 
 ### Amazon Timestream
 
@@ -1214,6 +1280,18 @@ stateDiagram
 
 - Immutable ledger.
 - Provides a complete and cryptographically verifiable history of all changes.
+
+### AWS DMS (Database Migration Service)
+
+- Helps you migrate databases to AWS efficiently and securely.
+- The source database can remain fully operational during the migration, minimizing downtime to applications.
+- At its most basic level, AWS DMS is an instance in the AWS Cloud that runs replication software.
+- You detect the source and target connections, and create the EC2 instance, then execute the job.
+- You can migrate the schema or only the data.
+- Supports homogeneous migrations such as Oracle to Oracle as well as heterogeneous migrations between different database engines, such as Oracle to MySQL.
+- Where you migrate between different database engines, require the use of the AWS Schema Conversion Tool (AWS SCT) to first translate your database schema to the new platform. You can then use AWS DMS to migrate the data. It is important to understand that AWS DMS and SCT are two different tools that serve different needs.
+- DMS: Loads the tables with data without any foreign keys or constraints.
+- SCT: Schema conversion, generate target schema including foreign keys and constraints, and converts code like procedures and views.
 
 ## Monitoring
 
