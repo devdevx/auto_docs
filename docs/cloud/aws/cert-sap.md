@@ -1229,8 +1229,17 @@ stateDiagram
 
 - Caching solution.
 - Supports Valkey, Redis and Memcached.
+- Two common approaches to caching are lazy loading and write-through. Lazy loading is reactive. Data is put into the cache the first time it is requested. Write-through is proactive. Data is put into the cache at the same time it is put into the database.
+- Redis supports complex data types, data replication, and high availability. This makes it ideal for session caching, full-page caching, message queue applications, leaderboards, and much more.
+- Memcached is for data that is relatively small and static. For example, a static HTML page or JavaScript and CSS files.
 - ElastiCache is a popular choice for gaming, advertising technology (ad tech), financial service, healthcare, and Internet of Things (IoT) apps.
-- Amazon ElastiCache offers a fast, in-memory data store to power live streaming use cases.
+- On-Demand Nodes let you pay for memory capacity by the hour with no long-term commitments. Pricing is per node-hour consumed, from the time you launch a node until you terminate it.
+- Reserved Nodes enable you to save up to 75 percent over On-Demand rates by committing to using ElastiCache for a 1- or 3-year term.
+- ElastiCache provides storage for one database snapshot at no charge. Each additional snapshot is charged per gigabyte per month.
+- You are only charged for the data transfer in or out of the Amazon EC2 instance. There is no ElastiCache data transfer charge for traffic in or out of the ElastiCache node itself.
+- On-premises servers can use ElastiCache provided that there is connectivity between your VPC and data center through either a VPN or AWS Direct Connect.
+- ElastiCache for Redis supports encryption at rest and in transit. Using the Redis AUTH feature, ElastiCache can also authenticate clients. This version of ElastiCache has versions that are compliant with HIPAA, FedRAMP, and PCI DSS.
+- Amazon ElastiCache offers a fast, in-memory data store to power live streaming use cases or distributed cached sessions.
 
 ### Elasticsearch Service (EDS)
 
@@ -1245,8 +1254,13 @@ stateDiagram
 ### DocumentDB
 
 - Document database.
+- Fully-managed database service that provides high throughput and low latency for document queries.
 - Compatible with MongoDB.
-- For use cases like content management sysems, profile management, web and mobile applications.
+- On-Demand Instances let you pay by the second. Pricing is per instance-hour or per partial instance-hour consumed from the time you launch an instance until you delete it. Storage auto scales from 10GB up to 64TB with no interaction necessary. You only pay for what you consume, and your cluster is billed in per gigabyte per month increments.
+- Automatic, continuous, and incremental backups and point-in-time restore. There is no additional charge for backup storage of up to 100% of your total Amazon DocumentDB cluster storage for a Region. Additional backup storage is billed in per GB-months.
+- Also billed for IOPS (Input/Output Operations Per Second) are pay as you go, and IOPS consumed are billed in per million request increments. There is no charge for data transferred into your Amazon DocumentDB database. Data transferred out of the database is charged per gigabyte per month.
+- The cluster's data is stored in the cluster volume, which stores six copies of your data across three different Availability Zones.
+- For use cases like content management systems, profile management, web and mobile applications.
 
 ### Amazon Keyspaces (for Apache Cassandra)
 
