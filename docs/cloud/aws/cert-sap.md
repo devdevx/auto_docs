@@ -12,12 +12,41 @@
 
 ## Networking
 
+### IPv4
+
+#### Public
+
+- Class A: 0.0.0.0 to 127.255.255.255 (2.1 billion)
+- Class B: 128.0.0.0 to 191.255.255.255 (1 billion)
+- Class C: 192.0.0.0 to 223.255.255.255 (2 million)
+- Class D
+- Class E
+
+#### Private
+
+- Class A: 10.0.0.0 to 10.255.255.255
+- Class B: 172.16.0.0 to 172.31.255.255 (16 ranges)
+- Class C: 192.168.0.0 to 192.168.255.255 (256 ranges)
+
+- The default VPC is configured using a Class B range.
+
+### OSI model
+
+- 1 - Physical: Cables.
+- 2 - Data link: Frames and MACs.
+- 3 - Network: IP.
+- 4 - Transport: Ports, segments, retransmission and flow control.
+- 5 - Session: Communication session between nodes.
+- 6 - Presentation: Data representation and encryption.
+- 7 - Application: Level 7 protocols (HTTP, SMTP, FTP, web-browsing, REST).
+
 ### VPC
 
 - Every region have a default vpc (is open to internet).
 - You choose your network size by using CIDR notation. In AWS, the smallest IP range you can have is /28, which provides 16 IP addresses. The largest IP range you can have is a /16, which provides 65,536 IP addresses.
 - You define subnets inside a vpc in an AZ and in a IP range.
 - A VPC can have connection to internet by internet gateway.
+- When an internet gateway is attached to a subnet, it creates a public subnet by performing a type of Network Address Translation (NAT) called static NAT. The internet gateway will allocate a resource with a public IPv4 IP address. 
 - A VPC can connect to a on-premise data center using a vpn using a Virtual Private Gateway.
 - To maintain redundancy and fault tolerance, create at least two subnets configured in two Availability Zones.
 - AWS reserves five IP addresses in each subnet. (0 - Network address, 1 - VPC local router, 2 - DNS server, 3 - for future use, 255 - broadcast)
@@ -26,16 +55,28 @@
 
 - When creating a VPC a main route table is created (you can not delete it).
 - You can create a custom route table and associate to the desired subnets.
+- A subnet can only have one route table associated with it at a time, but you can use one route table for many different subnets in your Amazon VPC.
 
 #### Security
 
-- Network ACLs: Firewall at subnet level (sateless resources, you have to configure in and out rules, for each port and ip ranges). By default configured to allow all traffic.
+- Network ACLs: Firewall at subnet level (sateless resources, you have to configure in and out rules, for each port and ip ranges). By default configured to allow all traffic. is stateless.
 - Security Groups: Firewalls that exists at EC2 instance level (stateful resources, so no need to define out rules). By default only allows outbound traffic.
 
-### AWS Direct connect
+#### AWS Networking Gateways
 
-- Your internal network is linked to an AWS Direct Connect location over a standard Ethernet fiber-optic cable. 
-- This connection allows you to create virtual interfaces directly to public AWS services or to your VPC.
+- Internet gateway is an Amazon VPC component that allows communication between your computer and the internet. Applications include, Elastic Load Balancers, Amazon EC2 instances, Amazon S3, AWS Lambda and so on.
+- Customer Gateway is a physical or software appliance that you own or manage in your on premises network. Applications include manages routing to and from your environment.
+- VPN Gateway is the gateway on the AWS side of site-to-site VPN connection. Applications include Amazon EC2 instances, Amazon S3, Amazon RDS< Amazon Lambda, and so on.
+- Direct Connect Gateway establishes connectivity that spans Amazon VPCs spread across multiple AWS Regions. Applications include Amazon EC2 instances, Amazon RDS, AWS Lambda, and so on.
+- NAT Gateway is a network address translation service that enables instances in a private subnet to connect to services outside your VPC. Applications include Amazon EC2 instances, Amazon RDS, AWS Lambda, and so on.
+- AWS Transit Gateway connects Amazon VPCs, AWS accounts, and on premises networks to a single gateway. Applications include Amazon VPC connections, AWS VPN connection, AWS Direct Connect.
+- Virtual gateway allows resources that are outside of your mesh network to communicate to resources that are inside. Applications include Amazon EC2, Amazon ECS, and Amazon EKS.
+
+#### VPC peering
+
+
+
+![](cert-sap/VPC.png)
 
 ### ELB (Elastic Load Balancer)
 
@@ -79,9 +120,71 @@
 - Automatically provides a static IP address per AZ.
 - Lets users assign a custom, fixed IP address per AZ.
 
+### AWS Transit Gateway
+
+TODO
+
+### AWS PrivateLink
+
+TODO
+
+### AWS Direct Connect
+
+- Your internal network is linked to an AWS Direct Connect location over a standard Ethernet fiber-optic cable. 
+- This connection allows you to create virtual interfaces directly to public AWS services or to your VPC.
+TODO
+
+### AWS Site-to-Site VPN
+
+TODO
+
+### AWS Client VPN
+
+TODO
+
+### AWS Cloud WAN
+
+TODO
+
+### AWS App Mesh
+
+TODO
+
+### Amazon API Gateway
+
+TODO
+
+### AWS Cloud Map
+
+TODO
+
+### CloudFront
+
+TODO
+
 ### Route 53
 
+TODO
 
+### Global Accelerator
+
+TODO
+
+### AWS Shield
+
+TODO
+
+### AWS WAF
+
+TODO
+
+### AWS Network Firewall
+
+TODO
+
+### AWS Firewall Manager
+
+TODO
 
 ## Compute
 
@@ -94,6 +197,8 @@
 - For a team with an existing monolithic app the recommended solution is Elastic Beanstalk.
 
 ### AWS App Runner
+
+TODO
 
 ### EC2
 
@@ -258,7 +363,11 @@ stateDiagram
 
 ### Serverless Application Repository
 
+TODO
+
 ### AWS SimSpace Weaver
+
+TODO
 
 ## Storage
 
@@ -1195,7 +1304,7 @@ stateDiagram
 - The service stores data in the form of tables, items, and attributes. When you create a table, you define a partition key attribute to uniquely identify each item in that table. This way, no two items can have the same key. You can also assign other attributes, like a sort key attribute.
 - DynamoDB charges for reading, writing, and storing data, along with any optional features you choose to enable.
 - In on-demand capacity mode, you are billed for each read and write that your application performs. Best for new tables with unknown workloads or unpredictable traffic.
-- In provisioned capacity mode, you specify the number of reads and writes per second that you expect your application to require. You then use auto scaling to tell DynamoDB to automatically adjust your table's capacity within those limits. Best for predictable application traffic or consistent traffic that ramps up or down gradually. 
+- In provisioned capacity mode (default and eligible for free tier), you specify the number of reads and writes per second that you expect your application to require. You then use auto scaling to tell DynamoDB to automatically adjust your table's capacity within those limits. Best for predictable application traffic or consistent traffic that ramps up or down gradually. 
 - For high-scale applications and serverless applications.
 - Work for nearly all online transaction processing (OLTP).
 - Scale up/down the tables throughput without downtime or performance degradation.
@@ -1213,6 +1322,105 @@ stateDiagram
 - IAM allows you to control access at the table and item levels.
 - DynamoDB provides end-to-end enterprise-grade encryption for data that is both in transit and at rest. All DynamoDB tables have encryption at rest enabled by default. This provides enhanced security by encrypting all your data using encryption keys stored in the AWS Key Management System.
 - You can use Amazon DynamoDB Accelerator (DAX), which is an in-memory store for DynamoDB, without the need to modify application logic.
+- DynamoDB Streams (Kinesis Data Streams) is an optional feature that captures data modification events in DynamoDB tables. Events are generated when a new item is added, and item is updated (the stream captures the before and after image of any attribute that were modified) or an item is deleted (the stream captures an image of the entire item before deletion). Each stream record also contains the name of the table, event timestamp, and other metadata. Each event has a 24h lifetime.
+- One read capacity unit (RCU) represents one strongly consistent read per second, or two eventually consistent reads per second, for an item up to 4 KB in size. Transactional read requests require two RCUs to perform one read per second for items up to 4 KB. If you need to read an item that is larger than 4 KB, DynamoDB must consume additional RCUs.
+- One write capacity unit (WCU) represents one write per second for an item up to 1 KB in size. If you need to write an item that is larger than 1 KB, DynamoDB must consume additional WCUs. Transactional write requests require two WCUs to perform one write per second for items up to 1 KB.
+- Throttling is the action of limiting the number of requests that a client can submit to a given operation in a given amount of time.
+- The size of the table is not updated in real time and can take up to 6 hours for the value to update.
+- Table class is either DynamoDB Standard or DynamoDB Standard-IA.
+- Using Time to Live (TTL), you can define a per-item timestamp to determine when an item is no longer needed. Shortly after the date and time of the specified timestamp, DynamoDB deletes the item from your table without consuming any write throughput.
+- CloudTrail captures all API calls for DynamoDB as events (if you create a trail, they are stored in S3, if not you can view the last ones).
+
+#### Monitoring Cloudwatch events
+
+| **Account Metric**                                      | **Unit** | **Description**                                                                                           |
+|--------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------------|
+| `AccountMaxReads`                               | Count    | The maximum number of read capacity units that can be used by an account                                  |
+| `AccountMaxWrites`                              | Count    | The maximum number of write capacity units that can be used by an account                                 |
+| `AccountMaxTableLevelReads`                     | Count    | The maximum number of read capacity units that can be used by a table or global secondary index           |
+| `AccountMaxTableLevelWrites`                    | Count    | The maximum number of write capacity units that can be used by a table or global secondary index          |
+| `AccountProvisionedReadCapacityUtilization`     | Percent  | The percentage of provisioned read capacity units used by an account                                      |
+| `AccountProvisionedWriteCapacityUtilization`    | Percent  | The percentage of provisioned write capacity units used by an account                                     |
+| `MaxProvisionedTableReadCapacityUtilization`    | Percent  | The percentage of provisioned read capacity units used by the highest provisioned read table or GSI       |
+| `MaxProvisionedTableWriteCapacityUtilization`   | Percent  | The percentage of provisioned write capacity units used by the highest provisioned write table or GSI     |
+| `UserErrors`                                    | Count    | Requests to DynamoDB or Streams that return an HTTP 400 error during the specified time period            |
+
+| **Table Metric**                          | **Unit** | **Description**                                                                                   |
+|------------------------------------|----------|---------------------------------------------------------------------------------------------------|
+| `ConsumedReadCapacityUnits`        | Count    | The number of read capacity units consumed over the specified time period                         |
+| `ConsumedWriteCapacityUnits`       | Count    | The number of write capacity units consumed over the specified time period                        |
+| `ProvisionedReadCapacityUnits`     | Count    | The number of provisioned read capacity units for a table or a global secondary index             |
+| `ProvisionedWriteCapacityUnits`    | Count    | The number of provisioned write capacity units for a table or a global secondary index            |
+
+
+| **Table Operation Metric**                | **Unit**      | **Description**                                                                                                  |
+|--------------------------|---------------|------------------------------------------------------------------------------------------------------------------|
+| `ReturnedItemCount`      | Count         | The number of items returned by `Query`, `Scan`, or `ExecuteStatement (select)` operations during the time period |
+| `SuccessfulRequestLatency` | Milliseconds | The elapsed time for successful requests to DynamoDB or DynamoDB Streams during the specified time period        |
+
+- The DynamoDB dashboard provides a list of the custom alarms created.
+- When you turn on auto scaling for a table, DynamoDB automatically creates several alarms that can launch auto scaling actions.
+- If you set up CloudWatch Contributor Insights for DynamoDB on a table or global secondary index, you can determine the most accessed and throttled items in those resources. It creates by default 4 rules: most accessed items (partition key and partition and sort keys) and most throttled keys (partition key and partition and sort keys).
+
+#### Troubleshooting
+
+##### Troubleshooting DynamoDB Tables That Are Throttled
+
+###### Common throttling issues
+
+- Your DynamoDB table has adequate provisioned capacity, but most of the requests are being throttled.
+- You activated AWS Application Auto Scaling for DynamoDB, but your DynamoDB table is being throttled.
+- Your DynamoDB table is in on-demand capacity mode, but the table is being throttled.
+- You have a hot partition in your table.
+
+###### Metrics to examine
+
+- OnlineIndexThrottleEvents
+- ReadThrottleEvents
+- ThrottledPutRecordCount
+- ThrottledRequests
+- WriteThrottleEvents
+
+###### Cause 1: Table has enough provisioned capacity, but most requests are throttled
+
+- DynamoDB reports minute-level metrics to CloudWatch. The metrics are calculated as the sum for a minute, and then are averaged. However, the DynamoDB rate limits are applied per second. If all the workload falls within a couple of seconds, then the requests might be throttled.
+- Solution: Add jitter and exponential backoff to your API calls.
+
+###### Cause 2: Application Auto Scaling is set up, but your table is still throttled
+
+- Application Auto Scaling is not a suitable solution to address sudden spikes in traffic with DynamoDB tables. It only initiates a scale-up when two consecutive data points for consumed capacity units exceed the configured target utilization value in a 1-minute span.
+- Solution: If you use DynamoDB for a service that receives requests with several peak times and abrupt workload spikes, you too can benefit from switching the capacity mode from provisioned to on demand.
+
+###### Cause 3: Your table uses the on-demand capacity mode but is still throttled
+
+- When the table uses the on-demand capacity mode, the table doesn't throttle as long as the following conditions are true: the access pattern is distributed evenly across partitions to avoid issues related to a hot partition and the table doesn't exceed double its previous peak traffic within a span of 30 minutes.
+- For new on-demand tables, you can immediately drive up to 4,000 write request units or 12,000 read request units, or any linear combination of the two. For an existing table that you switched to on-demand capacity mode, the previous peak is half the previous provisioned throughput for the table—or the settings for a newly created table with on-demand capacity mode, whichever is higher.
+- Solution: Apply a strategy to avoid creating hot partitions such as distributing the read and write operations as evenly as possible across your table.
+
+###### Cause 4: You have a hot partition in your table
+
+- A partition key that doesn't have a high cardinality can result in many requests targeting only a few partitions and resulting in a hot partition. A hot partition can cause throttling if the partition limits of 3000 read capacity units (RCU) or 1000 write capacity units (WCU) (or a combination of both) per second are exceeded.
+- Solution: To avoid this poor performance, distribute the read and write operations as evenly as possible across your table.
+
+##### Troubleshooting DynamoDB Latency
+
+###### Metrics to examine
+
+- SuccessfulRequestLatency
+
+###### Solutions
+
+- Reduce the request timeout settings to fail much faster using the SDK. This causes the client to abandon high-latency requests after the specified time period and then send a second request that usually completes much faster than the first.
+- Reduce distance between client and DynamoDB endpoint.
+- Use caching: If your traffic is read heavy, consider using a caching service such as Amazon DynamoDB Accelerator (DAX). DAX is a fully managed, highly available in-memory cache for DynamoDB that can help improve performance from milliseconds to microseconds, even at millions of requests per second.
+- Send constant traffic or reuse connections: When you are not making requests, consider having the client send dummy traffic to a DynamoDB table. You can also reuse client connections or try connection pooling. All of these techniques keep internal caches warm, which can help keep latency low.
+- Use eventually consistent reads: If your application doesn't require strongly consistent reads, consider using eventually consistent reads. Eventually consistent reads are cheaper and are less likely to experience high latency.
+
+##### Troubleshooting Issues with DynamoDB Auto Scaling not working properly
+
+- Don't delete CloudWatch alarms
+- DynamoDB might not handle short activity spikes
+- Set the billing mode to PAY_PER_REQUEST if the traffic is frequently unpredictable
 
 #### Mobile application backend architecture
 
@@ -1294,6 +1502,20 @@ stateDiagram
 
 - Immutable ledger.
 - Provides a complete and cryptographically verifiable history of all changes.
+- The journal provides immutability and verifiability by storing a log of each transaction in a sequenced way, using cryptographic techniques. Once the data is written to the journal, it is materialized into your tables, allowing for faster and more efficient queries. Uses a cryptographic hash function--in this case SHA-256.
+- Serverless, you don’t have to worry about provisioning capacity or configuring read and write limits.
+- Amazon QLDB supports PartiQL, a new open standard query language. With PartiQL, you can easily query, manage, and access the entire data and change history using familiar SQL operators.
+- Use cases: finance and insurance.
+- You are billed for read/write input and output (IO) requests, data transfer, journal storage, and indexed storage.
+- Storage consumed by your Amazon QLDB ledger is billed per GB per month, and IOs consumed are billed per million requests.
+- Amazon QLDB's ledger is deployed across multiple Availability Zones with multiple copies per Availability Zone. AWS maintains redundancy within the Region and ensures full recoverability from Availability Zone failures. A write is acknowledged only after being written to multiple Availability Zones, and hence, Amazon QLDB is strongly durable.
+- A ledger consists of a set of tables and a journal that maintains the complete, immutable history of changes to the tables.
+- Tables exist within a ledger and contain a collection of document revisions. This can include a record of the deletion of a document.
+- Documents exist within tables and must be in Amazon Ion form. Ion is a superset of JSON that adds additional data types, type annotations, and comments. Amazon QLDB supports documents that contain nested JSON elements and gives you the ability to write queries that reference and include these elements.
+- The journal consists of a sequence of blocks, each cryptographically chained to the previous block so that changes can be verified. Blocks, in turn, contain the actual changes that were made to the tables, indexed for efficient retrieval. The journal represents a complete and immutable history of all the changes to your ledger data.
+- The user view shows the latest revision, or version, of your data.
+- The committed view includes everything from the user view plus access to system-generated metadata (blockAddress, hash, metadata (document id, document version, transaction time, transaction id)).
+- The history view is a little different from the others. It's generated by running a history function in the query. The view returned is a combination of all recorded revisions of the document based on the committed view. This means you'll have access to the history as well as the document’s metadata.
 
 ### AWS DMS (Database Migration Service)
 
@@ -1324,6 +1546,10 @@ stateDiagram
 - A log group is composed of log streams that all share the same retention and permissions settings.
 - Log events are grouped into log streams, which are sequences of log events that all belong to the same resource being monitored.
 - A log event is a record of activity recorded by the application or resource being monitored.
+
+### CloudTrail
+
+TODO
 
 ## Other
 
