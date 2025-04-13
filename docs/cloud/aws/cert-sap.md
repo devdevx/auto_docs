@@ -47,20 +47,72 @@
 - You define subnets inside a vpc in an AZ and in a IP range.
 - A VPC can have connection to internet by internet gateway.
 - When an internet gateway is attached to a subnet, it creates a public subnet by performing a type of Network Address Translation (NAT) called static NAT. The internet gateway will allocate a resource with a public IPv4 IP address. 
-- A VPC can connect to a on-premise data center using a vpn using a Virtual Private Gateway.
+- A VPC can connect to a on-premise data center using a vpn using a Virtual Private Gateway (Add in the private routing table the IP range from your datacenter to access the VGW).
 - To maintain redundancy and fault tolerance, create at least two subnets configured in two Availability Zones.
 - AWS reserves five IP addresses in each subnet. (0 - Network address, 1 - VPC local router, 2 - DNS server, 3 - for future use, 255 - broadcast)
+- The default Amazon VPC IPv4 CIDR,172.31.0.0/16, is always the same, and is designed and configured the same too.
+- The Amazon VPC IPv6 CIDR for your subnet range is /64, and the Amazon VPC CIDR range is /56.
+- Tenancy: if dedicated forces all instances to be physically isolated.
+- Design your Amazon VPC implementation based on your expansion requirements, looking ahead at least two years.
+- Recommend to use a separate Amazon VPCs for development, production, and staging environments.
+- Depending on your solution, your data-tier subnets are likely to need more IP addresses than your public subnets, but fewer than your application-tier subnets.
+
+![](cert-sap/vpc-networking.png)
 
 #### Routing
 
 - When creating a VPC a main route table is created (you can not delete it).
 - You can create a custom route table and associate to the desired subnets.
+- A subnet can only be in one Availability Zone.
 - A subnet can only have one route table associated with it at a time, but you can use one route table for many different subnets in your Amazon VPC.
+- The only architectural difference between a public and private subnet is that a public subnet has a route to an internet gateway.
+- By default, DNS is handled by Amazon VPC. It is possible, however, to use Amazon Route 53 to create your own DNS inside an Amazon VPC with private hosted zones.
+- All traffic is unicast and Amazon VPCs do not require the Address Resolution Protocol (ARP).
+- By default, all subnets in an Amazon VPC can access each other. You can use network network ACLs to restrict traffic into and out of your subnets.
+- All traffic between two points in the same Amazon VPC is forwarded directly.
+- You attach the IGW to the VPC, is an one to one relation.
+- In the public routing table add a record from 0.0.0.0/0 to the IGW.
+- In the private routing table add a record from 0.0.0.0/0 to the NAT-ID.
+- You can't resize a CIDR block after it's been created, so any IP addresses you reserve in that CIDR block are potentially stuck there until you delete that subnet.
+- The CIDR blocks can overlap. When the CIDR blocks for route table entries overlap, the more specific (smaller range) CIDR block takes priority.
+
+#### Bastion
+
+- To allow access private subnets from public subnets, it is an EC2 deployed in a public subnet.
+
+#### NAT
+
+- To allow access to internet from private subnets, it is deployed in a public subnet.
 
 #### Security
 
-- Network ACLs: Firewall at subnet level (sateless resources, you have to configure in and out rules, for each port and ip ranges). By default configured to allow all traffic. is stateless.
-- Security Groups: Firewalls that exists at EC2 instance level (stateful resources, so no need to define out rules). By default only allows outbound traffic.
+##### Network ACLs
+
+- Attached at the subnet level.
+- A network ACL is created for a default Amazon VPC and is associated with all subnets in your default Amazon VPC.
+- Network ACLs manage traffic entering or leaving a subnet because network ACLs are associated with the subnet, not with resources inside the subnet. Network ACLs only manage traffic that is crossing the subnet boundary.
+- Sateless resources, you have to configure in and out rules, for each port and ip ranges.
+- The default network ACL allows all traffic in and out by default.
+- Network ACLs are a great way to limit broad ranges of IP addresses from getting access to or from a subnet.
+
+##### Security groups
+
+- Attached to AWS resources, specifically the elastic network interfaces (ENIs), not Amazon VPC subnets.
+- Security groups offer a few advantages compared to network ACLs in that they can recognize AWS resources and filter based on them.
+- Security groups can reference other security groups and also reference themselves.  
+- Stateful resources.
+- Out traffic not checked.
+- By default only allows outbound traffic.
+- Security groups are not capable of explicitly blocking traffic. Security group rules only specify what traffic is allowed, while all other traffic is blocked.
+
+##### Best practices
+
+- Use multiple AZ deployments so you have high availability.
+- Use CloudWatch to monitor your VPC components.
+- Use VPC flow logs to capture traffic information. It does not affect network throughput or latency because it's collected outside of the path of your network traffic. You store them in S3. VPC flow logs do not capture packet payload.
+- Chaining security groups together. Instead of IP ranges, define access to specific ports by other security groups (example: database servers sg would only allow traffic from application server sg).
+
+![](cert-sap/vpc-security.png)
 
 #### AWS Networking Gateways
 
@@ -74,9 +126,16 @@
 
 #### VPC peering
 
-
-
-![](cert-sap/VPC.png)
+- VPC peering is a way to link multiple Amazon VPCs together and allows direct communications between two isolated Amazon VPCs using their private IP addresses.
+- VPC peers can span AWS accounts and also Regions (inter-region vpc peering).
+- A VPC peering connection is highly available.
+- This design is not scalable. As your environment grows and more Amazon VPCs are added, you will need to consider other options for connecting VPCs. VPC peering is a one-to-one connection, no more. You have a VPC peering connection between VPC A and VPC B, and between VPC A and VPC C. There is no VPC peering connection between VPC B and VPC C.
+- The data shared is encrypted using the AWS global infrastructure.
+- All data transfer over a VPC peering connection that stays within an Availability Zone is free of charge. All data transfer over a VPC peering connection that crosses Availability Zones will continue to be charged at the standard in-Region data transfer rates.
+- Is great for shared services running in a single VPC to be accessible to other VPCs, vendor or partner systems that need to access your VPC or in reverse, security audits, requirements to split an application into multiple isolated VPCs to limit the impact of a potential outrage or application failure.
+- You cannot create a VPC peering connection between VPCs with matching or overlapping IPv4 CIDR blocks. This limitation also applies to VPCs that have nonoverlapping IPv6 CIDR blocks. You cannot create a VPC peering connection if the VPCs have matching or overlapping IPv4 CIDR blocks. This applies even if you intend to use the VPC peering connection for IPv6 communication only.
+- If either VPC in a peering relationship has one of the following connections, you cannot extend the peering relationship to that connection: A VPN connection or a Direct Connect connection to a corporate network, An internet connection through an internet gateway, An internet connection in a private subnet through a NAT device, A gateway VPC endpoint to an AWS service, for example, an endpoint to Amazon S3.
+- There is no charge for setting up or running a VPC peering connection. Data transferred across peering connections is charged per gigabyte for send and receive, regardless of the Availability Zones involved.
 
 ### ELB (Elastic Load Balancer)
 
@@ -97,17 +156,23 @@
 - Supports sticky sessions (for stateful applications). Uses an HTTP cookie to remember to which server has to send the traffic.
 - Automatically provides a static IP address per AZ.
 - Lets users assign a custom, fixed IP address per AZ.
+- Billed at an hourly rate and an additional rate based on the load placed on your load balancer.
+
+![](cert-sap/alb.png)
 
 #### Network Load Balancer
 
 - Configured at layer 4 for TCP/UDP/TLS.
 - Low latency.
+- Able to handle high-end workloads and scale to millions of requests per second. 
 - Supports sticky sessions.
 - A target type can be instances, IPs or ALB.
 - Source IP preservation.
 - Automatically provides a static IP address per AZ.
 - Lets users assign a custom, fixed IP address per AZ.
 - Uses Route 53 to direct traffic to load balancer nodes in other zones.
+- It maintains stickiness of flows to a specific target appliance using 5-tuple (for TCP/UDP flows) or 3-tuple (for non-TCP/UDP flows). 
+- The Gateway Load Balancer and its registered virtual appliance instances exchange application traffic using the GENEVE protocol on port 6081. It supports a maximum transmission unit (MTU) size of 8,500 bytes.
 
 #### Gateway Load Balancer
 
@@ -120,71 +185,249 @@
 - Automatically provides a static IP address per AZ.
 - Lets users assign a custom, fixed IP address per AZ.
 
+![](cert-sap/gwlb.jpg)
+
 ### AWS Transit Gateway
 
-TODO
+- A service to manage and simplify the connections and peering for your VPCs.
+- Creates a one-to-many peering connection through a central hub.
+- Inter-Region peering connects AWS Transit Gateways together using the AWS global network. This adds automatic encryption for your data, and your data never travels over the public internet.
+- Transit gateways can also be used to connect your AWS environment to your on premises infrastructure creating a hybrid network of AWS and physical networks.
+- Transit gateway offers AWS Transit Gateway Network Manager(opens in a new tab), which adds a unique view over your entire network, even connecting to Software-Defined Wide Area Network (opens in a new tab)(SD-WAN) devices.
+- In AWS Transit Gateway, you are charged for the number of connections that you make to the Transit Gateway per hour and the amount of traffic that flows through AWS Transit Gateway. For AWS VPN attachments, the Transit Gateway owner is billed hourly. For AWS Direct Connect attachments, the Direct Connect Gateway owner is billed hourly. For Transit Gateway Connect attachments (SD-WAN appliances), the Transit Gateway owner is billed hourly. For peering attachments, each Transit Gateway owner is billed hourly for the peering attachment with the other Transit Gateway.
 
 ### AWS PrivateLink
 
-TODO
+- Helps to establish secure and private connectivity between VPCs, AWS services and your on premises network.
+- Makes it easy to connect services across different accounts and Amazon VPCs to significantly simplify your network architecture.
+- Network traffic that uses PrivateLink doesn't traverse the public internet.
+- You can also associate security groups and attach an endpoint policy to interface endpoints, which allow you to control precisely who has access to a specified service.
+- There is no need to configure an internet gateway, VPC peering connection, or manage VPC CIDRs. It provides a more secure connection for services across different accounts and Amazon VPCs, with no need for firewall rules, path definitions, or route tables.
+- Gateway VPC endpoints targets specific IP routes ina a VPC route table in the form of a prefix lists. Used for DynamoDB or S3.
+- Interface VPC endpoints, powered by AWS PrivateLink, connect you to services hosted by AWS Partners and supported solutions available in AWS Marketplace. It is and elastic network interface with a private IP address from the IP address range of your subnet. It servers as an entry point for traffic.
+- Gateway Load Balancer endpoints, powered by AWS PrivateLink, brings the same level of security and performance to your virtual network appliances or custom traffic inspection logic. This type of endpoint serves as an entry point to intercept traffic and route it to a service that you've configured using Gateway Load Balancers, for example, for security inspection.
+- You will be billed for each hour that your VPC endpoint remains provisioned in each Availability Zone, irrespective of the state of its association with the service.
+- With AWS PrivateLink, services establish a Transmission Control Protocol (TCP) connection between the service provider's VPC and the service consumer's VPC. This provides a secure and scalable solution.
+- A transit VPC connects multiple VPCs that might be geographically disparate or running in separate AWS accounts to a common VPC that serves as a global network transit center. This network topology simplifies network management and minimizes the number of connections that you need to set up and manage. It is implemented virtually and does not require any physical network equipment or a physical presence in a co-location transit hub.
+- AWS PrivateLink gives on-premises networks private access to AWS services through Direct Connect. You can also make services available to other accounts and VPCs that are accessed securely as private endpoints. If you use AWS PrivateLink with a Network Load Balancer to route traffic to your service or application, clients can connect to any service you host. Services configured to support AWS PrivateLink can be offered as a subscription service through the AWS Marketplace.
+- AWS PrivateLink does not support IPv6.
+- Traffic will be sourced from the Network Load Balancer inside the service provider VPC. From the perspective of the service provider application, all IP traffic will originate from the Network Load Balancer. All IP addresses logged by the application will be the private IP addresses of the Network Load Balancer. The service provider application will never see the IP addresses of the customer or service consumer.
+- You can activate Proxy Protocol v2 to gain insight into the network traffic. Network Load Balancers use Proxy Protocol v2 to send additional connection information such as the source and destination. This might require changes to the application.
+- Endpoint services cannot be tagged.
+- The private Domain Name System (DNS) of the endpoint does not resolve outside of the VPC. Private DNS hostnames can be configured to point directly to endpoint network interface IP addresses. Endpoint services are available in the AWS Region in which they are created and can be accessed in remote AWS Regions using inter-Region VPC peering.
+- Availability Zone names in a customer account might not map to the same locations as Availability Zone names in another account. For example, the Availability Zone US-East-1A might not be the same Availability Zone as US-East-1A for another account. An endpoint service is configured in Availability Zones according to their mapping in a customer’s account.
+- When an interface endpoint is created, endpoint-specific DNS hostnames are generated that can be used to communicate with the service.
+- An endpoint-specific DNS hostname is automatically generated and includes all zonal DNS hostnames generated for the interface endpoint. The hostname includes a unique endpoint identifier, service identifier, Region, and vpce.amazonaws.com in its name.
+- You can generate a zonal-specific DNS hostname for each Availability Zone in which the endpoint is available. The hostname includes the Availability Zone in its name. 
+- You can use a private DNS hostname to alias the automatically created zonal-specific or regional-specific DNS hostnames into a friendly hostname.
+- Interface endpoints and Gateway Load Balancer endpoints are charged for each hour the VPC endpoint remains provisioned in each Availability Zone and for each gigabyte processed through the VPC endpoint.
+- There is no additional charge for using gateway endpoints. Standard charges for data transfer and resource usage apply. You might be able to reduce costs by selecting gateway endpoints for traffic destined to DynamoDB or Amazon S3.
+
+![](cert-sap/gateway-vpc-endpoint.png)
 
 ### AWS Direct Connect
 
 - Your internal network is linked to an AWS Direct Connect location over a standard Ethernet fiber-optic cable. 
 - This connection allows you to create virtual interfaces directly to public AWS services or to your VPC.
-TODO
+- When choosing to implement a Direct Connect connection, you should first consider bandwidth, connection type, protocol configurations, and other network configuration specifications.
+- Only supports 802.1Q encapsulation. All equipment that will be part of the physical connection linking your location with AWS must support 802.1Q encapsulation.
+- You pay only for what you use and there is no minimum fee. Direct Connect has two billing elements. Port hours and outbound data transfer. There might be additional external billing elements to consider.
+
+#### Decision 1: Form of connection
+
+##### Dedicated connection collocated at a Direct Connection location
+
+- AWS has partnered with companies around the world to offer physical uplinks to AWS through the Direct Connect service.
+- You deploy a router and supporting equipment to that location.
+- The equipment you deploy will be the physical connection between your on-premises location and the AWS router at the Direct Connect location.
+- You are responsible for the deployed equipment, the circuit that connects your op-premises location to the deployed equipment, and the connection from the deployed equipment to the AWS router.
+
+##### Contracting with a Direct Connect Partner
+
+- The Direct Connect Partner will provide you with the necessary equipment at the Direct Connect location that will connect to the AWS router.
+- You will need to provide the physical connection between your on-premises location and the Direct Connect Partner equipment.
+- The Direct Connect Partner will configure and maintain the physical equipment at the Direct Connect location.
+
+![](cert-sap/direct-connect-co-locating.png)
+![](cert-sap/direct-connect-partner.png)
+
+##### Connecting directly to a Direct Connect node
+
+- You are responsible for all the equipment from the node to your location.
+
+#### Decision 2: Choose the bandwidth
+
+- One gigabit per second, require a 1,310-nanometer 1000BASE-LX transceiver.
+- 10 gigabits per second, require a 1,310-nanometer 10-gigabit BASE-LR transceiver.
+- 100 gigabits per second, require a 100-gigabit BASE-LR4 transceiver.
+
+- All types must all be single-mode fiber and you must disable auto-negotiation and configure your port speed and full duplex mode.
+- Direct Connect supports the Link Aggregation Control Protocol (LACP), facilitating multiple dedicated physical connections to be grouped into link aggregation groups (LAGs). When you group connections into LAGs, you can stream the multiple connections as a single, managed connection.
+- All connections in the LAG must use the same bandwidth.
+- ou can have a maximum of two 100-Gbps connections in a LAG, or four connections with a port speed less than 100 Gbps. Each connection in the LAG counts toward your overall connection limit for the Region.
+- All connections in the LAG must terminate at the same Direct Connect endpoint.
+- When you create a LAG, you can download the Letter of Authorization and Connecting Facility Assignment (LOA-CFA) for each new physical connection individually from the Direct Connect console.
+
+#### Decision 3: BGP (+ BFD) and public or private ASN
+
+- The router that will connect to the AWS router must support Border Gateway Protocol, or BGP, and Border Gateway Protocol MD5 authentication.
+- Direct Connect also supports asynchronous Bidirectional Forwarding Detection, or BFD. BFD can be configured with BGP, but is optional.
+- BGP requires an Autonomous System Number, or ASN.
+- ASNs can be public or private.
+- Private ASNs can be self-determined.
+- Public ASNs must be purchased and registered.
+- Your choice of private or public ASN will determine which type of virtual interface you can use later. Private virtual interfaces require a private ASN and public virtual interfaces require a public ASN.
+
+#### Decision 4: IP
+
+- IPv4
+- IPv6
+- Both
+
+- Public virtual interface will advertise your IP prefixes over BGP.
+- AWS has implemented BGP community tags for private virtual interfaces to achieve load balancing and route preferences for traffic inbound to AWS.
+
+#### Decision 5: Ethernet frame size
+
+- Direct Connect virtual interfaces support a default Ethernet frame size of 1522 bytes and a jumbo Ethernet frame size of 9023 bytes.
+- Ensure that all the equipment you will use to connect your on-premises location to your AWS environment supports the Ethernet frame size you want to implement.
+
+#### Step 6: Configure Direct Connect connection in the dashboard.
+
+- When you have configured your connection, AWS will provide you with a Letter of Authorization and Connecting Facility Assignment, or LOA-CFA. You will share your LOA-CFA with your Direct Connect Partner, showing them that AWS has authorized the completion of the last physical step for your Direct Connect connection.
+- After they receive the LOA-CFA, your Direct Connect Partner will physically complete the connection between your router and the AWS router with a cross connect.
+
+#### Decision 7: Configure the virtual interface
+
+- Private: Choosing a private virtual interface lets you connect to all virtual private cloud, or VPC, resources within the private IP space in your AWS environment. Connect a single private virtual interface to multiple VPCs through private gateways within an AWS Region by associating it with your Direct Connect gateway.
+- Public: Choosing a public virtual interface lets you route traffic to all VPC resources with a public IP address or that are connected to an AWS public endpoint. If you connect a public virtual interface to a Direct Connect location, you can connect to all public global AWS IP addresses and access AWS global IP route tables.
+- Transit: Choosing a transit virtual interface lets you connect your Direct Connect connection to AWS Transit Gateway. Then you can use the power of the AWS Transit Gateway and the AWS Transit Gateway Network Manager to manage the traffic moving between your AWS environment and your physical location. A transit virtual interface supports connecting three transit gateways to your Direct Connect gateway. Each connected transit gateway can connect to multiple VPCs within the same Region, even if they belong to different accounts.
+
 
 ### AWS Site-to-Site VPN
 
-TODO
+- Create a secure and encrypted connections quickly if you need to connect remote offices to AWS.
+- Based on IPsec technology, AWS Site-to-Site VPN uses a VPN tunnel to pass data from the customer network to or from AWS.
+- One AWS Site-to-Site VPN connection consists of two tunnels. Each tunnel terminates in a different Availability Zone on the AWS side, but it must terminate on the same customer gateway on the customer side.
+
+#### Components
+
+- Customer gateway: A resource you create and configure in AWS that represents your on-premise gateway device. The resource contains information about the type of routing used by the Site-to-Site VPN, BGP, ASN and other optional configuration information.
+- Customer gateway device: A customer gateway device is a physical device or software application on your side of the AWS Site-to-Site VPN connection.
+- Virtual private gateway: A virtual private gateway is the VPN concentrator on the Amazon side of the AWS Site-to-Site VPN connection. You use a virtual private gateway or a transit gateway as the gateway for the Amazon side of the AWS Site-to-Site VPN connection.
+- Transit gateway: A transit gateway is a transit hub that can be used to interconnect your VPCs and on-premises networks. You use a transit gateway or virtual private gateway as the gateway for the Amazon side of the AWS Site-to-Site VPN connection.
+
+![](cert-sap/site-to-site-vpn.png)
+
+#### Limitations
+
+- IPv6 traffic is partially supported. AWS Site-to-Site VPN supports IPv4/IPv6-Dualstack through separate tunnels for inner traffic. IPv6 for outer tunnel connection not supported.
+- AWS Site-to-Site VPN does not support Path MTU Discovery. The greatest Maximum Transmission Unit (MTU) available on the inside tunnel interface is 1,399 bytes.
+- Throughput of AWS Site-to-Site VPN connections is limited. When terminating on a virtual private gateway, only one tunnel out of the pair can be active and carry a maximum of 1.25 Gbps. However, real-life throughput will be about 1 Gbps. When terminating on AWS Transit Gateway, both tunnels in the pair can be active and carry an aggregate maximum of 2.5 Gbps. However, real-life throughput will be 2 Gbps. Each flow (for example, TCP stream) will still be limited to a maximum of 1.25 Gbps, with a real-life value of about 1 Gbps.
+- Maximum packets per second (PPS) per VPN tunnel is 140,000.
+- AWS Site-to-Site VPN terminating on AWS Transit Gateway supports equal-cost multi-path routing (ECMP) and multi-exit discriminator (MED) across tunnels in the same and different connection. ECMP is only supported for Site-to-Site VPN connections activated on an AWS Transit Gateway. MED is used to identify the primary tunnel for Site-to-Site VPN connections that use BGP. Note, BFD is not yet supported on AWS Site-to-Site VPN, though it is supported on Direct Connect.
+- AWS Site-to-Site VPN endpoints use public IPv4 addresses and therefore require a public virtual interface to transport traffic over Direct Connect. Support for AWS Site-to-Site VPN over private Direct Connect is not yet available.
+- For globally distributed applications, the accelerated Site-to-Site VPN option provides a connection to the global AWS backbone through AWS Global Accelerator. Because the Global Accelerator IP space is not announced over a Direct Connect public virtual interface, you cannot use accelerated Site-to-Site VPN with a Direct Connect public virtual interface.
+
+#### Monitoring
+
+- You can monitor VPN tunnels using Amazon CloudWatch, which collects and processes raw data from the VPN service into readable, near real-time metrics.
+- These statistics are recorded for a period of 15 months.
+- You can access historical information and gain a better perspective on how your web application or service is performing.
+- VPN metric data is automatically sent to CloudWatch as it becomes available.
+
+#### Pricing
+
+- AWS Site-to-Site VPN: connection per hour and data transfer out charges.
+- Accelerated Site-to-Site VPN: connection per hour, data transfer out charges, hourly charges for two AWS Global Accelerators per VPN connection and data transfer out premium (DT-Premium) fees.
 
 ### AWS Client VPN
 
-TODO
+- If you need to connect remote team access to AWS and your on premises resources.
+- Based on OpenVPN technology.
+
+#### Components
+
+- Client VPN endpoint: Your Client VPN administrator creates and configures a Client VPN endpoint in AWS. Your administrator controls which networks and resources you can access when you establish a VPN connection.
+- VPN client application: This is the software application that you use to connect to the Client VPN endpoint and establish a secure VPN connection.
+- Client VPN endpoint configuration file: This is a configuration file that is provided to you by your Client VPN administrator. The file includes information about the Client VPN endpoint and the certificates required to establish a VPN connection. You load this file into your chosen VPN client application.
+
+#### Limitations
+
+- Client VPN supports IPv4 traffic only. IPv6 is not supported.
+- Security Assertion Markup Language (SAML) 2.0-based federated authentication only works with an AWS provided client v1.2.0 or later. 
+- SAML integration with AWS Single Sign-On requires a workaround. Better integration is being worked on.
+- Client CIDR ranges must have a block size of at least /22 and must not be greater than /12.
+- A Client VPN endpoint does not support subnet associations in a dedicated tenancy VPC.
+- Client VPN is not compliant with Federal Information Processing Standards (FIPS).
+- Client CIDR ranges cannot overlap with the local CIDR of the VPC in which the associated subnet is located. It also cannot overlap any routes manually added to the Client VPN endpoint's route table.
+- A portion of the addresses in the client CIDR range is used to support the availability model of the Client VPN endpoint and cannot be assigned to clients. Therefore, we recommend that you assign a CIDR block that contains twice the number of required IP addresses. This will ensure the maximum number of concurrent connections that you plan to support on the Client VPN endpoint.
+- The client CIDR range cannot be changed after you create the Client VPN endpoint.
+- The subnets associated with a Client VPN endpoint must be in the same VPC.
+- You cannot associate multiple subnets from the same Availability Zone with a Client VPN endpoint.
+- AWS Certificate Manager (ACM) certificates are not supported with mutual authentication because you cannot extract the private key. You can use an ACM server as the server-side certificate. But, to add a client certificate to your customer configuration, you cannot use a general ACM certificate because you can't extract the required private key details. So you must access the keys in one of two ways. Either generate your own certificate where you have the key or use AWS Certificate Manager Private Certificate Authority (ACM PCA), which gives the private keys. If the customer is authenticating based on Active Directory or SAML, they can use a general ACM-generated certificate because only the server certificate is required.
+
+#### Monitoring
+
+- End-user usage reporting is possible through Amazon CloudWatch Logs.
+- You can use a client connect handler to do basic posture assessment with Lambda because Client VPN does not support native posture assessment.
+- Client VPN publishes metrics to CloudWatch for your Client VPN endpoints. Metrics are published to CloudWatch every five minutes.
+
+#### Pricing
+
+- Charged for the number of active client connections per hour and the number of subnets associated to Client VPN per hour.
+- Billing starts when the subnet association is made.
+- Each partial hour consumed is prorated for the hour.
+- Any client connection that is less than an hour is also prorated for the hour.
 
 ### AWS Cloud WAN
 
-TODO
+- If you need to connect cloud routing and software-defined wide area networks, you can use this to provide a central dashboard for making the connections between your offices, data centers and VPCs.
 
 ### AWS App Mesh
 
-TODO
+- Connects containers and microservices with application-level networking.
 
 ### Amazon API Gateway
 
-TODO
+- To manage APIs at any scale.
+- You can import from OpenAPI.
+- Integration with lambda function, http, mock or aws service proxying (like s3, dynamodb, etc).
+- APIs are deployed to stages. Previous deployments are keep as snapshots that can be restores.
+- Stage variables can be configured.
+- You can generate a SDK to consume the stage.
 
 ### AWS Cloud Map
 
-TODO
+- Discovers access to the most recent resources and services.
 
 ### CloudFront
 
-TODO
+- Delivers data, videos, applications and APIs with lower latency and higher transfer speeds.
 
 ### Route 53
 
-TODO
+- The DNS for AWS.
 
 ### Global Accelerator
 
-TODO
+- Optimizes your user traffic, from the user to your application.
 
 ### AWS Shield
 
-TODO
+- Adds a safeguard to your applications against DDoS attacks.
 
 ### AWS WAF
 
-TODO
+- Protects your web application from common web exploits.
 
 ### AWS Network Firewall
 
-TODO
+- Deploys network security access for your VPC.
 
 ### AWS Firewall Manager
 
-TODO
+- Helps to centrally configure and manage your firewall rules.
 
 ## Compute
 
@@ -198,7 +441,7 @@ TODO
 
 ### AWS App Runner
 
-TODO
+TODO AWS App Runner
 
 ### EC2
 
@@ -363,11 +606,11 @@ stateDiagram
 
 ### Serverless Application Repository
 
-TODO
+TODO Serverless Application Repository
 
 ### AWS SimSpace Weaver
 
-TODO
+TODO AWS SimSpace Weaver
 
 ## Storage
 
@@ -1549,7 +1792,7 @@ TODO
 
 ### CloudTrail
 
-TODO
+TODO CloudTrail
 
 ## Other
 
