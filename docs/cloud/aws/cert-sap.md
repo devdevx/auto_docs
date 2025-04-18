@@ -1,5 +1,7 @@
 # AWS Certified Solutions Architect Professional
 
+## Security
+
 ### IAM
 
 - Managers users, groups (of users) and roles (can be assumed by someone of something) where you attach policies (permissions to resources).
@@ -76,13 +78,74 @@
 - You can't resize a CIDR block after it's been created, so any IP addresses you reserve in that CIDR block are potentially stuck there until you delete that subnet.
 - The CIDR blocks can overlap. When the CIDR blocks for route table entries overlap, the more specific (smaller range) CIDR block takes priority.
 
+##### Internet gateway: Ingress routing
+
+- Associates a route table with an internet gateway (instead of a subnet).
+- Redirects incoming and outgoing VPC traffic through virtual appliances (for example a firewall for incoming traffic).
+- Segments VPC traffic (for outgoing traffic).
+
+#### Virtual private gateway
+
+##### Site-to-site VPN
+
+- One virtual private gateway per VPC.
+- BGP or static routes.
+- Redundant IPsec tunnels.
+- Redundant routes across two AZ.
+- In VPC route table the destination is the CIDR of the on-premises subnet and the target the virtual private gateway VGW.
+- Up to 10 VPN connections (different on-premises networks) can terminate to the same virtual private gateway (each adds an entry to the route table).
+
+##### Direct Connect
+
+- One BGP per VPC.
+- Restricted to one region.
+- Maximum 50 VIFs (virtual interfaces) per Direct connection.
+- If you want to communicate with a public aws services (like S3 or DynamoDB) you create a public VIF
+- if you want to communicate with a resource inside a VPC you create a private VIF that terminates at the virtual private gateway of the VPC.
+
+##### Ingress routing
+
+- Associates a route table with a virtual private gateway (instead of a subnet).
+- Redirects incoming and outgoing VPC traffic through virtual appliances (for example a firewall for incoming traffic).
+- Segments VPC traffic (for outgoing traffic).
+
+#### Customer gateway: Site-to-site VPN
+
+- Located in on-premises data center.
+- Physical or software appliance that the customers must configure.
+- The same customer gateways can be reused for multiple site-to-site VPN connections, but you must consider high availability.
+- Redundant IPSec tunnels (on the other end of the connections is the virtual private gateway).
+- Each tunnel contains an Internet Key Exchange (IKE) security association, an IPSec security association, and a BGP peering.
+
+#### Direct connect gateway
+
+- Connect (associate) up to 10 virtual private gateways globally and cross account.
+- It is a global resource, not a regional one.
+- Has one BGP peering per Direct connect gateway per Direct connect connection.
+- Can be associates with a virtual private gateway or a transit gateway.
+
+#### Local Gateways
+
+- One local gateway per Outpost.
+- To allow the VPC in the Outpost on-premise to communicate to other networks on-premise outside the Outpost.
+- Performs NAT for instances that have been assigned addresses from your customer-owner IP pool.
+
+##### Components
+
+- Route tables: AWS creates a local gateway for your Outpost and local gateway route table as part of the installation process. You can only associate the local gateway route table with subnets that reside in the Outpost.
+- Virtual interfaces: AWS crates one VIF for each Link Aggregation Group (LAG), and then associates the VIF with the default local gateway route table. The local gateway route table has a default route to the two VIFs for local network connectivity.
+
+#### NAT gateway
+
+- To allow access to internet from private subnets but prevents the internet from initiation a connection with those instances, it is deployed in a public subnet.
+- Performs NAT for instances with private IPs.
+- Is highly available (redundancy inside an AZ).
+- Is regional resource, IPv4 only.
+- You cannot route traffic to a NAT gateway through a VPC peering connection, site-to-site VPN connection or Direct Connect.
+
 #### Bastion
 
 - To allow access private subnets from public subnets, it is an EC2 deployed in a public subnet.
-
-#### NAT
-
-- To allow access to internet from private subnets, it is deployed in a public subnet.
 
 #### Security
 
@@ -127,6 +190,7 @@
 #### VPC peering
 
 - VPC peering is a way to link multiple Amazon VPCs together and allows direct communications between two isolated Amazon VPCs using their private IP addresses.
+- Adds entries in the route tables of each subnet with the destination of the other CIDR range and the peering connection VPX as target.
 - VPC peers can span AWS accounts and also Regions (inter-region vpc peering).
 - A VPC peering connection is highly available.
 - This design is not scalable. As your environment grows and more Amazon VPCs are added, you will need to consider other options for connecting VPCs. VPC peering is a one-to-one connection, no more. You have a VPC peering connection between VPC A and VPC B, and between VPC A and VPC C. There is no VPC peering connection between VPC B and VPC C.
@@ -190,12 +254,14 @@
 ### AWS Transit Gateway
 
 - A service to manage and simplify the connections and peering for your VPCs.
+- A regional resource that resides outside of a VPC.
 - Creates a one-to-many peering connection through a central hub.
 - Within a Region, AWS Transit Gateway provides a method for consolidating and centrally managing routing between VPCs with a hub-and-spoke network architecture.
 - Inter-Region peering connects AWS Transit Gateways together using the AWS global network. This adds automatic encryption for your data, and your data never travels over the public internet.
 - Transit gateways can also be used to connect your AWS environment to your on premises infrastructure creating a hybrid network of AWS and physical networks.
 - Transit gateway offers AWS Transit Gateway Network Manager(opens in a new tab), which adds a unique view over your entire network, even connecting to Software-Defined Wide Area Network (opens in a new tab)(SD-WAN) devices.
 - In AWS Transit Gateway, you are charged for the number of connections that you make to the Transit Gateway per hour and the amount of traffic (GB of data processed) that flows through AWS Transit Gateway. For AWS VPN attachments, the Transit Gateway owner is billed hourly. For AWS Direct Connect attachments, the Direct Connect Gateway owner is billed hourly. For Transit Gateway Connect attachments (SD-WAN appliances), the Transit Gateway owner is billed hourly. For peering attachments, each Transit Gateway owner is billed hourly for the peering attachment with the other Transit Gateway.
+- You can have up to 20 different route tables per transit gateway.
 
 ![](cert-sap/transit-gateway.jpg)
 
@@ -206,6 +272,13 @@
 - AWS Transit Gateway route table: A transit gateway has a default route table and can optionally have additional route tables. A route table includes dynamic and static routes that decide the next hop based on the destination IP address of the packet. The target of these routes can be any transit gateway attachment.
 - Associations: Each attachment is associated with exactly one route table. Each route table can be associated with zero to many attachments.
 - Route propagation: A VPC, VPN connection, or Direct Connect gateway can dynamically propagate routes to a transit gateway route table. With a Direct Connect attachment, the routes are propagated to a transit gateway route table by default. With a VPC, you must create static routes to send traffic to the transit gateway. With a VPN connection or a Direct Connect gateway, routes are propagated from the transit gateway to your on-premises router using BGP. With a peering attachment, you must create a static route in the transit gateway route table to point to the peering attachment.
+
+#### Path selection behavior
+
+- 1. Most specific route (longest prefix match)
+- 2. Static route entries, including site-to-site VPN routes
+- 3. BGP-propagated routes from Direct Connect gateway
+- 4. BGP-propagated routes from AWS Site-to-Site VPN
 
 ### AWS PrivateLink
 
@@ -472,6 +545,247 @@
 ### AWS Firewall Manager
 
 - Helps to centrally configure and manage your firewall rules.
+
+### Monitoring and troubleshooting 
+
+#### Metrics
+
+- Bandwidth capacity: the maximum data transmission rate possible on a network.
+- Throughput: data transmission rate. A low throughput means there are a lot of failed or dropped packets that need to be sent again.
+- Latency: delay that happens between a node or device requesting data and when the data is finished being delivered.
+- Packet loss: how many data packets are dropped during data transmissions on your network.
+- Retransmission: retransmission rate lets you know how often packets are being dropped. Retransmission delay measures the time it takes for a dropped packet to be retransmitted.
+- Availability: measures whether the network is currently operational.
+- Connectivity: jitter is a variation in delay or disruption that occurs while data packets travel across the network.
+- Network and server response time: metric that measures how quickly the application is responding to requests.
+- CloudWatch metrics: you can monitor AWS Network Manager for global network, devices, connections, links and sites.
+
+#### Security kinds of controls
+
+- Directive: controls establish the governance, risk, and compliance models within which the environment operates.
+- Detective: controls are intended to identify and characterize an incident in progress and provide assistance during investigations and audits after the event has occurred.
+- Preventive: controls are designed to prevent an incident from occurring.
+- Responsive: controls are intended to limit the extent of any damage caused by the incident.
+
+#### Tools
+
+##### CloudWatch
+
+- Can configure alarms to be triggered when certain metrics values reach a threshold.
+- Can configure alarms to be triggered when certain messages appear in logs.
+- Can configure alarms to be triggered when an event is triggered.
+- CloudWatch data is recorded for a period of 15 months to access historical information and gain a better perspective on how your network, application, or service is performing.
+- Some CloudWatch metrics are not collected by default. The full range of CloudWatch metrics requires extra configuration and authorization. In that case, CloudWatch metrics need a CloudWatch agent installed to collect metrics for your Amazon EC2 instances and your on-premises servers.
+- Data points with a 1-minute period are available for 15 days.
+- For a peering connection, namespace would be AWS/PCX.
+
+###### Data points
+
+- VPC Registered transited gateways (BytesIn, BytesOut, PacketsIn, PacketsOut)
+- VPC Associated Site-to-Site VPN connections (TunnelDataIn, TunnelDataOut, TunnelState) 
+- VPC peering connections (awsRegion, vpcPeeringConnectionId, accepterVPCInfo, requesterVPCInfo)
+- VPC On-premises resources (BytesIn, BytesOut, VPCTunnelDown)
+- VPC Flow Logs metrics
+
+###### Dashboards
+
+- A single view for selected metrics and alarms to help you assess the health of your network, resources, and applications across one or more Regions and from multiple AWS accounts.
+- A track for the same metric across multiple graphs by selecting the color used for each metric on each graph or widget.
+- An operational playbook that provides guidance for team members during operational events about how to respond to network-specific incidents.
+- A common view of critical resources and application measurements that can be shared by team members for faster communication flow during network performance or operational events.
+- Metrics explorer widgets to your dashboard helps you to troubleshoot your network more efficiently.
+- Alarm widget to display the status a single alarm or multiple alarms.
+- Animated dashboard that replays CloudWatch metric data that was captured over time.
+- You can share your CloudWatch dashboards across teams, with stakeholders, and with people external to your organization.
+
+###### Logs
+
+- Monitor, store, and access your log files from Amazon VPC, AWS Transit Gateway, AWS VPN, AWS Network Load Balancer, and other sources.
+- You can then easily view the logs, search the logs for specific error codes or patterns and filter the logs based on specific fields or archive them securely for future analysis.
+- Log events are a record of some activity recorded by the application or resource being monitored. The log event record that CloudWatch Logs understands contains two properties: the timestamp of when the event occurred, and the raw event message. Event messages must be UTF-8 encoded.
+- Log streams are a sequence of log events that share the same source. More specifically, a log stream is generally intended to represent the sequence of events coming from the application instance or resource being monitored.
+- Log groups define groups of log streams that share the same retention, monitoring, and access control settings. Each log stream has to belong to one log group. There is no limit on the number of log streams that can belong to one log group.
+- Metric filters can extract metric observations from ingested events and transform them to data points in a CloudWatch metric. Metric filters are assigned to log groups and all of the filters assigned to a log group are applied to their log streams. You can choose to assign dimensions and a unit to the metric, use any type of CloudWatch statistic, including percentile statistics, when viewing these metrics or setting alarms and use subscriptions to get access to real-time feed of log events and have it delivered as an Kinesis stream, Kinesis Data Firehose stream or Lambda for custom processing. When log event are sent to the receiving service, they are base64-encoded and compressed with the gzip format.
+- Retention settings can be used to specify how long log events are kept in CloudWatch Logs. Expired log events get deleted automatically. Just like metric filters, retention settings are also assigned to log groups, and the retention assigned to a log group is applied to its log streams. By default, log data is stored in CloudWatch Logs indefinitely. You can also export log data from your log groups to an S3.
+
+###### Logs insights
+
+- Helps you efficiently identify patterns, interactively search, and analyze your log data with bar charts, line charts, and stacked area charts.
+- You can save queries to run them again latter and structure them in folders. You are limited to save 1000 queries per region per account.
+- You can add a query to a dashboard, they run every time you load the dashboard and every time the dashboard refreshes. These queries count toward your limit of 10 concurrent logs insights queries.
+- Includes a purpose-build query language.
+- To perform a query yo need to specify the log groups, time range to query and the query string to use.
+- A single request can query up to 20 log groups. Queries time out after 15 minutes. Query results are available for 7 days.
+- CloudWatch Logs Insights queries incur charges based on the amount of data that is queried.
+- For every log sent, five system fields are automatically generated: @message, @timestamp, @ingestionTime, @logStream, @log (log group identifier).
+
+###### Alarms
+
+- CloudWatch alarms facilitate more complex workflows such as sending an email, running a lambda function, viewing metrics per transit gateway for a global network and remediating changes to network ACLs or security groups.
+- Metrics are grouped first by namespace and then by the various dimension combinations within each namespace.
+- A metric alarm watches a single CloudWatch metric or the result of a math expression based on CloudWatch metrics. The alarm performs one or more actions based on the value of the metric or expression relative to a threshold over a number of time periods.
+- A composite alarm includes a rule expression that takes into account the alarm states of other alarms that you have created. The composite alarm goes into an ALARM state only if all conditions of the rule are met. Using composite alarms can reduce alarm noise.
+- Add alarms to your CloudWatch dashboards and monitor them visually. When an alarm is on a dashboard, it turns red when it is in the ALARM state, making it easier for you to monitor its status proactively.
+- An alarm invokes actions only when the alarm changes state. The exception is for alarms with Auto Scaling actions. For Auto Scaling actions, the alarm continues to invoke the action once per minute that the alarm remains in the new state.
+- The alarm can be in one of three states: OK, ALARM and INSUFFICIENT_DATA.
+- When you create an alarm, you specify three settings to evaluate when to change the alarm state: period is the length of time to evaluate the metric in seconds (if you specify 1 minute, the alarm evaluates the metric once per minute), evaluation periods is the number of the mos recent periods to evaluate when determining the alarm state and datapoints to alarm is the number of data points withing the evaluation period that must be breaching (don't have to be consecutive) to cause the alarm to go to the ALARM state.
+- Is recommended to set alarms when a configuration change is made to: VPC internet gateway, VPC VPN customer gateway, ACLs, Security group, CloudTrail, Root account and VPC Flow Logs.
+- You can also configure alarms to create OpsItems in Systems Manager Ops Center or create incidents in Systems Manager Incident Manager. These actions can be performed only when the alarm goes into ALARM state.
+- For each alarm you create, you can specify how to treat missing data points as notBreaching, breaching, ignore (current alarm state is maintained) or missing (alarm transitions to INSUFFICIENT_DATA).
+- CloudWatch sends events to Amazon EventBridge whenever a CloudWatch alarm changes alarm state. You can use EventBridge and these events to write rules that take actions, such as notifying you, when an alarm changes state. CloudWatch guarantees the delivery of alarm state change events to EventBridge.
+- You can create an alarm for a custom metric before you've created that custom metric.
+- You can disable and enable alarms.
+- You can test an alarm by setting it to any state. This temporary state change lasts only until the next alarm comparison occurs.
+- You can list any or all of the currently configured alarms, and list any alarms in a particular state.
+- You can create up to 5000 alarms per region per account.
+- You only can use ACII characters for alarm names.
+
+###### Pricing
+
+- When you exceed three dashboards with up to 50 metrics.
+- By ingesting and storing logs, as well as the amount of ingested logs scanned for each CloudWatch Insights query.
+- Based on the number of custom events.
+- Charges are also incurred when you monitor more than 10 custom metrics. Custom metrics can be metrics you create and also metrics from tools such as the CloudWatch agent.
+- You are charged for each metric associated with a CloudWatch alarm.
+
+###### Amazon EC2 network maximums at the instance level to be monitored
+
+- Bandwidth capability: Each EC2 instance has a maximum bandwidth for aggregate inbound and outbound traffic, based on instance type and size. Amazon EC2 also has maximum bandwidth for traffic to AWS Direct Connect and the internet.
+- Packet-per-second (PPS) performance: Each EC2 instance has a maximum PPS performance, based on instance type and size. When the limit is reached, AWS queues the extra packets for delivery at a late time. If the queue reaches its capacity, packets might be dropped.
+- Connections tracked: The security group tracks each connection established to ensure that return packets are delivered as expected. There is a maximum number of connections that can be tracked per instance.
+- Link-local service access: Amazon EC2 provides a maximum PPS per network interface for traffic to services such as the Domain Name System (DNS) service, the instance metadata service (IMDS), and the Amazon Time Sync Service.
+
+##### VPC Flow Logs
+
+- VPC Flow Logs is a feature that lets you to capture information about the IP traffic going to and from network interfaces in your VPC.
+- Flow logs can help you with a number of tasks, such as diagnosing overly restrictive security group rules, monitor the traffic that is reaching your instance and determining the direction of the traffic to and from the network interfaces.
+- Levels of monitoring: VPC level, subnet level and network interface level.
+- Logging parameter can be defined by choosing the traffic filter type (all, accept or rejected), log name, destination (S3 or CloudWatch) and necessary permissions (IAM role).
+- Flows are collected, processed, and stored in capture windows that are approximately 10 minutes long. You can create up to two flow logs on one resource.
+- When publishing to CloudWatch Logs, flow log data is published to a log group. Once the log group is created, the first flow records are visible in the console in about 15 minutes. Each network interface has a unique log stream in the log group.
+- If the same network interface is present in one or more flow logs in the same log group, it has one combined log stream. If you've specified that one flow log should capture rejected traffic, and the other flow log should capture accepted traffic, then the combined log stream captures all traffic.
+- When publishing to Amazon S3, flow log data is published to an existing Amazon S3 bucket that you specify using a folder structure that is determined by the flow log's ID, Region, and the date on which they are created.
+- Flow log records for all of the monitored network interfaces are published to a series of log file objects that are stored in the bucket. If the flow log captures data for a VPC, the flow log publishes flow log records for all of the network interfaces in the selected VPC.
+- Flow logs can quickly grow into the hundreds of gigabytes.
+
+###### Use cases
+
+- Performance: provides flow duration, latency, and bytes sent and can be used to identify latencies, establish performance baselines, and improve applications.
+- Security: can be used to log all traffic from an Amazon VPC, an interface, or a subnet for root cause analysis to identify gaps in your security. Identifying suspicious traffic tightens security and points to malicious traffic traversing your network.
+- Compliance: can be used to show that your organization is compliant with specific industry, federal, state, and local regulations that your organization must follow. By directing logs into Amazon S3 to build a data lake, you can ensure that data is available for audits.
+
+###### Anatomy of a flow log
+
+- Account number
+- Network interface
+- Source IP
+- Target IP
+- Source port
+- Target port
+- Protocol (6 is TCP)
+- Packets
+- Bytes
+- Timestamp
+- Timestamp
+- Action (ACCEPT or REJECT)
+
+###### Limitations
+
+- Changes cannot be made to the configuration of a flow log or the format of a flow log record after they have been created. If the flow log you have created is not gathering the data you expected or if the nature of what you need to gather changes, you have to delete the existing flow log and create a new one.
+- Flow logs can only be configured for VPC peering connections deployed by your account. VPC peering connections deployed by another account cannot be monitored using VPC flow logs even if they have been authorized to link to VPCs within your account.
+- Network interfaces for EC2-Classic instances are not supported. This includes instances linked to your VPC through ClassicLink.
+- Sent to an EC2 with multiple IP addresses is recorded under the primary private IP address, listed in the dstaddr field, for the EC2 network interface. To separate log traffic by destination IP, configure the flow log to use the pkt-dstddr log field.
+- Sent through an intermediate device, such as a NAT gateway, will record the IP of the intermediate device in the srcaddr field. To ensure that the original source IP address of device that generated the packet is recorded, configure the flow log to use the pkt-srcaddr field.
+- Received from an intermediate device, such as a NAT gateway, will record the IP of the intermediate device in the dstaddr field. To ensure that the original destination IP address is recorded, configure the flow log to use the pkt-dstaddr field.
+- Flow logs do not capture IP traffic to and from Amazon reserved IPs. This includes but is not limited to Amazon Domain Name Service (DNS), Amazon Windows license activation service, instance metadata, and Amazon Time Sync. The five IPv4 addresses reserved by Amazon for each subnet are also excluded from VPC flow logs.
+
+##### Traffic Mirroring
+
+- You can use Traffic Mirroring to copy network traffic from an elastic network interface of an Amazon EC2 instance. In addition, you can send the traffic to out-of-band security and monitoring appliances for: Content inspection, Threat monitoring and Troubleshooting.
+- You can choose to capture all traffic or you can use filters to capture the packets that are of particular interest to you, with an option to limit the number of bytes captured per packet.
+- You can use VPC Traffic Mirroring in a multi-account AWS environment, capturing traffic from VPCs spread across many AWS accounts and then routing it to a central VPC for inspection.
+- You can mirror traffic from any EC2 instance that is powered by the AWS Nitro system and 12 Xen-based instance types.
+- You can use open-source tools such as Suricata and Zeek to monitor network traffic from an Amazon EC2 instance. These open-source tools support VXLAN decapsulation, and they can be used at scale to monitor Amazon VPC traffic.
+- The following traffic types cannot be mirrored: ARP, DHCP, Instance metadata service, NTP and Windows activation.
+
+###### Key concepts
+
+- Traffic mirror source: is the network interface of an Amazon EC2 instance where AWS copies the network traffic from. VPC Traffic Mirroring supports the use of Elastic Network Interfaces (ENIs) as mirror sources.
+- Traffic mirror target: is the destination for mirrored traffic. The traffic mirror target can be a network interface or a network load balancer and used in more than one traffic mirror session.
+- Traffic mirror filter: by default, no traffic is mirrored. To mirror traffic, add traffic mirror rules to the filter. Traffic mirror filter rules define what traffic gets mirrored. Rules are numbered and processed in order. The filter can specify a protocol, ranges for source and destination ports and CIDR block for the source and destination.
+- Traffic mirror session: establishes a relationship between a traffic mirror source and a traffic mirror target that makes use of a traffic mirror filter. Traffic mirror sessions are evaluated based on the ascending session number that you define when you create the session. The first match (accept or reject) is used to determine the fate of the packet.
+- Connectivity: the mirrored traffic is sent to the traffic mirror target using the source Amazon VPC route table. Before you configure Traffic Mirroring, make sure that the traffic mirror source can route to the traffic mirror target.
+
+###### Use cases
+
+- Performance monitoring and network visibility to analyze specific traffic patterns to identify any vulnerable blind spots or choke points between application tiers or Amazon EC2 instances.
+- Troubleshooting by extracting traffic of interest from any workload in an Amazon VPC and sending it to the right tools to detect and respond faster to attacks often missed by traditional log-centric tools. Analyzing the actual packets helps to perform a root-cause analysis on a performance issue and assist with diagnosis of network issues. This gives visibility beyond what is available through VPC Flow Logs.
+- Security monitoring using packet inspection, signature analysis, anomaly detection, and machine learning based techniques provides further protection, threat prevention, and network forensics to your network traffic.
+- Better response time using the right tools to detect, extract, and respond to traffic of interest from any workload in an Amazon VPC that is often missed by traditional log-centric tools.
+- Replicate production traffic into develop environments.
+
+##### VPC Reachability Analyzer
+
+- The VPC Reachability Analyzer is a network diagnostics tool that troubleshoots reachability between two endpoints in an Amazon VPC, or within multiple Amazon VPCs.
+- Specify the path of communication for the traffic from a source to a destination for any of the following endpoint types: VPN Gateways, Instances, Network Interfaces, Internet Gateways, VPC Endpoints, VPC Peering Connections, and Transit Gateways.
+- The source and destination resources must be: owned b yhe same account, in the same region and in the same VPC or VPCs connected through VPC peering.
+- You can choose to check for connectivity through either the TCP or UDP protocols. Optionally, you can also specify a port number, source, or destination IP address.
+- Once the analysis completes, you can se if the destination is reachable or not reachable (provides one or mode explanation codes to help diagnose).
+- To resolve automatically, you can configure VPC Reachability Analyzer with CloudWatch to alert on connectivity issues and possibly automatically remediate using AWS Lambda.
+- With VPC Reachability Analyzer, you are charged per analysis run between a source and a destination. It is best practice to run analysis during networking configuration changes and to troubleshoot connectivity issues that arise. Optionally, you can tag your analysis to keep track of the cost.
+
+###### Use cases
+
+- Troubleshooting connectivity issues caused by network misconfiguration.
+- Verifying that your network configuration matches your intended connectivity.
+- Automating the verification of your connectivity intent as your network configuration changes.
+- Determining whether a destination resource in your Amazon VPC is reachable from a source resource. 
+
+##### AWS Transit gateway Network Manager
+
+- The AWS Transit Gateway Network Manager lets you to centrally manage your networks that are built around transit gateways. You can visualize and monitor your global network across Regions and on-premises locations.
+- There is no additional cost for using Network Manager.
+
+###### Steps to configure
+
+- Create a global network.
+- Register your transit gateways (automatically includes transit gateway attachments like the VPCs, Site-to-Site VPN connections ,AWS Direct Connect gateways, Transit Gateway Connect and Transit gateway peering connections, but not its attachments)
+- Define and add devices, links, and sites for your on-premises resources to your global network.
+- Analyze your network wit the Route Analyzer.
+- Monitor your networks through a dashboard on the Network Manager console. You can view network activity and health using CloudWatch metrics and CloudWatch Events.
+
+###### Section pages
+
+- Overview: you can view the inventory of your global network and a list of transit gateways that are registered.
+- Details: you can view information about the global network resource.
+- Geographic: you can view the locations of the resources that are registered in your global network on a map. Lines on the map represent connections between the resources, and the line colors represent the type of connection and their state. You can choose any of the location points to view information about the resources in that location.
+- Topology: you can view the network tree for your global network.
+- Events: you can view the system events that describe changes in your global network.
+- Monitoring: you can view CloudWatch metrics for the transit gateways, VPN connections, and on-premises resources in your global network.
+- Route Analyzer: you can perform an analysis of the routes in your transit gateway route tables.
+
+##### CloudTrail
+
+- AWS service that logs all API actions in your account. CloudTrail maintains the audit logs of changes to the AWS account.
+- Management Events: By default, CloudTrail only logs management events such as creating an Amazon EC2 instance and an Amazon VPC. It provides information about management operations.
+- Data Events: By default, CloudTrail only logs management events because data events occur more often. Data events are the resource operations in a resource such as AWS Lambda functions or objects uploaded to Amazon S3.
+- CloudTrail does not log in real time. There is a delay, but you can create a CloudTrail and store that data in Amazon S3 or CloudWatch logs.
+
+##### COTS Tools
+
+- COTS network monitoring tools are available under license. The AWS Marketplace has third-party COTS network monitoring tools available for deployment within a customer's AWS environment.  Some have a licensing fee, some do not.
+
+##### iPerf and iPerf3
+
+- Tools for active measurements of the maximum achievable bandwidth on IP networks. It supports tuning of various parameters related to timing, buffers, and protocols (TCP, UDP, SCTP with IPv4 and IPv6). For each test, they report the bandwidth, loss, and other parameters. iPerf3 is a new implementation that shares no code with the original iPerf and also is not backwards compatible.
+
+##### ExtraHop
+
+- ExtraHop is a monitoring solution for security, network performance, and the cloud. It gives detailed metrics on average bandwidth utilization, average throughput, and more.
+
+##### Netperf
+
+- Netperf is a CLI tool similar to iPerf that measures throughput and benchmarking speeds.
 
 ## Compute
 
@@ -1840,8 +2154,27 @@ TODO CloudTrail
 
 ## Other
 
+### CloudFormation
+
+- You can use CloudFormation to treat your infrastructure as code.
+- You define your AWS resources in a structured text format, either YAML or JSON, called a CloudFormation template.
+- Then you can create a CloudFormation stack in AWS, which contains the resources created. You can then manage these resources by updating the template.
+- One important issue is how to create the CloudFormation stacks. You can create them manually on the console, but a better approach is to create an integration pipeline. You can create this so that merging changes to your templates into the main branch creates or modifies the stacks, then use your standard code review practices to manage the templates.
+- Free service.
+
+#### Basic concepts
+
+- Resources: any of the things you can create within AWS, which includes things like S3 buckets, EC2 instances, or SQS queues.
+Templates: text-based (JSON or YAML) descriptions of CloudFormation stacks that you can use to define all of your resources, including which resources depend on each other. 
+Stack: a collection of AWS resources that you can manage as a single unit. 
+StackSet: a named set of stacks that use the same template, but applied across different accounts and Regions. You can create, update, or delete stacks across multiple accounts and Regions with a single operation.
+
 ### Amazon Q Developer
 
 - AI coding companion.
 - Generates code suggestions based on comments and existing code.
 - Offers real-support for code vulnerabilities.
+
+### AWS WA Tool
+
+- To use the AWS WA Tool, define your workload, apply one of the AWS Well-Architected lenses or your own custom lens, and begin your review. The tool generates an improvement plan and provides a mechanism to track and measure your progress.
