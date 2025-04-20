@@ -929,17 +929,266 @@ stateDiagram
 - You have the option of configuring your Lambda functions using the Lambda console, Lambda API, AWS CloudFormation, or AWS Serverless Application Model (AWS SAM).
 - You can create a function from scratch, blueprint, select a container image or browse the AWS Serverless Application Repository.
 - You can deploy by zip or by container.
+- You define the execution parameters, such as memory, timeout and concurrency.
 - The runtime provides a language-specific environment that runs in an application environment.
 - The AWS Lambda function handler is the method in your function code that processes events.
+- The handler method takes two objects: the event object and the context object. 
 - Billing is rounded up to the nearest 1 millisecond (ms). It can be cost effective to run functions whose execution time is very low.
+- Price depends on the amount of memory you allocate to your function, not the amount of memory your function uses.
 - Is a suitable choice for any short-lived application that can finish running in under 15 minutes.
 - Great option for even-driven applications.
 - If is compute intensive consider using a container instead of lambda.
+- Supported languages: Node, Python, Java, Go, C#, Ruby, PowerShell.
+- AWS provided plugins for a number of popular IDEs.
+- The AWS Lambda Free Tier includes 1 million free requests per month and 400,000 GB-seconds of compute time per month.
 
-#### Triggers
+#### Invocation models
 
-- HTTP call
-- Upload of a file to S3
+##### Synchronous invocation
+
+- Runs the function and waits for a response.
+- Synchronous events expect an immediate response from the function.
+- There are no built-in retries. You must manage your retry strategy within your application code.
+- Synchronous services: API Gateway, Cognito, CloudFormation, Alexa, Lex, CloudFront.
+
+##### Asynchronous invocation
+
+- Events are queued and the requestor doesn't wait for the function to complete.
+- With the asynchronous model, you can make use of destinations. Use destinations to send records of asynchronous invocations to other services.
+- There is a built in retries twice.
+- A destination can send records of asynchronous invocations to other services.
+- You can configure separate destinations for events that fail processing and for events that process successfully.
+- You can configure destinations on a function, a version, or an alias, similarly to how you can configure error handling settings.
+- Asynchronous services: SNS, S3, EventBridge.
+
+##### Polling invocation
+
+- Lambda will poll (or watch) these services, retrieve any matching events, and invoke your functions.
+- With this model, the retry behavior varies depending on the event source and its configuration.
+- The configuration of services as event triggers is known as event source mapping. This process occurs when you configure event sources to launch your Lambda functions and then grant theses sources IAM permissions to access the Lambda function.
+- Polling services: Kinesis, SQS, Amazon MQ, Managed Streaming for Apache Kafka (MSK), self-managed Kafka, DynamoDB Streams.
+
+#### Lambda execution environment
+
+##### Init phase
+
+- Lambda creates or unfreezes an execution environment with the configured resources, downloads the code for the function and all layers, initializes any extensions, initializes the runtime, and then runs the function’s initialization code (the code outside the main handler).
+- The Init phase happens either during the first invocation, or before function invocations if you have enabled provisioned concurrency.
+- Three sub-phases: extension init (starts all extensions), runtime init (bootstraps the runtime) and function init (runs the function static code)
+
+##### Invoke phase
+
+- Lambda invokes the function handler. After the function runs to completion, Lambda prepares to handle another function invocation.
+
+##### Shutdown phase
+
+- If the Lambda function does not receive any invocations for a period of time, this phase initiates.
+- Lambda shuts down the runtime, alerts the extensions to let them stop cleanly, and then removes the environment.
+- Lambda sends a shutdown event to each extension, which tells the extension that the environment is about to be shut down.
+
+#### Design best practices
+
+- Separate business logic: separate your core business logic from the handler event. This makes your code more portable and you can target unit-tests on your code without worrying about the configuration of the function.
+- Write modular functions: module functions will reduce the amount of time that it takes for your deployment package to be downloaded and unpacked before invocation.
+- Treat functions as stateless: if you need to store state data consider using DynamoDB, ElastiCache or S3.
+- Only include what you need: minimize both your deployment package dependencies and its size. Choose the modules that you need instead of the full AWS SDK. In TypeScript bundle and tree shaking dependencies. In Java use simple DI like Dagger or Guice over Spring Framework and put your dependency .jar files in a separate /lib directory.
+
+#### Best practices for writing code
+
+- Include logging statements.
+- Use return coding.
+- Provide environment variables.
+- Add secret and reference data. AWS Secrets Manager helps you organize and manage important configuration data such as credentials, passwords, and license keys. Parameter Store, a capability of AWS Systems Manager, is integrated with Secrets Manager so you can retrieve Secrets Manager secrets when using AWS Lambda. By using Parameter Store to reference Secrets Manager secrets, you create a consistent and secure process for calling and using secrets and reference data in your code and configuration scripts. Parameter Store also integrates with IAM, giving you fine-grained access control to individual parameters or branches of a hierarchical tree.
+- Avoid recursive code. If you accidentally deploy recursive code, you can quickly set the concurrent execution limit to zero by using the console or command line to immediately throttle requests while you fix the code.
+- Gather metric with CloudWatch.
+- Reuse execution context (store dependencies locally, limit re-initialization of variable, reuse connections, use tmp space ad check that background process have completed).
+
+#### Performance optimization
+
+- A cold start occurs when a new execution environment is required to run a Lambda function.
+- In a warm start, the Lambda service retains the environment instead of destroying it immediately. This allows the function to run again within the same execution environment. This saves time by not needing to initialize the environment.
+- Billing starts after the runtime has been initialized.
+- After optimizing your function, another way to minimize cold starts is to use provisioned concurrency. Provisioned concurrency is a Lambda feature that prepares concurrent execution environments before invocations.
+- If you need predictable function start times for your workload, provisioned concurrency ensures the lowest possible latency. This feature keeps your functions initialized and warm, and ready to respond in double-digit milliseconds at the scale you provision.
+
+##### Best practice: Write functions to take advantage of warm starts
+
+- Store and reference dependencies locally.
+- Limit re-initialization of variables.
+- Add code to check for and reuse existing connections.
+- Use tmp space as transient cache.
+- Check that background processes have completed.
+
+#### Permissions
+
+- Permissions to invoke the function are controlled using an IAM resource-based policy. An IAM execution role defines the permissions that control what the function is allowed to do when interacting with other AWS services.
+
+##### Resource-based policy
+
+- A resource policy (also called a function policy) tells the Lambda service which principals have permission to invoke the Lambda function.
+- An AWS principal may be a user, role, another AWS service, or another AWS account.
+- A consideration with cross-account permissions is that a resource policy does have a size limit. If you have many different accounts that need to invoke the function and you have to add permissions for each account via the resource policy, you might reach the policy size limit. In that case, you would need to use IAM roles instead of resource policies.
+
+##### Execution role
+
+- The execution role gives your function permissions to interact with other services. You provide this role when you create a function, and Lambda assumes the role when your function is invoked.
+- The role must include a trust policy that allows Lambda to “AssumeRole” so that it can take that action for another service.
+- You can also use (opens in a new tab)IAM Access Analyzer to help identify the required permissions for the IAM execution role. IAM Access Analyzer reviews your AWS CloudTrail logs over the date range that you specify and generates a policy template with only the permissions that the function used during that time.
+
+#### Accessing resources in a VPC
+
+- Enabling your Lambda function to access resources inside your VPC requires additional VPC-specific configuration information, such as VPC subnet IDs and security group IDs.
+- To establish a private connection between your VPC and Lambda, create an interface VPC endpoint via PrivateLink.
+
+#### Building Lambda functions
+
+##### Lambda console editor
+
+- If your code does not require custom libraries (other than the AWS SDK), you can edit your code inline through the console.
+- The Lambda console editor is based on the AWS Cloud9 IDE where you can author and test code directly.
+- When working with Lambda via the console, note that when you save your Lambda function the Lambda service creates a deployment package that it can run.
+
+##### Deployment packages
+
+- Your Lambda function's code consists of scripts or compiled programs and their dependencies.
+- Lambda supports two types of deployment packages: container images and .zip file archives.
+- You can create and upload a .zip file to S3 or use a container image and push to Amazon Elastic Container Registry (Amazon ECR).
+
+##### Automate using tools
+
+- You can automate the deployment process of your applications by using AWS SAM and other AWS services, such as AWS CodeBuild, AWS CodeDeploy, and AWS CodePipeline.
+
+#### AWS SAM
+
+- Open-source framework for building serverless applications.
+- AWS SAM transforms and expands the AWS SAM syntax into AWS CloudFormation syntax.
+- A variety of serverless frameworks are available.
+- AWS SAM provides a number of predefined, commonly used templates that you can use to build for least privilege security access.
+- For a Lambda function, AWS SAM scopes the permissions of your Lambda functions to the resources used by your application.
+- You can add IAM policies as part of the AWS SAM template. The policies property can be the name of AWS managed policies, inline IAM policy documents, or AWS SAM policy templates.
+- AWS SAM CLI launches a Docker container that you can interact with to test and debug your Lambda functions. Note that even with a tool like AWS SAM CLI, local testing will only cover a subset of what must be tested before code should go into your production application.
+- Testing: invoke functions and run automated tests locally, generate sample event source payloads, run api gateway locally, debug code, review logs and validate SAM templates.
+- Commands: init, local, validate, deploy and build.
+
+#### Configuring your Lambda functions
+
+- Depending on the function, you might find that the higher memory level might actually cost less because the function can complete much more quickly than at a lower memory configuration.
+- You can use an open-source tool called Lambda Power Tuning to find the best configuration for a function. Powered by AWS Step Functions, supports three optimization strategies: cost, speed, and balanced. It's language-agnostic.
+
+![](cert-sap/lambda-power-tuning.jpg)
+
+##### Memory
+
+- You can allocate up to 10 GB of memory.
+- Lambda allocates CPU and other resources linearly in proportion to the amount of memory configured.
+- Because Lambda charges are proportional to the memory configured and function duration (GB-seconds), the additional costs for using more memory may be offset by lower duration.
+
+##### Timeout
+
+- The maximum timeout for a Lambda function is 900 seconds.
+- There are many cases when an application should fail fast and not wait for the full timeout value.
+- It is important to analyze how long your function runs.
+- Load testing your Lambda function is the best way to determine the optimum timeout value.
+- Avoiding lengthy timeouts for functions can prevent you from being billed while a function is simply waiting to time out.
+
+##### Concurrency and scaling
+
+- Concurrency is the number of invocations your function runs at any given moment.
+- Default regional account level limit is 1000. You can increase the limit by requests.
+- You limit concurrency to limit costs, regulate how long it takes to process batch events or match with a downstream resource that cannot scale as quickly as Lambda.
+- You reserve concurrency to ensure that you can handle peak expected volume for a critical function or address invocation errors.
+- The burst concurrency quota is not per function. It applies to all of your functions in the Region. Differ by region: 3000 for US West (Oregon), US East (N. Virginia), Europe (Ireland), 1000 for Asia Pacific (Tokyo), Europe (Frankfurt), US East (Ohio) and 500 for other regions.
+- After the initial burst, your functions' concurrency can scale by an additional 500 instances each minute. This continues until there are enough instances to serve all requests, or until a concurrency limit is reached.
+- CloudWatch includes two built-in metrics that help determine concurrency: ConcurrentExecutions and UnreservedConcurrentExecutions.
+
+###### Unreserved concurrency
+
+- The amount of concurrency that is not allocated to any specific set of functions.
+- The minimum is 100 unreserved concurrency.
+
+###### Reserved concurrency
+
+- Guarantees the maximum number of concurrent instances for the function.
+- When a function has reserved concurrency, no other function can use that concurrency.
+- No charge is incurred for configuring reserved concurrency for a function.
+
+###### Provisioned concurrency
+
+- Initializes a requested number of runtime environments so that they are prepared to respond immediately to your function's invocations.
+- This option is used when you need high performance and low latency.
+- You pay for the amount of provisioned concurrency that you configure and for the period of time that you have it configured.
+- For example, you might want to increase provisioned concurrency when you are expecting a significant increase in traffic.
+
+#### Versions and aliases
+
+- Versioning: You can use versions to manage the deployment of your functions. Lambda creates a new version of your function each time that you publish the function. When you create a Lambda function, only one version exists, which is identified by $LATEST at the end of the Amazon Resource Name (ARN).
+- Publish: Publish makes a snapshot copy of $LATEST. Enable versioning to create immutable snapshots of your function every time you publish it. Publish as many versions as you need. Each version results in a new sequential version number. Add the version number to the function ARN to reference it. The snapshot becomes the new version and is immutable.
+- Aliases: A Lambda alias is like a pointer to a specific function version. You can access the function version using the alias ARN. Each alias has a unique ARN. An alias can point only to a function version, not to another alias. You can update an alias to point to a new version of the function.
+- You can also use routing configuration on an alias to send a portion of traffic to a second function version.
+- You can point an alias to a maximum of two Lambda function versions. Both versions must have the same runtime role, same dead-letter queue configuration or no dead-letter queue configuration, be published and the alias cannot point to $LATEST.
+
+#### Monitoring and Troubleshooting
+
+- Lambda automatically tracks the following: Number of requests, Invocation duration per request and Number of requests that result in an error.
+- Built in metrics: invocations, duration, errors, throttles (number of times that a process failed because of concurrency limits), iteratorAge (amount of time between when the stream receives the record and when the event source mapping sends the event to the function), deadLetterErrors, concurrentExecutions.
+- The Lambda Insights dashboard has two views in the CloudWatch console: the multi-function overview and the single-function view.
+- The multi-function overview aggregates the runtime metrics for the Lambda functions in the current AWS account and Region.
+- The single-function view shows the available runtime metrics for a single Lambda function.
+- You can use AWS X-Ray to visualize the components of your application, identify performance bottlenecks, and troubleshoot requests that resulted in an error. Your Lambda functions send trace data to X-Ray, and X-Ray processes the data to generate a service map and searchable trace summaries.
+- Dead-letter queues help you capture application errors that must receive a response.
+
+### Serverless architecture
+
+#### Migration patterns
+
+- Leapfrog: go straight from an on-premises legacy architecture to a serverless cloud architecture.
+- Organic: you move on-premises applications to the cloud in more of a lift-and-shift model (EC2 or EKS). Then experiment with serverless, adopt and take strategic decisions.
+- Strangler: incrementally and systematically decomposes monolithic applications by creating APIs and building event-driven components that gradually replace components of the legacy application. New feature branches can be serverless first, and legacy components can be decommissioned as they are replaced.
+
+#### Migration considerations
+
+- Establish what part of the total application each microservice will represent. Then pull the associated data into its own data store. Teams have to agree on the boundaries of each domain, what is shared, who owns, and who uses the data.
+- Break up your data based on the command query responsibility segregation, or CQRS, pattern.
+- Design the data stores that match how the data will be used and stop thinking in terms of a single, general purpose database.
+- Tasks or code that uses cron jobs are good targets to replace with Lambda functions. You can use Amazon CloudWatch Events as triggers for Lambda functions, or create an EventBridge rule that runs a Lambda function on a schedule.
+- Workers listening to a queue may be an easy place to introduce SQS queue without requiring a lot of untangling of the existing code.
+- You can use both Application Load Balancer and API Gateway to direct traffic to different targets to easily incorporate new components without disrupting the existing system.
+- You can use API Gateway stages to maintain multiple versions of an API.
+- A steady stream of traffic may cost less with ALB, but if request patterns are very spiky, API Gateway may be more cost effective.
+
+#### Fargate or Lambda
+
+##### Fargate
+
+- Lift and shift with minimal rework
+- Long running processes
+- Predictable and consistent workload
+- Need more than 3GB of memory
+- Application with a non-http/s listener
+- Run side cars with your service
+- Container image portability with Docker runtime
+
+##### Lambda
+
+- Task that run less than 15 minutes
+- Spiky, unpredictable workloads
+- Unknown demand
+- Light-weight application focused in stateless computing
+- Simplified IT automation
+- Real-time data processing
+- Reduced complexity form development and operations
+
+#### Serverless IT automation
+
+- A powerful IT automation pattern is to trigger a Lambda function that assesses whether a configuration change is allowed and deletes the change automatically if it is not allowed.
+
+#### Serverless web applications and mobile apps
+
+- A common event-driven pattern forms the basic backbone of a serverless web application architecture using Amazon API Gateway to handle HTTP requests, Lambda to provide the application layer, and Amazon DynamoDB to provide database functionality. Also add Cognito, S3 and SQS. The SPA can be published using S3. Use CloudFront as an entry point to serve static data. Use AWS AppSync for GraphQL for mobile apps. Also Amazon Pinpoint captures analytics data from clients and also sends targeted texts or emails based on user data.
+
+### Amazon EventBridge
+
+TODO: EventBridge
 
 ### AWS Step Functions
 
