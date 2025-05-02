@@ -526,6 +526,8 @@
 
 - The DNS for AWS.
 
+TODO: Route 53
+
 ### Global Accelerator
 
 - Optimizes your user traffic, from the user to your application.
@@ -1094,6 +1096,8 @@ stateDiagram
 ##### Concurrency and scaling
 
 - Concurrency is the number of invocations your function runs at any given moment.
+- Concurrency = request rate * average duration, example: 25 requests per second * 10 seconds of duration = 250, if limits are lower, then calls are throttled.
+- Function concurrency of 0 halts all invocations (emergency stop).
 - Default regional account level limit is 1000. You can increase the limit by requests.
 - You limit concurrency to limit costs, regulate how long it takes to process batch events or match with a downstream resource that cannot scale as quickly as Lambda.
 - You reserve concurrency to ensure that you can handle peak expected volume for a critical function or address invocation errors.
@@ -1218,6 +1222,83 @@ TODO Serverless Application Repository
 ### AWS SimSpace Weaver
 
 TODO AWS SimSpace Weaver
+
+### Scaling Serverless Architecture
+
+#### API Gateway
+
+- If backend services starts to fail because of the load, then configure throttling on the API method.
+- Consider limits in size of the payload (10MB).
+- Consider the authorizer function for lambda concurrency calculations. You can mitigate this by enabling caching.
+- Consider limits of the full system, for example API gateway is limited to 10MB but the SQS related queue only 256KB.
+
+#### SQS
+
+- Lambda defaults to using five parallel processes to get messages off the queue, make sure that the reserved concurrency on the function is at least five.
+- If the Lambda service detects an increase in queue size, it will automatically increase the number of concurrent Lambda functions it invokes each minute until maximum concurrency is reached or the queue has slowed down.
+- If your Lambda function returns errors when processing messages, the Lambda service will decrease the number of processes polling the queue, assuming that the errors indicate too much pressure on downstream targets.
+- SQS will continue to try a failed message up to the maximum receive count specified in the receive policy, at which point, if a dead-letter queue is configured, the failed message will be put into the dead-letter queue and deleted from your SQS queue.
+- If the choice you made for batch size is too large, your Lambda function may time out, and that’s going to result in an error back to the Lambda service.
+- If the visibility timeout expires, before your Lambda function has processed the messages in that batch, any message in that batch that hasn’t been deleted by your function will become visible again.
+- The best practice, is to set your visibility timeout to six times the function timeout.
+- In terms of the receive policy that determines when to send failed records to your dead-letter queue, you need to choose a max receive count that balances keeping things moving in the queue, vs. sending too many messages to the dead-letter queue, when the concurrency is high and functions are getting throttled.
+
+| Parameter                                                     | Value or Limit                                      | How the Parameter is Set or Changed                                  |
+| ------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------- |
+| Number of messages that can be in a batch                     | 1 to 10                                             | Configured with the event source on the Lambda function              |
+| Number of default pollers (batches returned at one time)      | 5                                                   | Managed by the Lambda service                                        |
+| Rate at which Lambda increases the number of parallel pollers | Up to 60 per minute                                 | Managed by the Lambda service                                        |
+| Number of batches that Lambda manages simultaneously          | Up to 1,000                                         | Managed by the Lambda service                                        |
+| Number of Lambda functions that can be running simultaneously | The lesser of 1,000 functions and the account limit | Configured by setting a limit (reserved concurrency) on the function |
+| Messages per queue                                            | No limit                                            | N/A                                                                  |
+| Visibility timeout                                            | 0 seconds to 12 hours                               | Configured on the queue                                              |
+| Number of retries                                             | 1 to 1,000                                          | Configured on the queue (maxReceiveCount)                            |
+| Function timeout                                              | 0 seconds to 15 minutes                             | Configured on the function                                           |
+
+#### Lambda
+
+- Consider a multi-account strategy to avoid functions of different apps competing for concurrency.
+- Take advantage of warm-starts storing parameters locally when data is retrieved and use /tmp space as transient cache.
+
+![](cert-sap/lambda-traffic-bursts.jpg)
+
+#### DynamoDB
+
+- The on-demand option scales to instantly double the previous peak, then you can configure throttling to only scale if new peak is more than double previous within 30 min.
+- Use DAX (in memory cache installed in VPC) to increase the read and write speed. DAX is definitely worth a look if you have read-heavy workloads with the need for speed.
+
+#### Traditional relational databases
+
+- Initialize one connection outside the handler and check for connection.
+- Use database TTL to clean up connections because you can no close them.
+- Use Lambda concurrency limits to limit the number of potential connections.
+- The best practice is to implement an external mechanism for managing the connections.
+- You could also use a method called Dynamic Content Management. This method uses an Amazon DynamoDB table to track connections allowed and connections in use and manipulates the count with a helper function packaged as a Lambda layer.
+
+#### Step Functions
+
+- Use wait states and callbacks.
+- Use timeouts (by default is not enabled).
+- Be aware of payload limits between steps (use S3 to store heavy data).
+- Know the API limits.
+
+#### SNS
+
+- Use to execute tasks in parallel.
+- Use AWS Event Fork Pipeline applications to deploy pre-built applications that use Amazon SNS to run common tasks in parallel.
+
+#### Kinesis Data Streams
+
+- Stream processing is dependent of the number of shards, one lambda per shard.
+- One shard can take up to 1000RPS or 1MB/s.
+- Retention period from 24h to 1 week.
+- If one message fails, the full batch fails.
+- GetRecords requests can only be made at five transactions per second, per shard. Each request can return a maximum of 2MB of data. You can have up to five standard consumers on a stream, but all of them have to share the polling capacity and the data capacity.
+- Enhanced Fan-Out subscribe to the stream, so they have the full 2MB capacity.
+- If you have three consumers or less, and latency isn’t critical, you probably want to use a standard stream to minimize the cost.
+- More shards increase throughput and lower the impact of error but increases costs.
+- An increasing IteratorAge metric may mean you need to re-shard.
+- Any data record before the re-shard, they remain in the original shard, only new records are split.
 
 ## Storage
 
@@ -1531,12 +1612,14 @@ TODO AWS SimSpace Weaver
 - Volume queue length can affect latency. The volume queue length is the number of pending I/O requests for a device. Queue length must be correctly calibrated with I/O size and latency to avoid creating bottlenecks, either on the guest operating system or on the network link to Amazon EBS.
 - Your account has a limit on the number of EBS volumes that you can use and the total storage available to you. You can request an increase in your limits if required.
 - For gp3 and io2 volumes types, you can dynamically change the provisioned IOPS or provisioned throughput performance settings for your volume.
+- io1, io2 and gp3 support provisioning IOPS performance separately from the volume size.
 - Once your EBS volumes are in operation, you can monitor them and verify that your volumes are providing optimal performance and cost effectiveness using AWS Compute Optimizer.
 - EBS Snapshot events are tracked through CloudWatch events.
 - You can copy any accessible snapshot that has a completed status.
 - Pricing is based on provisioned volume size, IOPS and throughput billed per second (prices in months are 30 days based). When calculated you need to take into account the default IOPS and throughput (gp3 3000 and 125).
 - Striped volumes: The striped configuration uses a RAID 0 style process to increase the volume size and increase performance for the combined EBS volumes.
 - You can encrypt both the EBS boot and data volumes of an EC2 instance.
+- To determine the minimum provisioned capacity to support your desired sustained IOPS, you divide the sustained IOPS by the IOPS-to-volume capacity ratio.
 
 #### Snapshot encryption
 
@@ -1711,16 +1794,46 @@ TODO AWS SimSpace Weaver
 
 #### Storage classes
 
-| Class                         | Description                                                                                                                                        |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| S3 Standard                   | General purpose                                                                                                                                    |
-| S3 Intelligent-Tiering        | For unknown or changing access patterns.                                                                                                           |
-| S3 Standard-IA                | For data that is accessed less frequently but required rapid access when need. Ideal for long-term backups, disaster recovery files, etc.          |
-| S3 One Zone-IA                | Ideal to store data that is recreatable and needs fast access but infrequent                                                                       |
-| S3 Glacier Instant Retrieval  | Lower-cost archival storage that may require retrieval at any time.                                                                                |
-| S3 Glacier Flexible Retrieval | Has default retrieval time of 1-5 minutes using expedited retrieval. Free bulk is up to 5-12 hours. Ideal for data accessed 1 or 2 times per year. |
-| S3 Glacier Deep Archive       | Has default retrieval time of 12h. Designed to meet regulatory compliance requirements and store data sets for 7-10 years.                         |
-| S3 on Outpost                 | Delivers object storage to your on-premise                                                                                                         |
+| Class                         | Description                                                                                                                                                                             |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S3 Standard                   | General purpose                                                                                                                                                                         |
+| S3 Intelligent-Tiering        | For unknown or changing access patterns.                                                                                                                                                |
+| S3 Standard-IA                | For data that is accessed less frequently but required rapid access when need. Ideal for long-term backups, disaster recovery files, etc.                                               |
+| S3 One Zone-IA                | Ideal to store data that is recreatable and needs fast access but infrequent                                                                                                            |
+| S3 Glacier Instant Retrieval  | Lower-cost archival storage that may require retrieval at any time.                                                                                                                     |
+| S3 Glacier Flexible Retrieval | Has default retrieval time of 1-5 minutes using expedited retrieval. Free bulk is up to 5-12 hours. Ideal for data accessed 1 or 2 times per year. Minimum storage duration of 90 days. |
+| S3 Glacier Deep Archive       | Has default retrieval time of 12h. Designed to meet regulatory compliance requirements and store data sets for 7-10 years. Minimum storages duration of 180 days.                       |
+| S3 on Outpost                 | Delivers object storage to your on-premise                                                                                                                                              |
+
+#### Cost optimization
+
+- Amazon S3 Storage Class Analysis observes data access patterns over a period of time. Can be for an entire bucket or filter by prefix and/or tags (up to 1000 filters per bucket). It allows daily exports of analysis data. It takes 24h to generate the first report.
+- Amazon S3 Intelligent-Tiering optimizes costs by automatically moving data between three access tiers with the option to activate a fourth and fifth archive and deep archival tiers. The first tier is optimized for frequent Access, the next lower-cost tier is optimized for infrequent Access, and the Archive Instant Access tier is a very low-cost tier optimized for rarely accessed data.
+- The archive access tier that must be activated before using. Once activated, S3 Intelligent Tiering moves data that has not been accessed for 90+ consecutive day to the this archival tier. This tier has the same performance as the S3 Glacier Flexible Retrieval storage class. The last, optional tier, is the Deep Archive Access tier. Once activated, objects that have not been access for 180 days automatically move to this lowest cost tier. This tier has the same performance as the S3 Glacier Deep Archive storage class.
+- Amazon S3 inventory is one of the tools Amazon S3 provides to help manage your storage. You can use it to audit and report on the replication and encryption status of your objects for business, compliance, and regulatory needs.
+- Amazon S3 Server access logging provides detailed records for the requests that are made to a bucket.
+- S3 Storage Lens delivers organization-wide visibility into object storage usage, activity trends, and makes actionable recommendations to improve cost-efficiency and apply data protection best practices.
+- AWS Budgets allows you to set custom budgets to track your cost and usage.
+- AWS Cost and Usage Reports provides both a billing and usage report.
+- Use Amazon QuickSight to visualize S3 usage reports.
+- Object data in a lifecycle policy can transition between storage classes in a downward, waterfall model.
+- Amazon S3 does not transition objects between storage classes if they are smaller than 128 KB because it's not cost effective to do so.
+- Objects must remain for a minimum of 30 days in S3 Standard before they can transition to S3 Standard-IA, and S3 One Zone-IA.
+- Objects in S3 Intelligent-Tiering, S3 Standard-IA, and S3 One Zone-IA storage are charged for a minimum storage duration of 30 days, and objects deleted before 30 days incur a pro-rated charge equal to the storage charge for the remaining days.
+- You can define separate lifecycle rules for current and noncurrent object versions.
+- When an object reaches the end of its lifetime, Amazon S3 queues it for removal and removes it asynchronously. You are not charged for storage time associated with an object that has expired.
+- If the current object version is not a delete marker,  the lifecycle expiration action causes Amazon S3 to add a delete marker with a unique version ID.
+- In a versioning-suspended bucket, the expiration action causes Amazon S3 to create a delete marker with null as the version ID. This delete marker replaces any object version with a null version ID in the version hierarchy, which effectively deletes the object.
+- For non-version-enabled buckets, when an object expires, the object is permanently deleted.
+- Lifecycle configuration on multi-factor authentication (MFA)-enabled buckets is not supported.
+- Lifecycle actions are not captured by AWS CloudTrail object level logging. If logging is required, you can use Amazon S3 Server access logs to capture S3 lifecycle-related actions.
+- You should consider using multipart uploads if your object size is over 100 MB or uploading files over a network with inconsistent or erratic uptime.
+- If you initiate a multipart upload but the upload does not complete, the in-progress upload occupies storage space and incurs storage charges. After you initiate a multipart upload, Amazon S3 retains all the parts until you either complete or stop the upload. Throughout its lifetime, you are billed for all storage, bandwidth, and requests for this multipart upload and its associated parts. A Lifecycle rule can be configured to automatically remove incomplete uploads (AbortIncompleteMultipartUpload).
+- Each unit of provisioned capacity allows at least three expedited retrievals (Glacier Flexible Retrieval) to be performed every five minutes and provides up to 150 MB/s of retrieval throughput.
+- The S3 Glacier storage classes must complete a restore request job before you can view the output. After completion, a job will not expire for at least 24 hours (you can configure number of days to be kept), allowing you to download the output within the 24-hour period after the job is completed. if you want to keep it permanently yo need to do a copy of it.
+- You can specify an Amazon SNS topic to which S3 Glacier Flexible Retrieval can post a notification after the job is completed. S3 Glacier Flexible Retrieval sends a notification only after it completes the job (Configure in event notification). It also can send to SQS and Lambda function.
+- Amazon S3 Storage Lens provides organization-wide visibility into object storage usage and activity trends.
+- Amazon S3 Storage Lens requires specific permissions in IAM to authorize access to S3 Storage Lens actions. To do this, you attach the IAM policy to IAM users, groups, or roles to grant them permissions to enable or disable S3 Storage Lens, or to access any S3 Storage Lens dashboard or configuration. You cannot use your account's root user credentials to view Amazon S3 Storage Lens dashboards. To access S3 Storage Lens dashboards, you must grant the requisite IAM permissions to a new or existing IAM user and then log in with those user credentials to access S3 Storage Lens dashboards. 
 
 #### Encryption
 
@@ -1918,33 +2031,233 @@ TODO AWS SimSpace Weaver
 
 - Connects on-premises users and applications using a software appliance with cloud-based storage.
 
-#### Amazon S3 File Gateway
+#### Types
+
+##### Amazon S3 File Gateway
 
 - Amazon S3 File Gateway provides a seamless way to connect to the cloud to store application data files and backup images as durable objects in Amazon S3.
 - Amazon S3 File Gateway offers SMB or NFS-based access to data in Amazon S3 with local caching.
 - POSIX-style metadata, including ownership, permissions, and timestamps, are durably stored in Amazon S3 in the user-metadata of the object associated with the file.
 - When objects are transferred to S3, you can manage them as native S3 objects.
 - You can use S3 File Gateway to back up on-premises file data as objects in Amazon S3.
+- Integrate with SAP, SQL Server, Oracle, Hadoop Distributed File System (HDFS), and other applications.
+- The S3 File Gateway appliance is configured with a file share. Each file share is paired with a single S3 bucket and uses the appliance's local cache. A specific S3 File Gateway appliance can have multiple NFS and SMB file shares.
+- Files written to the file share become objects in the S3 bucket, with a one-to-one mapping between files and objects. Metadata, such as ownership and timestamps, are stored with the object. File paths become part of the object's key, and thus maintain consistent name space. Objects in Amazon S3 appear as files to the on-premises clients.
+- You can access your data directly in Amazon S3.
+- You can implement storage management capabilities, such as versioning, lifecycle management, and cross-Region replication.
+- S3 File Gateway also publishes audit logs for SMB file share user operations to CloudWatch.
+- A cache refresh will find objects in the S3 bucket that were added, removed, or replaced since the gateway last listed the bucket's contents and cached the results. It will then refresh the metadata and cached inventory in the gateway appliance.
+- You can configure Storage Gateway for automated cache refresh based on a timer value between 5 minutes and 30 days.
+- The Storage Gateway can also be refreshed using the RefreshCache API operation.
+- You can refresh a cache at the bucket or prefix level.
+- Each file share needs to be connected to an S3 bucket and given access to the bucket through an IAM role with a trust policy.
+- When you create a new file share, there are some settings that you will not be able to change, such as the bucket or access point or the VPC endpoint settings.
+- You can change other settings of the file share configuration after the file share has been created. For example, you can edit the storage class for your S3 bucket, edit the file share name, export as read-write or read-only, automatically refresh cache settings, and more. What you can change is specific to SMB and NFS.
+- You can configure your gateway to notify you when a file has been fully uploaded to Amazon S3 by the file gateway. Storage Gateway can invoke Amazon EventBridge when your file operations are completed. This in turn, can send an event to a target such as SNS.
 
-#### Amazon FSx File Gateway
+![](cert-sap/s3-file-gateway.png)
+
+###### Planning and designing the deployment
+
+- 1. Deploy the gateway appliance. In on-premises choose from virtual or physical appliance. In AWS you can deploy as an AMI in EC2.
+- 2. Connectivity using public endpoint, VPC endpoint over Direct Connect of VPN or FIPS compliant endpoints.
+- 3. Configure local disks as cache. It is recommended to allocate at least 20 percent or 150 GiB. You can increase adding new disks. The maximum supported size of the local cache for a gateway running on a VM is 64 TiB. To optimize gateway performance, consider adding high-performance disks such as solid state drives (SSDs) or an NVMe controller, or attach a virtual disk to your VM directly. A high-performance disk generally results in better throughput and more input/output operations per second (IOPS).
+- 4. Add file shares to the gateway appliance. Each file share is associated with a unique S3 bucket or unique prefix on the same bucket. Currently file metadata, such as ownership, stored as S3 object metadata cannot be mapped across different protocols. A file gateway, however, can host one or more file shares of different types.
+- 5. Select the S3 storage class for the file share. It is recommended to use standard and use lifecycle policies.
+
+###### Reads, Writes and Updates
+
+- On premises, the file share uses a local cache that provides low-latency access to recently accessed data and reduces outgoing data charges.
+- The S3 File Gateway also stores a local inventory of the objects in the S3 bucket and the metadata. The inventory is used to provide low-latency access for file system operations; for example, listing an inventory.
+- For read requests from the client, first check to see if the data is in the cache. If the data is not in the cache, it's fetched from the S3 bucket using byte-range gets to better use available bandwidth.
+- The gateway performs several optimizations. For example, if you read the file in parts, the whole file is not necessarily pulled into the cache. The gateway tries to predict patterns and do some pre-fetching and read-aheads. If you are reading a video file, for example, and you are reading it serially front to back, the gateway will recognize the pattern and try to pre-fetch ahead of your operations. This is useful for avoiding buffering and avoids the latency of demand caching.
+- When the client writes data to the gateway appliance, using either the NFS or SMB protocols, the gateway stores the data locally. The data is compressed asynchronously, and changed data is uploaded securely. Changes to the files asynchronously update the objects in the S3 bucket using optimized data transfers (such as multipart parallel uploads).
+- To reduce data transfer overhead, the gateway uses multipart uploads and copy put, so only changed data in your files is uploaded to Amazon S3. Then, data that is already in the cloud is used to create a new version of the object (UploadPartCopy).
+
+![](cert-sap/s3-file-gateway-update.png)
+
+###### File share health
+
+| Status         | Meaning                                                                                   |
+| -------------- | ----------------------------------------------------------------------------------------- |
+| AVAILABLE      | The file share is configured properly and is available to use. The normal running status. |
+| CREATING       | The file share is being created and is not ready for use.                                 |
+| UPDATING       | The file share configuration is being updated.                                            |
+| DELETING       | The file share is being deleted. Not deleted until all data is uploaded to AWS.           |
+| FORCE_DELETING | The file share is being deleted forcibly. Deleted immediately, uploading ceases.          |
+| UNAVAILABLE    | The file share is in an unhealthy state.                                                  |
+
+###### Multi-writer best practices
+
+- When multiple gateways or file shares write to the same S3 bucket, unpredictable results might occur.
+- Configure your S3 bucket so that only one file share can write to it. You can create an S3 bucket policy that denies all roles, except the role used for the specific file share, to put or delete objects in the bucket and attach this policy to the S3 bucket. The best practice for secondary gateways is to either use an IAM role that is prevented from writing to the bucket or permit the export of file shares as read-only. These measures can prevent accidental writes to the bucket from the secondary clients at the Amazon S3 level and at Storage Gateway level.
+- If you want to write to the same Amazon S3 bucket from multiple file shares, you must prevent the file shares from trying to write to the same objects simultaneously. To do this, you configure a separate, unique object prefix for each file share. This means that each file share will only write to objects with its corresponding prefix. It will not write to objects associated with the other file shares in your deployment. You configure the object prefix in the S3 prefix name field when you create a new file share.
+
+![](cert-sap/s3-file-gateway-multi-writer.png)
+
+###### Access to the file share
+
+- NFS: can limit access to specific NFS clients or networks by IP, permit read-only or read-write and activate user permission squashing.
+- SMB: can limit access for AD users only or providing authenticated guests access to users, permit read-only or read-write, controlling file or directory access by POSIX or ACLs.
+
+###### CloudWatch Metrics
+
+| Metric                    | Description                                                                                         |
+| ------------------------- | --------------------------------------------------------------------------------------------------- |
+| AvailabilityNotifications | Number of availability-related health notifications generated by the gateway                        |
+| CacheHitPercent           | Percentage of application read operations from the file shares that are served from cache           |
+| CachePercentDirty         | The file share's contribution to the overall percentage of the gateway's cache not persisted to AWS |
+| CachePercentUsed          | The file share's contribution to the overall percentage use of the gateway's cache storage          |
+| CloudBytesUploaded        | Total number of bytes that the gateway uploaded to AWS during the reporting period                  |
+| CloudBytesDownloaded      | Total number of bytes that the gateway downloaded from AWS during the reporting period              |
+| HealthNotifications       | Number of health notifications generated by this gateway in the reporting period                    |
+| IoWaitPercent             | Percentage of time that the gateway is waiting on a response from the local disk                    |
+| ReadBytes                 | Total number of bytes read from your on-premises applications in the reporting period               |
+| WriteBytes                | Total number of bytes written from your on-premises applications in the reporting period            |
+| WriteTime                 | Total number of milliseconds spent on write operations from your on-premises application            |
+
+- Analyze the CloudBytesDownloaded and CloudBytesUploaded metrics to understand throughput between your S3 File Gateway and the AWS Cloud. 
+- Calculate the percentage of read requests that are served from the cache by using the CacheHitPercent metric with the Average statistic. 
+- Use the WriteTime metric with the Average statistic to measure latency.
+- Monitor performance of your Storage Gateway by monitoring metrics such as CachePercentDirty. The higher the percentage of dirty cache (data that has not been written to Amazon S3), the lower the space available for low-latency data.
+- For each activated gateway, we recommend that you create the following CloudWatch alarms:
+  - High IO wait: IoWaitpercent >= 20 for 3 datapoints in 15 minutes
+  - Cache percent dirty: CachePercentDirty > 80 for 4 datapoints within 20 minutes
+  - Availability notifications: AvailabilityNotifications >= 1 for 1 datapoints within 5 minutes
+  - Health notifications: HealthNotifications >= 1 for 1 datapoints within 5 minutes
+- Storage Gateway generates events that EventBridge uses.
+
+##### Amazon FSx File Gateway
 
 - Amazon FSx File Gateway optimizes on-premises access to fully managed, highly reliable file shares in Amazon FSx for Windows File Server.
+- A local cache of frequently used data that you can access is stored, providing faster performance and reduced data transfer traffic.
+- FSx File Gateway stores your data natively as files rather than as objects.
 - Customers with unstructured or file data, whether from SMB-based group shares or business applications, might require on-premises access to meet low-latency requirements.
-- You can migrate and consolidate your on-premises file-based application data stored on NAS.
+- FSx File Gateway is a solution for replacing on-premises NAS.
+- It facilitates user or team file shares and file-based application migration shares in Amazon FSx for Windows File Server, using the SMB protocol.
+- Files written through FSx File Gateway can be directly accessed in FSx for Windows File Server.
 
-#### Tape Gateway
+##### Tape Gateway
 
 - Tape Gateway is used to replace physical tapes on premises with virtual tapes in AWS without changing existing backup workflows.
 - Tape Gateway supports all leading backup applications and caches virtual tapes on premises for low-latency data access.
 - Tape Gateway presents a virtual tape library (VTL) to your backup application using storage open standard iSCSI protocol.
 - Stores your virtual tapes in service-managed S3 buckets.
-- Move the data to an archive tier to further reduce storage costs.
+- Move the data to an archive tier to further reduce storage costs (Amazon S3 Glacier or Amazon S3 Glacier Deep Archive).
 
-#### Volume gateway
+##### Volume gateway
 
 - Volume Gateway presents cloud-backed iSCSI block storage volumes to your on-premises applications. 
 - Volume Gateway stores and manages on-premises data in Amazon S3 on your behalf and operates in cache mode or stored mode.
+- In the cached mode, your primary data is written to Amazon S3, while retaining your frequently accessed data locally in a cache for low-latency access.
+- In the stored mode, your primary data is stored locally and your entire dataset is available for low-latency access while asynchronously backed up to AWS.
+- In either mode, you can take point-in-time copies of your volumes, which are stored as Amazon EBS snapshots in AWS. With this feature, you can make space-efficient versioned copies of your volumes for data protection, recovery, migration, and various other copy data needs.
 - Because Volume Gateway integrates with AWS Backup, you can use the AWS Backup service to protect on-premises applications that use Storage Gateway volumes.
+- The Volume Gateway cached mode is deployed into your on-premises or AWS Cloud environment as a VM running on VMware ESXi, KVM, Microsoft Hyper-V hypervisor, Amazon EC2, or a physical gateway hardware appliance. Stored mode is only available with on-premises host platform options.
+- To prepare data for upload to Amazon S3, your gateway also stores incoming data in a staging area, referred to as an upload buffer. You can use on-premises DAS or SAN disks for working storage.
+- To recover a backup of your data, you can restore an Amazon EBS snapshot to an on-premises gateway storage volume. You can also use the snapshot as a starting point for a new Amazon EBS volume, which you can then attach to an Amazon EC2 instance for processing in the cloud.
+- Volume resizing for the gateway is not supported. To decrease the storage capacity, you will need to create a new gateway and migrate your data to the new gateway. To increase storage capacity, you add new disks to the gateway instead of expanding disks previously allocated.
+- If you ofter use processes that require reading all of the data on the entire volume, use stored mode instead of cached mode.
+- EBS snapshots are stored in an S3 service bucket instead of a customer bucket.
+- The gateway software running as a virtual machine (VM) or on the hardware appliance is stateless, so you can easily create and manage new instances of your gateway as your storage needs evolve.
+- The host platform can be a VMware ESXi, Microsoft Hyper-V, Linux KVM, Amazon EC2 and hardware appliance.
+- AWS Storage Gateway provides public, VPC, and Federal Information Processing Standards (FIPS) service endpoints.
+- You can connect a gateway to the service either using public internet or through Direct Connect.
+- Storage Gateway supports authentication between your gateway and iSCSI initiators by using Challenge-Handshake Authentication Protocol (CHAP). Data is transferred over the internet, secured by Secure Sockets Layer (SSL)/Transport Layer Security (TLS), from the gateway appliance to AWS.
+- CHAP provides protection against man-in-the-middle and playback attacks by periodically verifying the identity of an iSCSI initiator as authenticated to access a storage volume target. For each volume target, you can define one or more CHAP credentials.
+- Assure your Storage Gateway and the gateway appliance are supported in your desired Regions.
+- When deploying to VMware, Microsoft Hyper-V, and Linux KVM, you must synchronize the virtual machine's time with the host time before you can successfully activate your gateway. Make sure that your host clock is set to the correct time and synchronize it with an NTP server.
+- You should choose a CloudWatch log group option for monitoring the health of your gateway.
+- By default, stored volumes are assigned a snapshot schedule of once a day. This schedule can be edited by specifying either the time the snapshot occurs each day or the frequency (every 1, 2, 4, 8, 12, or 24 hours), or both.
+- Storage Gateway doesn't create a default snapshot schedule for cached volumes. A default schedule is not needed because your data is durably stored in Amazon S3. You can create a snapshot schedule for a cached volume at any time if you want.
+- You can't remove the default snapshot schedule for stored volumes, as they require at least one snapshot schedule.
+- By default, an activated gateway has no rate limits on upload or download. You can limit (or throttle) the upload throughput from the gateway to AWS or the download throughput from AWS to your gateway. The minimum rate for download is 100 Kilobits (Kib) per second and the minimum rate for upload is 50 Kib per second. You can also assign bandwidth rate limits on a schedule.
+- You can optimize iSCSI settings on your iSCSI initiator to achieve higher I/O performance. We recommend choosing 256 KiB for MaxReceiveDataSegmentLength and FirstBurstLength, and 1 MiB for MaxBurstLength.
+- When you provision gateway disks, it is strongly recommended that you don't provision local disks for the upload buffer and cache storage that use the same underlying physical storage disk.
+- If you find that adding more volumes to a gateway reduces the throughput to the gateway, consider adding the volumes to a separate gateway. In particular, if a volume is used for a high-throughput application, consider creating a separate gateway for the high-throughput application. However, as a general rule, you should not use one gateway for all of your high-throughput applications and another gateway for all of your low-throughput applications. To measure your volume throughput, use the ReadBytes and WriteBytes metrics.
+
+![](cert-sap/volume-gateway-cached.png)
+
+![](cert-sap/volume-gateway-stored.png)
+
+###### Planning and designing the deployment
+
+- 1. Choose the right configuration. Cached for custom file shares, migrating application data. Stored for block storage backups, migrations, cloud-based disaster recovery.
+- 2. Deploy the gateway appliance. In on-premises choose from virtual or physical appliance. In AWS you can deploy as an AMI in EC2 (only for cached volume) and minimum recommended size of m5.xlarge, the main use cases for this scenario are proof of concept, disaster recovery and data mirroring.
+- 3. Gateway appliance sizing. Determine the number of total volumes and capacity, cached mode supports up to 32 volumes of 32 TiB and stored mode supports up to 32 volumes of 16 TiB. Estimate the application and workload volume, minimum of 150 GiB for cache storage (only for cached mode) and upload buffer storage, best practice for performance is to allocate multiple local disc for cache storage. Also deploy additional appliances to increase overall throughput if required. In VM if you have more than one data store, is recommended to use one for the cache storage and another for the upload buffer.
+- 4. Connectivity using public endpoint, VPC endpoint over Direct Connect of VPN or FIPS compliant endpoints.
+- 5. Adding volumes. After creation and activation, for a cached volume provision storage volumes backed by S3 and then mount these volumes to your on-premises application servers as iSCSI devices. For a stored volume, map them to on-premises direct-attached storage (DAS) or storage area network (SAN) disk, you can start with new disck or already holding data, then mount these storage volumes to your on-premises application as iSCSI devices.
+
+| From               | To                 | Protocol | Port         | Usage                                                                                            |
+| ------------------ | ------------------ | -------- | ------------ | ------------------------------------------------------------------------------------------------ |
+| Storage Gateway VM | AWS                | TCP      | 443 (HTTPS)  | Communicate from a Storage Gateway outbound VM to an AWS service endpoint.                       |
+| Web Browser        | Storage Gateway VM | TCP      | 80 (HTTP)    | Used by local systems to obtain the Storage Gateway activation key. Only used during activation. |
+|                    |                    |          |              | A Storage Gateway VM doesn't require port 80 to be publicly accessible.                          |
+| Storage Gateway VM | DNS server         | UDP      | 53 (DNS)     | For communication between a Storage Gateway VM and the DNS server.                               |
+| Storage Gateway VM | AWS                | TCP      | 22 (Support) | Allows AWS Support to access your gateway for troubleshooting. Not needed for normal operation.  |
+| Storage Gateway VM | NTP server         | UDP      | 123 (NTP)    | Local systems use this protocol to synchronize VM time to the host time.                         |
+| iSCSI initiators   | Storage Gateway VM | TCP      | 3260 (iSCSI) | Used by local systems to connect to iSCSI targets exposed by a gateway.                          |
+
+###### Reads, Writes and Updates
+
+- In cached volume the reads check first the cache, if not available then retrieves the data compressed from the S3, decompresses it, stores it in the local cache and returns it. This is know as read-through cache.
+- In stored volume the reads are locally.
+- In cached volume the writes are stored in the cache volume first and then compresses and encrypts the data ais ot moves the data from the cache into the upload buffer. This is known as write-back.
+- In stored volume the writes happen directly to the local disk. When you create a snapshot of one of your volumes, the data will then be moved to AWS. Data is compressed and encrypted as it is moved to the upload buffer. From there, data is securely transferred to Amazon S3 in AWS.
+- iSCSI The initiator is the client component of an iSCSI network. The initiator sends requests to the iSCSI target. Initiators can be implemented in software or hardware. Storage Gateway only supports software initiators.
+- The iSCSI target is the server component of the iSCSI network that receives and responds to requests from initiators. Each of your volumes is exposed as an iSCSI target. Connect only one iSCSI initiator to each iSCSI target.
+
+###### Recovery options
+
+- Volume clone: Instant clones offer rapid recovery of data to a gateway on premises. Cloning from an existing volume is faster and more cost effective than creating an Amazon EBS snapshot. Cloning does a byte-to-byte copy of your data from the source volume to the new volume, using the most recent recovery point from the source volume. You can create a new volume from any existing cached volume in the same AWS Region. The new volume is created from the most recent recovery point of the selected volume.
+- EBS snapshot: Snapshots represent a point-in-time copy of the volume at the time the snapshot is requested. Data written to the volume by your application prior to taking the snapshot, but not yet uploaded to AWS, will be included in the snapshot.
+
+###### Volume status
+
+| Status                           | Meaning                                                                                                                                                                                                                                                   |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **AVAILABLE**                    | The volume is available for use. The Available status is the normal running status for a volume.                                                                                                                                                          |
+| **BOOTSTRAPPING**                | The gateway is synchronizing data locally with a copy of the data stored in AWS. You typically don't need to take action for this status, because the storage volume automatically sees the Available status in most cases.                               |
+| **CREATING**                     | The volume is currently being created and is not ready for use. The Creating status is transitional. No action is required.                                                                                                                               |
+| **DELETING**                     | The volume is currently being deleted. The Deleting status is transitional. No action is required.                                                                                                                                                        |
+| **IRRECOVERABLE**                | An error occurred from which the volume cannot recover.                                                                                                                                                                                                   |
+| **PASS THROUGH**                 | Local data is out of sync with data stored in AWS. Data written to a volume while the volume is in Pass Through status remains in the cache until the volume status is Bootstrapping. This data starts to upload to AWS when Bootstrapping status begins. |
+| **RESTORING**                    | The volume is being restored from an existing snapshot. This status applies only for stored volumes.                                                                                                                                                      |
+| **RESTORING PASS THROUGH**       | The volume is being restored from an existing snapshot and has encountered an upload buffer issue. This status applies only for stored volumes.                                                                                                           |
+| **UPLOAD BUFFER NOT CONFIGURED** | The volume cannot be created or used. No upload buffer is configured.                                                                                                                                                                                     |
+###### Attachment status
+
+| Status        | Meaning                                                                                                                                             |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ATTACHED**  | The volume is attached to a gateway.                                                                                                                |
+| **DETACHED**  | The volume is detached from a gateway.                                                                                                              |
+| **DETACHING** | The volume is being detached from a gateway. When you are detaching a volume and the volume doesn't have data on it, you might not see this status. |
+
+###### CloudWatch Metrics
+
+| Metric                    | Description                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------- |
+| AvailabilityNotifications | Number of availability-related notifications sent by the volume.                                        |
+| CacheHitPercent           | Percent of application read operations from the volume that are served from cache.                      |
+| CachePercentDirty         | The volume's contribution to the overall percentage of the gateway's cache that isn't persisted to AWS. |
+| CachePercentUsed          | The volume's contribution to the overall percent use of the gateway's cache storage.                    |
+| CloudBytesUploaded        | The total number of bytes that the gateway uploaded to AWS during the reporting period.                 |
+| CloudBytesDownloaded      | The total number of bytes that the gateway downloaded from AWS during the reporting period.             |
+| HealthNotifications       | The number of health notifications sent by the volume.                                                  |
+| IoWaitPercent             | Percent of time that the gateway is waiting on a response from the local disk.                          |
+| ReadBytes                 | The total number of bytes read from your on-premises applications in the reporting period.              |
+| WriteBytes                | The total number of bytes written to your on-premises applications in the reporting period.             |
+
+- Analyze the CloudBytesDownloaded and CloudBytesUploaded metrics to understand throughput between your gateway and the AWS Cloud.
+- Calculate the percent of read requests that are served from the cache by using the CacheHitPercent metric with the Average statistic. The Average statistic of CloudWatch will sum all the metric values over a period of time and divide them by the number of samples. 
+- Use the ReadTime and WriteTime metrics with the Average statistic to measure latency.
+- Monitor performance of your Storage Gateway by monitoring metrics like CachePercentDirty. The higher the percentage of dirty cache (overall percentage of the gateway's cache that has not persisted to AWS), the lower the space available for low-latency data.
+- Use the ReadBytes and WriteBytes metrics with the Sum statistic to measure throughput from your on-premises applications coming into the gateway.
+- For each activated gateway, it is recommended to create the following CloudWatch alarms:
+    - High IO wait: IoWaitPercent >= 20 for 3 datapoints in 15 minutes
+    - Cache percent dirty: CachePercentDirty > 80 for 4 datapoints within 20 minutes
+    - Availability notifications: AvailabilityNotifications >= 1 for 1 datapoints within 5 minutes
+    - Health notifications: HealthNotifications >= 1 for 1 datapoints within 5 minutes
 
 #### Features
 
@@ -2183,30 +2496,30 @@ TODO AWS SimSpace Weaver
 
 #### Monitoring Cloudwatch events
 
-| **Account Metric**                                      | **Unit** | **Description**                                                                                           |
-|--------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------------|
-| `AccountMaxReads`                               | Count    | The maximum number of read capacity units that can be used by an account                                  |
-| `AccountMaxWrites`                              | Count    | The maximum number of write capacity units that can be used by an account                                 |
-| `AccountMaxTableLevelReads`                     | Count    | The maximum number of read capacity units that can be used by a table or global secondary index           |
-| `AccountMaxTableLevelWrites`                    | Count    | The maximum number of write capacity units that can be used by a table or global secondary index          |
-| `AccountProvisionedReadCapacityUtilization`     | Percent  | The percentage of provisioned read capacity units used by an account                                      |
-| `AccountProvisionedWriteCapacityUtilization`    | Percent  | The percentage of provisioned write capacity units used by an account                                     |
-| `MaxProvisionedTableReadCapacityUtilization`    | Percent  | The percentage of provisioned read capacity units used by the highest provisioned read table or GSI       |
-| `MaxProvisionedTableWriteCapacityUtilization`   | Percent  | The percentage of provisioned write capacity units used by the highest provisioned write table or GSI     |
-| `UserErrors`                                    | Count    | Requests to DynamoDB or Streams that return an HTTP 400 error during the specified time period            |
+| **Account Metric**                            | **Unit** | **Description**                                                                                       |
+| --------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------- |
+| `AccountMaxReads`                             | Count    | The maximum number of read capacity units that can be used by an account                              |
+| `AccountMaxWrites`                            | Count    | The maximum number of write capacity units that can be used by an account                             |
+| `AccountMaxTableLevelReads`                   | Count    | The maximum number of read capacity units that can be used by a table or global secondary index       |
+| `AccountMaxTableLevelWrites`                  | Count    | The maximum number of write capacity units that can be used by a table or global secondary index      |
+| `AccountProvisionedReadCapacityUtilization`   | Percent  | The percentage of provisioned read capacity units used by an account                                  |
+| `AccountProvisionedWriteCapacityUtilization`  | Percent  | The percentage of provisioned write capacity units used by an account                                 |
+| `MaxProvisionedTableReadCapacityUtilization`  | Percent  | The percentage of provisioned read capacity units used by the highest provisioned read table or GSI   |
+| `MaxProvisionedTableWriteCapacityUtilization` | Percent  | The percentage of provisioned write capacity units used by the highest provisioned write table or GSI |
+| `UserErrors`                                  | Count    | Requests to DynamoDB or Streams that return an HTTP 400 error during the specified time period        |
 
-| **Table Metric**                          | **Unit** | **Description**                                                                                   |
-|------------------------------------|----------|---------------------------------------------------------------------------------------------------|
-| `ConsumedReadCapacityUnits`        | Count    | The number of read capacity units consumed over the specified time period                         |
-| `ConsumedWriteCapacityUnits`       | Count    | The number of write capacity units consumed over the specified time period                        |
-| `ProvisionedReadCapacityUnits`     | Count    | The number of provisioned read capacity units for a table or a global secondary index             |
-| `ProvisionedWriteCapacityUnits`    | Count    | The number of provisioned write capacity units for a table or a global secondary index            |
+| **Table Metric**                | **Unit** | **Description**                                                                        |
+| ------------------------------- | -------- | -------------------------------------------------------------------------------------- |
+| `ConsumedReadCapacityUnits`     | Count    | The number of read capacity units consumed over the specified time period              |
+| `ConsumedWriteCapacityUnits`    | Count    | The number of write capacity units consumed over the specified time period             |
+| `ProvisionedReadCapacityUnits`  | Count    | The number of provisioned read capacity units for a table or a global secondary index  |
+| `ProvisionedWriteCapacityUnits` | Count    | The number of provisioned write capacity units for a table or a global secondary index |
 
 
-| **Table Operation Metric**                | **Unit**      | **Description**                                                                                                  |
-|--------------------------|---------------|------------------------------------------------------------------------------------------------------------------|
-| `ReturnedItemCount`      | Count         | The number of items returned by `Query`, `Scan`, or `ExecuteStatement (select)` operations during the time period |
-| `SuccessfulRequestLatency` | Milliseconds | The elapsed time for successful requests to DynamoDB or DynamoDB Streams during the specified time period        |
+| **Table Operation Metric** | **Unit**     | **Description**                                                                                                   |
+| -------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `ReturnedItemCount`        | Count        | The number of items returned by `Query`, `Scan`, or `ExecuteStatement (select)` operations during the time period |
+| `SuccessfulRequestLatency` | Milliseconds | The elapsed time for successful requests to DynamoDB or DynamoDB Streams during the specified time period         |
 
 - The DynamoDB dashboard provides a list of the custom alarms created.
 - When you turn on auto scaling for a table, DynamoDB automatically creates several alarms that can launch auto scaling actions.
@@ -2379,6 +2692,72 @@ TODO AWS SimSpace Weaver
 - DMS: Loads the tables with data without any foreign keys or constraints.
 - SCT: Schema conversion, generate target schema including foreign keys and constraints, and converts code like procedures and views.
 
+#### Migration steps
+
+##### 1 - Envisioning and assessment
+
+- Evaluate the current situation and decide the target database engine.
+- Use SCT to generate a report of the migration of the tables and code objects.
+- Estimate effort based on the report. Simple actions usually require less than an hour, medium actions can be completed in 1-4 hours, and complex actions would typically take over 4 hours.
+
+##### 2 - Database schema conversion
+
+- Use SCT to migrate the schema and objects and perform the required manual changes detected in the report.
+- The Database Migration Playbooks are a series of guides focused on best practices for creating successful blueprints for heterogeneous database migration.
+- The AWS SCT Extension Pack is an add-on module that emulates functions present in the source database that are required when converting objects to the target database. Before you can install the AWS SCT Extension Pack, you need to convert your database schema.
+
+##### 3 - Application conversion and remediation
+
+- You can use AWS SCT to extract SQL statements that are embedded in your application code.
+
+##### 4 - Scripts conversion
+
+- Use AWS SCT to convert Oracle, Microsoft, and Teradata scripts to run on PostgreSQL-derived databases, including Amazon Aurora with PostgreSQL compatibility and Amazon Redshift. As with other conversion features in AWS SCT, if the code cannot be converted for any reason, the tool will highlight the problem for manual intervention.
+
+##### 5 - Integration with third-party applications
+
+- This process may involve upgrading the third-party tools, or changing adapters or APIs to connect to your new databases.
+- Other third-party applications might be tightly coupled to a third-party database. In that case, consider whether you will maintain a legacy database for these applications, or whether you want to migrate from them.
+
+##### 6 - Data migration
+
+- AWS DMS is a web service that helps you migrate data from a source data store to a target data store, as long as either the source or target databases reside within AWS.
+- You can migrate between source and target endpoints that use the same database engine.
+- You can also migrate between source and target endpoints that use different database engines. The only requirement to use AWS DMS is that one endpoint is on an AWS service. You cannot use AWS DMS to migrate from an on-premises database to another on-premises database.
+- You can use AWS DMS to perform a one-time copy of the source data to the target.
+- You can also use AWS DMS to keep your source and target synced by migrating ongoing transactions as they occur on the source.
+- If you are migrating to a new target database, you can continue replicating until you are ready to switch over your applications. If your use case requires ongoing data replication, then you can use AWS DMS to keep a source and target in sync indefinitely.
+- You can select which schemas or tables to include in the migration, filter out unwanted data records, and transform names to conform to your particular naming conventions. As your migration progresses, you can monitor the migration process and check the health of your migration resources via the AWS DMS console.
+-  A migration task runs on a replication instance (EC2) that has been configured with the AWS DMS software. The task migrates the data between your source and target endpoints. You can see the progress of the task in the console, and review detailed task logs if needed.
+-  For relational migrations, AWS DMS can validate the migrated data, so you can be confident that the source and target databases match. Data validation is an option that you can choose to add to your replication task. Data validation tracks the progress of the migration and incrementally validates new data as it is written to the target.
+
+##### 7 - Functional testing of the entire system
+
+- Ensure that all applications interacting with the database perform as before, from a functional perspective.
+
+##### 8 - Performance testing
+
+- Tune performance when an issue is discovered or to meet required criterias.
+
+##### 9 - Integration and deployment
+
+- Integration and deployment is the process of cutting over to your new database system.
+
+##### 10 - Training and knlowedge transfer
+
+- Until all of the team understands the new technologies that you are moving to, consider adding training time on the database engine, AWS, and AWS RDS (depending on what you use).
+
+##### 11 - Documentation and version control
+
+- Document all changes that have been made to the system, and how the new system operates.
+- Use infrastructure as code.
+- You also keep and manage your database schemas as source code.
+
+##### 12 - Post production support
+
+- Plan for support your application might need.
+- Ensure that automated tasks are occasionally checked, and that you have personnel for tasks that are not automated.
+
 ## Monitoring
 
 ### CloudWatch
@@ -2410,6 +2789,7 @@ TODO CloudTrail
 - Then you can create a CloudFormation stack in AWS, which contains the resources created. You can then manage these resources by updating the template.
 - One important issue is how to create the CloudFormation stacks. You can create them manually on the console, but a better approach is to create an integration pipeline. You can create this so that merging changes to your templates into the main branch creates or modifies the stacks, then use your standard code review practices to manage the templates.
 - Free service.
+- AWS CloudFormation StackSets can deploy an IAM role across multiple accounts with a single operation.
 
 #### Basic concepts
 
