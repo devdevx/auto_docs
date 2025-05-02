@@ -1197,6 +1197,70 @@ TODO: EventBridge
 ### AWS Step Functions
 
 - You can use to coordinate the components of distributed applications and microservices using visual workflows.
+- States are elements in your state machine. A state is referred to by its name, which can be any string but it must be unique within the scope of the entire state machine. Individual states can make decisions based on their input, perform actions, and pass output to other states.
+- You pay for each transition from one state to the next. Billing is metered by state transition, and you do not pay for idle time, regardless of how long each state persists (up to one year).
+- You can configure your Step Functions workflow to call other AWS services such as compute services (Lambda, ECS, EKS, Fargate), database services (DynamoDB), messaging services (SNS, SQS), data processing and analytics services (Athena, AWS Batch, AWS Glue, Amazon EMR, and AWS Glue DataBrew), machine learning services (Amazon SageMaker), 
+APIs created by Amazon API Gateway and AWS SDK integrations to call over two hundred AWS services.
+- Automatically handles errors and exceptions with built-in try/catch and retry, whether the task takes seconds or months to complete. You can automatically retry failed or timed-out tasks, respond differently to different types of errors, and recover gracefully by falling back to designated cleanup and recovery code.
+- Support event rates greater than 100,000 per second.
+- The Amazon States Language is a JSON-based, structured language used to define your state machine.
+- Transitions link states together, defining the control flow for the state machine.
+- Step Functions supports JSON path expressions.
+- The fields that filter and control the flow from state to state are InputPath, ResultPath, OutputPath, Parameters and ResultSelector.
+- The AWS Step Functions Workflow Studio is a low-code visual workflow designer.
+
+#### States
+
+- A Pass state passes its input to its output, without performing work. Pass states are useful when constructing and debugging state machines.
+- A Task state represents a single unit of work performed by a state machine. Tasks perform all work in your state machine. A task performs work by using an activity or an AWS Lambda function, or by passing parameters to the API actions of other services.
+- A Choice state adds branching logic to a state machine.
+- A Wait state delays the state machine from continuing for a specified time. You can choose either a relative time, specified in seconds from when the state begins, or an absolute end time, specified as a timestamp.
+- A Succeed state stops an activity successfully. The Succeed state is a useful target for Choice state branches that don't do anything except stop the activity.
+- A Fail state stops the activity of the state machine and marks it as a failure, unless it is caught by a Catch block.
+- The Parallel state can be used to create parallel branches of activity in your state machine.
+- The Map state can be used to run a set of steps for each element of an input array.
+
+#### Intrinsic functions
+
+- States.Format: format a string with the parameters ("States.Format('Welcome to {} {}\\'s playlist.', $.firstName, $.lastName)")
+- States.StringToJson
+- States.JsonToString
+- States.Array: the interpreter returns a JSON array containing the values of the arguments, in the order provided.
+
+#### Security
+
+- AWS Step Functions can invoke code and access AWS resources. In order for AWS Step Functions to invoke AWS resources, and maintain security, you need to grant Step Functions access to those resources by using an IAM role.
+
+#### Standard and Express Workflows
+
+- You cannot change the workflow type after you have created your state machine.
+- Standard Workflows are ideal for long-running, durable, and auditable workflows.
+- Express Workflows are ideal for high-volume, event-processing workloads such as IoT data ingestion, streaming data processing and transformation, and mobile application backends.
+- There are two types of Express Workflows, asynchronous and synchronous.
+
+| Feature                   | Standard Workflows                                                                                    | Express Workflows                                                                                |
+| ------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Maximum duration          | 1 year                                                                                                | 5 minutes                                                                                        |
+| Workflow run start rate   | Over 2,000 per second                                                                                 | Over 100,000 per second                                                                          |
+| Start transition rate     | Over 4,000 per second per account                                                                     | Nearly unlimited                                                                                 |
+| Pricing                   | Priced per state transition. A state transition is counted each time a step in your run is completed. | Priced by the number of times you run, their duration, and memory consumption.                   |
+| Workflow run history      | Runs can be listed/described via APIs, debugged in console, and logged in CloudWatch Logs.            | Not recorded in Step Functions. Can be logged to CloudWatch Logs if configured.                  |
+| Workflow run semantics    | Exactly-once workflow run.                                                                            | Async: At-least-once. Sync: At-most-once.                                                        |
+| Service integrations      | Supports all service integrations and patterns.                                                       | Supports all integrations, but not `.sync` (Job-run) or `.waitForTaskToken` (Callback) patterns. |
+| Step Functions activities | Supports Step Functions activities.                                                                   | Does not support Step Functions activities.                                                      |
+
+| Feature                              | Asynchronous Express Workflows                                                                                  | Synchronous Express Workflows                                                                                   |
+|--------------------------------------|------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| Response behavior                    | Return confirmation that the workflow has started, but do not wait for the workflow to complete.                | Start a workflow, wait until it completes, and then return the result.                                          |
+| Use case                             | Use when immediate response is not required, e.g., messaging services or background data processing.            | Use to orchestrate microservices, simplifying error handling, retries, and parallel task management.            |
+| Invocation sources                   | Can be started by a nested workflow in Step Functions or via the `StartExecution` API call.                     | Can be invoked from Amazon API Gateway, AWS Lambda, or via the `StartSyncExecution` API call.                   |
+
+#### Use cases
+
+- Data processing
+- IT Automation
+- E-commerce
+- Web applications with human approval
 
 ### AWS Batch
 
