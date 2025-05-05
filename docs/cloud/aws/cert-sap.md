@@ -10,7 +10,113 @@
 - IdP can assume roles too.
 - Access keys allows the user to use the cli.
 - Most IAM policies are stored in AWS as JSON documents. They have several policy elements, including a Version, Effect, Action, and Resource (also Condition).
--  IAM policies have a 2 kb size limit for users, 5 kb for groups, and a 10 kb for roles.
+- IAM policies have a 2 kb size limit for users, 5 kb for groups, and a 10 kb for roles.
+- IAM lets you create roles, and doing so allows you to define a set of permissions and then let authenticated users assume them. This feature increases your security posture by granting temporary access to the resources you define.
+- You can use IAM to grant your employees and applications access to the AWS Management Console and to AWS service APIs using your existing identity systems. 
+
+#### Limits on policy size
+
+- User policy size cannot exceed 2,048 characters.
+- Role policy size cannot exceed 10,240 characters.
+- Group policy size cannot exceed 5,120 characters.
+
+#### Policy elements
+
+- Effect: Allow or Deny (required)
+- Action (required)
+- NotAction: explicitly matches everything except the specified list of actions
+- Principal: you cannot use the Principal element in an IAM identity-based policy because, in that case, you are already attaching the policy directly to a principal (optional)
+- NotPrincipal
+- Resource: ARN of the resource (can have wildcards) (required)
+- NotResource
+- Condition: define complex conditions, multiple are interpreted as an AND operation (optional)
+
+#### Identity-based policies
+
+- AWS Managed: They can be attached to multiple users, groups, and roles.
+- Customer managed: Provides more precise control than AWS managed policies and can also be attached to multiple users, groups, and roles.
+- Inline: Embedded directly into a single user, group, or role. not recommended to use.
+
+#### Policy types
+
+##### Identity-based (Grant)
+
+- Also known as IAM policies, identity-based policies are managed and inline policies attached to IAM identities (users, groups to which users belong, or roles). Impacts IAM principal permissions.
+
+##### Resource-based (Grant)
+
+- These are inline policies that are attached to AWS resources. The most common examples of resource-based policies are Amazon S3 bucket policies and IAM role trust policies.
+- Resource-based policies grant permissions to the principal that is specified in the policy; hence, the principal policy element is required.
+
+##### Permissions boundaries (Guardrails)
+
+- A permissions boundary sets the maximum permissions that an identity-based policy can grant to an IAM entity. The entity can perform only the actions that are allowed by both its identity-based policies and its permissions boundaries. Resource-based policies that specify the user or role as the principal are not limited by the permissions boundary.
+- Restricts permissions for the IAM entity attached to it.
+
+##### AWS Organizations SCP (Guardrails)
+
+- AWS Organizations is a service for grouping and centrally managing AWS accounts.
+- If you enable all features in an organization, then you can apply SCPs to any or all of your accounts.
+- SCPs specify the maximum permissions for an account, or a group of accounts, called an organizational unit (OU).
+- Restricts permissions for entities in an AWS account, including AWS account root users.
+
+##### ACLs (Grant)
+
+- ACLs are supported by Amazon S3 buckets and objects.
+- They are similar to resource-based policies although they are the only policy type that does not use the JSON policy document structure.
+- ACLs are cross-account permissions policies that grant permissions to the specified principal.
+- ACLs cannot grant permissions to entities within the same account.
+
+##### Sessions policies (Guardrails)
+
+- A session policy is an inline permissions policy that users pass in the session when they assume the role.
+- The permissions for a session are the intersection of the identity-based policies for the IAM entity (user or role) used to create the session and the session policies.
+- Restricts permissions for assumed roles and federated users.
+
+#### Evaluation logic
+
+- When an IAM entity (user or role) requests access to a resource in the same account, AWS evaluates all the permissions granted by the identity-based and resource-based policies. The resulting permission set is the total accumulated permissions from the two policy types. AWS evaluates all policies associated with a resource and builds a compilation of access rights into a key-value file called the request context.
+- If an action is allowed by an identity-based policy, a resource-based policy, or both, AWS allows the action.
+- An explicit deny in either of these policies overrides the allow.
+
+![](cert-sap/iam-policy-eval.png)
+
+#### Attributes and Tagging
+
+- Attribute-based access control (ABAC) is an authorization strategy that defines permissions based on attributes.
+- In AWS, these attributes are called tags.
+- Tags can be attached to IAM principals (users or roles) and to AWS resources.
+- Using both RBAC and ABAC is the way to go. For example, if multiple users share the same job function but different cost centers, and you want to grant access only to resources belonging to each individual’s cost center. With ABAC, only one role is required instead of multiple roles when using only RBAC.
+- ABAC offers scalability, is more manageable and defines granular permissions.
+
+#### IAM Condition Keys
+
+- iam:AWSServiceName : control access for a specific service role. Use case: roles need to be attached to only specific services.
+- iam:OrganizationsPolicyId : provides the IAM entity access to specific SCPs. Use case: users are also required to be authenticated via a service control policy.
+- iam:PermissionsBoundary : checks that the specified policy is attached as a permissions boundary on the IAM principal resource. Use case: guardrails need to be configured for a policy attached to an IAM group.
+- iam:PolicyARN : control how users can apply AWS managed and customer managed policies. Use case: users can attach specific customer managed policies to only certain IAM groups and roles.
+- iam:ResourceTag : checks that the tag attached to the identity resource, either a user or role, matches the specified key name and value provided. Use case: permissions should be assigned to only a certain IAM role.
+
+##### Condition keys for passing roles (iam:passRole)
+
+- iam:PassedToService : specifies the service principal of the service to which a role can be passed. Use case: service roles should be created and passed to only specific AWS services.
+- iam:AssociatedResourceArn : specifies the ARN of the resource to which this role will be associated at the destination service. Use case: users can pass a role that is associated with only a certain resource.
+
+#### Global Condition Key
+
+- TODO
+
+### AWS Macie
+
+- Macie automates the discovery of sensitive data, such as personally identifiable information (PII), personal health information (PHI) and financial data, to provide you with a better understanding of the types of data in Amazon S3.
+- You can configure a job to run only once, for on-demand analysis and assessment, or on a recurring basis for periodic analysis, assessment, and monitoring. You can also choose various options to control the breadth and depth of a job's analysis, such as the S3 buckets that you want to analyze, the sampling depth, and custom include and exclude criteria that derive from properties of S3 objects.
+- You can also customize what Macie looks for to reflect your unique scenarios, intellectual property, or proprietary data, such as customer account numbers or internal data classifications.
+- If you require an inventory of your S3 buckets, Macie automatically evaluates and monitors those buckets for security and access control. Within minutes, Macie can identify and report overly permissive or unencrypted buckets within your organization.
+
+### Amazon GuardDuty
+
+- Amazon GuardDuty is a security monitoring service that analyzes and processes certain types of AWS logs, such as AWS CloudTrail data event logs for Amazon S3 and CloudTrail management event logs.
+- It uses threat intelligence feeds, such as lists of malicious IP addresses and domains, and machine learning to identify unexpected and potentially unauthorized and malicious activity within your AWS environment.
 
 ## Networking
 
@@ -308,6 +414,15 @@
 - There is no additional charge for using gateway endpoints. Standard charges for data transfer and resource usage apply. You might be able to reduce costs by selecting gateway endpoints for traffic destined to DynamoDB or Amazon S3.
 
 ![](cert-sap/gateway-vpc-endpoint.png)
+
+| Feature                     | Gateway Endpoints                                      | Interface Endpoints                                                    |
+| --------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+| Security                    | Uses endpoint policies for security                    | Uses endpoint policies and security groups                             |
+| Amazon network connectivity | Uses Amazon network to connect to S3 and DynamoDB      | Uses Amazon Network through AWS PrivateLink to connect to AWS services |
+| Access outside of the VPC   | Not accessible from outside the VPC                    | Can be accessed from on-premises and across Regions                    |
+| IP connectivity             | Uses the public IPs of S3 and modifies the route table | Uses private IPs and can use public or endpoint-specific DNS names     |
+| Cost                        | No additional charge for using gateway endpoints       | Charges a fee                                                          |
+
 
 ### AWS Direct Connect
 
@@ -1192,7 +1307,7 @@ stateDiagram
 
 ### Amazon EventBridge
 
-TODO: EventBridge
+- EventBridge was formerly called Amazon CloudWatch Events. The default event bus and the rules you created in CloudWatch Events also display in the EventBridge console. EventBridge uses the same CloudWatch Events API, so your code that uses the CloudWatch Events API stays the same. New features added to EventBridge are not added to CloudWatch Events.
 
 ### AWS Step Functions
 
@@ -1249,11 +1364,11 @@ APIs created by Amazon API Gateway and AWS SDK integrations to call over two hun
 | Service integrations      | Supports all service integrations and patterns.                                                       | Supports all integrations, but not `.sync` (Job-run) or `.waitForTaskToken` (Callback) patterns. |
 | Step Functions activities | Supports Step Functions activities.                                                                   | Does not support Step Functions activities.                                                      |
 
-| Feature                              | Asynchronous Express Workflows                                                                                  | Synchronous Express Workflows                                                                                   |
-|--------------------------------------|------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
-| Response behavior                    | Return confirmation that the workflow has started, but do not wait for the workflow to complete.                | Start a workflow, wait until it completes, and then return the result.                                          |
-| Use case                             | Use when immediate response is not required, e.g., messaging services or background data processing.            | Use to orchestrate microservices, simplifying error handling, retries, and parallel task management.            |
-| Invocation sources                   | Can be started by a nested workflow in Step Functions or via the `StartExecution` API call.                     | Can be invoked from Amazon API Gateway, AWS Lambda, or via the `StartSyncExecution` API call.                   |
+| Feature            | Asynchronous Express Workflows                                                                       | Synchronous Express Workflows                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Response behavior  | Return confirmation that the workflow has started, but do not wait for the workflow to complete.     | Start a workflow, wait until it completes, and then return the result.                               |
+| Use case           | Use when immediate response is not required, e.g., messaging services or background data processing. | Use to orchestrate microservices, simplifying error handling, retries, and parallel task management. |
+| Invocation sources | Can be started by a nested workflow in Step Functions or via the `StartExecution` API call.          | Can be invoked from Amazon API Gateway, AWS Lambda, or via the `StartSyncExecution` API call.        |
 
 #### Use cases
 
@@ -1849,11 +1964,6 @@ TODO AWS SimSpace Weaver
 - Because bucket policies grant access to another AWS account or IAM user, you must specify the principal, or the user to whom you are granting access, as a "Principal" in the bucket policy.
 - Use bucket policy if you need to grant cross-account permissions without IAM roles, or IAM policies reach size limits or you prefer to keep access control in the S3 environment.
 - Use IAM user policies if you want centralized management or have numerous S3 buckets with different permissions requirements or prefer to only use IAM environment.
-- Someone who has permission to perform the operation must create the presigned URL.
-- Presigned url generated from IAM user have a maximum expiration time of 7 days (12 hours if in web console).
-- If you created a presigned URL using a temporary token (Security Token Service), then the URL expires when the token expires (up to 36 hours), even if you created the URL with a later expiration time.
-- If you create a presigned URL using an IAM instance profile, it is valid up to 6 hours, even if you specify a later expiration date.
-- You can define a policy with the `s3:signatureAge` condition to deny any presigned url with signature more than X seconds old.
 - Access Analyzer for Amazon S3 alerts you to buckets configured to allow access to anyone on the internet or other AWS accounts, including AWS accounts outside of your organization. For each public or shared bucket, you receive findings that report the source and level of public or shared access.
 
 #### Storage classes
@@ -1904,12 +2014,22 @@ TODO AWS SimSpace Weaver
 ##### Server-side
 
 - Server-Side Encryption with Amazon S3-Managed Keys (SSE-S3): each object encrypts with a unique key. As an additional safeguard, it encrypts the key itself with a master key that it regularly rotates. Uses AES-256.
-- Server-Side Encryption with Customer Master Keys (CMKs) Stored in AWS Key Management Service (SSE-KMS): similar to SSE-S3, but with some additional benefits and charges for using this service. There are separate permissions for the use of a CMK that provides added protection against unauthorized access of your objects in Amazon S3. SSE-KMS also provides you with an audit trail showing when and who used the CMK. Additionally, you can choose to create and manage customer managed CMKs, or use AWS managed CMKs that are unique to you, your service, and your Region.
+- Server-Side Encryption with Customer Master Keys (CMKs) Stored in AWS Key Management Service (SSE-KMS): similar to SSE-S3, but with some additional benefits and charges for using this service. There are separate permissions for the use of a CMK that provides added protection against unauthorized access of your objects in Amazon S3. SSE-KMS also provides you with an audit trail showing when and who used the CMK. Additionally, you can choose to create and manage customer managed CMKs, or use AWS managed CMKs that are unique to you, your service, and your Region. AWS KMS generates a bucket-level key that is used to create unique data keys for new objects that you add to the bucket. This S3 Bucket Key is used for a time-limited period within Amazon S3, reducing the need for Amazon S3 to make requests to AWS KMS to complete encryption operations.
 - Server-Side Encryption with Customer-Provided Keys (SSE-C): you manage the encryption keys and Amazon S3 manages the encryption, as it writes to disks, and decryption, when you access your objects. With this option, the customer is responsible for managing and rotating the keys, and without access to these keys the Amazon S3 data can not be decrypted.
+
+
+- If you have existing objects in your bucket and you set the default encryption, the setting does not retroactively encrypt existing objects. To encrypt existing objects, use Amazon S3 Batch Operations.
+- If you are using a custom AWS KMS key, you must grant users access to use the key. Otherwise, they will not be able to decrypt the objects.
+- The default encryption on the bucket is used on all objects unless the object PUT request header contains a different encryption method.
 
 ##### Client-side encryption
 
 - You encrypt the data before sending it to S3 and decrypt it when received. It's implemented in the SDKs.
+
+##### Encrypted connections
+
+- To protect data in transit, use an S3 bucket policy to force the use of HTTPS requests. (Deny actions with condition of SecureTransport false)
+- You can use AWS Config rules to implement ongoing detective controls using the s3-bucket-ssl-requests-only AWS Config managed rule.
 
 #### Service Integration
 
@@ -1932,8 +2052,8 @@ TODO AWS SimSpace Weaver
 #### Amazon S3 Block Public Access settings
 
 - Block all public access
-- Block public access granted through new ACLs
-- Block public access granted through any ACLs
+- Block public access granted through new ACLs (any existing ACLs or policies granting public access permissions will not be affected and public access to those resources will remain intact)
+- Block public access granted through any ACLs (you are not prevented from creating new ACLs that would normally grant public access but they are ignored)
 - Block public access granted through new public bucket policies (recommended at account level)
 - Block public and cross-account access granted through any public bucket policies (If you have any ACLs granting public access to buckets and objects will remain publicly accessible)
 
@@ -1942,6 +2062,43 @@ TODO AWS SimSpace Weaver
 - With Amazon S3 Object Ownership, the bucket owner, now has full control of the objects, and may own any new objects written by other accounts automatically.
 - Object writer – The account that is writing the object owns the object.
 - Bucket owner preferred – The bucket owner will own the object if uploaded with the bucket-owner-full-control canned ACL. Without this setting and canned ACL, the object is uploaded to the bucket but remains owned by the uploading account (add a bucket policy to require all Amazon S3 PUT operations to include the bucket-owner-full-control canned ACL).
+- After you set the S3 Object Ownership to Bucket owner preferred, you can add a bucket policy to require all Amazon S3 PUT operations to include the bucket-owner-full-control canned ACL. If the uploader fails to meet the ACL requirement in their upload, the request fails. This setting enables bucket owners to enforce uniform object ownership across all newly uploaded objects in their buckets. 
+
+#### Access policies
+
+- Bucket policy size limit of up 20 KB.
+- Each bucket and object has an ACL attached to it as a subresource. The ACL defines which AWS accounts or groups are granted access and the type of access.
+- For cross-account access, use ACLs to control which principals in another account can access a resource. You cannot use ACLs to control access for a principal in the same account.
+- Amazon S3 also evaluates the corresponding resource policies (bucket policy, bucket ACL, and object ACL) at the same time.
+- You can use a bucket policy to control access to the bucket from only specified VPC endpoints or specific VPCs.
+
+![](./cert-sap/s3-access-evaluation.jpg)
+
+#### Access Points
+
+- Access points are named network endpoints that attach to S3 buckets. They enforce distinct permissions and network controls for any request made through the access point.
+- Name must be unique by account and regions, dns compliant, between 3 and 50 characters, not have upper, periods or underscores.
+- Can only be associated with one bucket.
+- Can create up to 1000 per account and region.
+- Policies limited to 20 KB.
+- Only used to perform operations on objects.
+- Don't work with all AWS services (can't be used as destination for S3 cross-region replication).
+- You can find logging for Amazon S3 requests in CloudTrail logs. These include requests made through access points and requests made to the APIs that manage access points.
+- Access point ARNs use the format:  arn:partition:service:region:account-id:accesspoint/resource
+- Objects accessed through an access point use the ARN format: arn:partition:service:region:account-id:accesspoint/access-point-name/object/resource
+- To configure a bucket in which all access is through access control policies, configure the bucket policy to allow full access. Then, create access point policies to restrict access based on your user or application needs.
+- During access point creation, you can choose requests to originate from a specific VPC. Alternatively, you can choose to make the access point accessible from the internet. An access point that's accessible only from a specified VPC has a network origin of VPC. Amazon S3 rejects any request made to the access point that doesn't originate from that VPC. An access point that's accessible from the internet is said to have a network origin of Internet.
+- Adding an S3 access point to a bucket doesn't change the bucket's behavior when accessed through the existing bucket name or ARN. All existing operations against the bucket continue to work as before. Restrictions that you include in an access point policy apply only to requests made through that access point.
+- Amazon S3 Access Points support independent Block Public Access settings for each access point.
+- For any request made through an access point, Amazon S3 evaluates the Block Public Access settings for that access point, the underlying bucket, and the bucket owner's account.
+
+#### Presigned URLs
+
+- Someone who has permission to perform the operation must create the presigned URL.
+- Presigned url generated from IAM user have a maximum expiration time of 7 days (12 hours if in web console).
+- If you created a presigned URL using a temporary token (Security Token Service), then the URL expires when the token expires (up to 36 hours), even if you created the URL with a later expiration time.
+- If you create a presigned URL using an IAM instance profile, it is valid up to 6 hours, even if you specify a later expiration date.
+- You can define a policy with the `s3:signatureAge` condition to deny any presigned url with signature more than X seconds old.
 
 #### Online data transfer services
 
@@ -2392,6 +2549,7 @@ TODO AWS SimSpace Weaver
 
 ### AWS Backup
 
+- Global service.
 - You can centralize and automate data protection across AWS services.
 - When you combine AWS Organizations with AWS Backup, you can deploy data protection policies centrally.
 - Automate backup scheduling.
@@ -2399,12 +2557,121 @@ TODO AWS SimSpace Weaver
 - Lifecycle management policies.
 - Incremental backups (except DynamoDB or Aurora).
 - Cross-Region backup.
-- Cross-account with AWS Organizations.
-- Includes EC2, Volume Shadow Copy Service (VSS) on Amazon EC2, EBS, RDS, Aurora, DynamoDB, Neptune, DocumentDB, EFS, FSx for Lustre, FSx for Windows File Server, AWS Storage gateways, S3 and VMware workloads.
+- AWS Backup can seamlessly integrate with AWS Organizations so the administrative team can manage and monitor all of their backups from a single management account.
+- AWS Backup provides unified IAM policy control over which accounts and roles can access backup resources. Using unified IAM policy control decreases the number of individual per-service roles and service-specific, individualized permissions to be maintained.
 - AWS Backup is in scope of the many AWS compliance programs, including FedRAMP High, General Data Protection Regulation (GDPR), SOC 1, SOC 2, SOC 3, payment card industry (PCI), Health Insurance Portability and Accountability Act of 1996 (HIPAA).
 - AWS Backup storage pricing is based on the amount of storage space your backup data consumes. For the first backup of an AWS resource, a full copy of your data is saved. For each incremental backup, only the changed part of your AWS resource is saved.
 - AWS Backup and native snapshots are stored in AWS managed Amazon S3 buckets.
 - Solve the operational issues of compliance requirements, data retention requirements and data durability requirements.
+- A recovery point objective (RPO) is how far back in time you can go to recover the data. How much data loss can you tolerate?
+- A recovery time objective (RTO) defines the maximum amount of time that your business can be down or offline without affecting the business.
+- Backup and recovery processes should have the appropriate level of granularity to meet the RTO and RPO objectives for the workload and any supporting business processes.
+- AWS Backup Audit Manager is used to audit the compliance of their AWS Backup policies against defined controls (schedules, retention policies, and the like).
+
+#### Supported services
+
+- Compute - EC2 at instance level
+  - Snapshot of the root EBS volume, launch configurations (instance type, security groups and VPC, monitoring configuration, tags), all associated EBS, AMI including all launch configurations and also Volume Shadow Copy Service (VSS) enabled Microsoft Windows applications.
+  - Stored in S3.
+  - Not backed up configuration of the Elastic Inteface accelerator and user data used when the instance was launched.
+- Storage - EBS
+- Storage - EFS
+  - Can use AWS Backup or EFS Replication
+  - You can backup all the data in the EFS and restore entire file system or restore specific indivudual files and directories.
+- Storage - S3
+  - Can create nearly continuous point-in-time and periodic backups.
+  - You must activate S3 Versioning on your bucket before AWS Backup can back it up.
+- Storage - FSX for Windows File Server
+  - Backups stored in S3
+- Storage - FSX for Luste
+- Data - RDS
+  - Backus the entire instance
+  - If necessary you can restore at any point in time
+- Data - Aurora clusters
+- Data - Neptune
+  - If necessary you can restore at any point in time
+  - Lets you specify a backup retention period, from 1 to 35 days, when you create or modify a DB cluster
+- Data - DynamoDB tables
+- Data - Amazon DocumentDB
+- Hybrid cloud - VMWare
+  - Provides built-in controls for VMware backups so you can track backup and restore operations and generate auditor-ready reports.
+  - Provides a single-click restore experience so you can restore VMware backups on-premises and in VMware Cloud on AWS.
+- Hybrid cloud - AWS Storage Gateway
+  - Supports backup and restore of both cached and stored volumes
+
+#### Backup plan
+
+- Defines a set of backup rules.
+- Then assign resources, select between all or specific types and resources and also can filter by tags (multiple mean and condition).
+- The following quotas apply to a single resource assignment in AWS Backup: 500 ARNs without wildcards, 30 ARNs with wildcard expressions, 30 conditions and 30 tags per resource assignment.
+
+##### Backup rule sections
+
+- Vault: where backup data is stored. Can have up to 100 per region. AWS Backup Vault Lock enforces a write-once, read-many (WORM) setting for all the backups you store and create in a backup vault. A best practice is to create different vaults based on what is stored within the vault.
+- Backup frecuency (supports specific time spans and cron expression)
+- Backup window: the time that the backup window begins and the duration of the window in hours. The default backup window is set to start at 5 AM UTC and lasts 8 hours.
+- Transition to cold storage: when available, use this feature to reduce storage costs. The recovery points that AWS Backup transitions to cold storage must remain there for at least 90 days. Therefore, your retention period setting must be at least 90 days after your transition to cold storage setting.
+- Retention period: snapshots can be retained between 1 day and 100 years (or indefinitely, if you do not enter a retention period), and continuous backups between 1 and 35 days.  
+- Cross-region and cross-account copy
+- Tags added to recovery points
+- Advanced backup settings: Backup and restore your Volume Shadow Copy Service (VSS) enabled Microsoft Windows applications, including Windows Server, Microsoft SQL Server, Exchange Server, and SharePoint running on EC2 instances.
+
+#### Security
+
+- By default, AWS Backup creates an AWS KMS key with the alias aws/backup. You can choose to use this key or choose any other AWS KMS key in your account. This is powerful because the AWS KMS key can have a policy that allows AWS operators to encrypt the backup, but you can limit decryption to a completely different principal. 
+- The encryption key specified in the vault applies to backups of resource types (for example, supported AWS services) that support full AWS Backup management.
+- If a resource type doesn't currently support full AWS Backup management, then that resource type (service) is backed up using the key that is used to encrypt the source resource.
+- After you create a backup vault and set the AWS KMS encryption key, you can no longer edit the key for that backup vault.
+- Your account always has a default backup vault. If you require different encryption keys or access policies for different groups of backups, you can create multiple backup vaults.
+- AWS Backup Vault Lock is a feature that helps fortify compliance requirements by protecting your backups and lifecycles against intentional or accidental actions, such as deletions. AWS Backup Vault Lock uses a WORM model.
+- With AWS Backup Vault Lock, no users—including root, administrators, or bad actors—can delete your backups or change their lifecycle settings such as retention periods and transition to cold storage.
+- If you are using AWS Organizations to manage multiple AWS accounts, you can turn on organization-wide backup protection and monitoring using AWS Backup.
+
+#### Monitoring
+
+- You can use CloudWatch to monitor AWS Backup metrics by using the aws/backup namespace.
+
+| Category        | Metrics                                                    | Example Dimensions        | Example Use Case                                                                                                                                                                                                                         |
+| --------------- | ---------------------------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Jobs            | Number of backup, restore, and copy jobs across each state | Resource type, vault name | Monitor the number of failed backup jobs within one or more specific backup vaults. When there are more than 5 failed jobs within 1 hour, send an email or SMS using Amazon SNS or open a ticket to the engineering team to investigate. |
+| Recovery points | Number of warm and cold recovery points across each state  | Resource type, vault name | Track the number of deleted recovery points for your Amazon EBS volumes and separately track the number of warm and cold recovery points in each backup vault.                                                                           |
+
+- You can configure Amazon SNS to notify you of AWS Backup events, like failed backup jobs or job completion and expiration.
+
+| Job Type       | Event                                                    |
+| -------------- | -------------------------------------------------------- |
+| Backup job     | BACKUP_JOB_STARTED, BACKUP_JOB_COMPLETED                 |
+| Copy job       | COPY_JOB_STARTED, COPY_JOB_SUCCESSFUL or COPY_JOB_FAILED |
+| Restore job    | RESTORE_JOB_STARTED, RESTORE_JOB_COMPLETED               |
+| Recovery point | RECOVERY_POINT_MODIFIED                                  |
+
+- AWS Backup sends events to EventBridge in a best-effort manner every 5 minutes.
+- Although you can use the AWS Backup notification API to track AWS Backup events with Amazon SNS, EventBridge tracks more changes than the notification API, including changes to backup vaults, copy job state, Region settings, and the number of cold or warm recovery points.
+
+#### AWS Backup Audit Manager
+
+- AWS Backup Audit Manager provides built-in compliance controls. You can customize those controls to define your data protection policies. The service automatically detects violations of your defined data protection policies and prompts you to take corrective actions.
+- You can continuously evaluate backup activity and generate audit reports to help demonstrate that you are compliant with regulatory qualifications.
+- AWS Backup Audit Manager framework is a collection of controls that can be managed as a single entity. If you must comply with different internal or regulatory standards, such as NIST, HIPAA, or SOC, you can create multiple frameworks. With multiple frameworks, you can separately track the compliance of these different standards.
+
+##### Available controles
+
+- Backup resources protected by backup plan control: you can select all supported resources, or those identified by a tag, by type, or a particular resource. This control helps identify gaps in your backup coverage.
+- Backup plan minimum frequency and minimum retention control: this control has parameters governing how frequently the backup plan should be taking backups and for how long recovery points should be maintained. The default settings require backups to occur every hour and recovery points should be retained for a month, but you can customize the settings to meet your business compliance requirements.
+- Backup prevent recovery point manual deletion control: you can add up to five IAM roles allowed to manually delete recovery points if there are exceptions.
+- Backup recovery point encrypted control: evaluates if the backup recovery points are encrypted. You can evaluate all or by specfic tags.
+- Backup recovery point minimum retention control: you have the option to specify parameters ensuring that selected resources have valid recovery points in your backup vault and that the recovery points are retained for at least the specified backup recovery point minimum retention period.
+
+##### Reporting
+
+- AWS Backup Audit Manager delivers a daily report in CSV, JSON, or both formats to your Amazon S3 bucket.
+- You can also run an on-demand report anytime.
+- You can have a maximum of 20 report plans per AWS account.
+- Similar to a backup plan, you create a report plan to automate the creation of your reports and define their destination Amazon S3 bucket.
+- A report plan requires that you have an S3 bucket to receive your reports.
+- A report template defines the information you want included in your report.
+- When you automate your reports using a report plan, AWS Backup Audit Manager provides reports for the previous 24 hours.
+- AWS Backup Audit Manager creates these reports between the hours of 1:00 and 5:00 AM UTC.
 
 ### CloudEndure Disaster Recovery
 
