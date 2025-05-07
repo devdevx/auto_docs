@@ -24,11 +24,11 @@
 
 - Effect: Allow or Deny (required)
 - Action (required)
-- NotAction: explicitly matches everything except the specified list of actions
+- NotAction: explicitly matches everything except the specified list of actions, recommended for deny statements
 - Principal: you cannot use the Principal element in an IAM identity-based policy because, in that case, you are already attaching the policy directly to a principal (optional)
-- NotPrincipal
+- NotPrincipal: recommended for deny statements
 - Resource: ARN of the resource (can have wildcards) (required)
-- NotResource
+- NotResource: recommended for deny statements
 - Condition: define complex conditions, multiple are interpreted as an AND operation (optional)
 
 #### Identity-based policies
@@ -104,7 +104,60 @@
 
 #### Global Condition Key
 
-- TODO
+- aws:CalledVia : List of services that are calling in the chain of execution (ex: User calls CF, CF calls DynamoDB and DynamoDB calls KMS)
+- aws:CalledViaFirst
+- aws:CalledViaLast
+- aws:ViaAWSService : boolean
+- aws:CurrentTime : YYYY-MM-DDThh:mm:ssZ
+- aws:EpochTime : unix timestamp
+- aws:TokenIssueTime
+- aws:MultiFactorAge : age in seconds
+- aws:MultiFactorAuthPresent : boolean
+- aws:SecureTransport : if the request is sent using SSL
+- aws:SourceAccount
+- aws:SourceArn
+- aws:SourceIp : IP range or single value
+- aws:SourceVpc
+- aws:SourceVpce : for vpc endpoint
+- aws:VpcSourceIp : for vpc endpoint with the IP range or single value
+- aws:PrincipalAccount
+- aws:PrincipalArn
+- aws:PrincipalOrgId
+- aws:PrincipalOrgPaths
+- aws:PrincipalType : to restrict access to only certain principal type (Account, User, AssumedRole, AWS service, FederatedUser)
+- aws:PrincipalTag : "aws.PrincipalTag/\<key>" : "\<value>"
+- aws:RequestTag : "aws.RequestTag/\<key>" : "\<value>"
+- aws:ResourceTag : "ec2.ResourceTag/\<key>" : "\<value>"
+- aws:TagsKeys : to define wich tag keys are allowed to be used when tagging a resource
+- aws:Referer : when calling API operations using a web browser
+- aws:RequestedRegion : limit access to regions
+- aws:UserAgent
+- aws:userid : restrict access to specific IAM users or IAM roles
+- aws:username : restrict access to specific IAM users
+
+- If a condition key is missing from a request context, the policy can fail the evaluation. If you use condition keys that are available only in some circumstances, you can use the IfExists versions of the condition operators.
+
+#### AWS STS
+
+- You do not have to rotate them or explicitly revoke them when they're no longer needed.
+- You can manage your users in an external system outside AWS and grant them access to perform AWS tasks and access your AWS resources. IAM supports two types of identity federation: corporate identity federation and web identity federation.
+- Using roles and cross-account access, you can define user identities in one account and use those identities to access AWS resources in other accounts that belong to your organization.
+- If you run applications on Amazon EC2 instances and those applications need access to AWS resources, you can provide temporary security credentials to your instances when you launch them.
+- When a user or application requires temporary security credentials to access AWS resources, they make the AssumeRole API request. These temporary credentials consist of an access key ID, a secret access key, and a security token. Each time a role is assumed and a set of temporary security credentials is generated, an IAM role session is created.
+
+##### AssumeRole request optional parameters
+
+- DurationSeconds: if not defined, by default is 1h, you can provide a value between 900s (15m) up to 12h.
+- Policy: this parameter includes IAM policy that you want to use as an inline session policy. The resulting session's permissions are the intersection of the role's identity-based policy and the session policies.
+- PolicyArns.member.N: the ARNs of the IAM managed policies that you want to use as managed session policies. The policies must exist in the same account as the role. You can provide up to 10 managed policy ARNs.
+- Tags.member.N: the session tags that you want to pass with the role. Each session tag consists of a key name and an associated value.
+- SerialNumber and TokenCode: you can include MFA information when you call AssumeRole with these parameters. This is useful for cross-account scenarios to ensure that the user who assumes the role has been authenticated with an AWS MFA device. In that scenario, the trust policy of the role being assumed includes a condition that tests for MFA.
+
+##### AssumeRole response sections
+
+- AssumeRoleUser: contains the ARN and ID of the role.
+- Credentials: contains the access key, secret access key and session token.
+- PackedPolicySize: percentage that indicates the packed size of the session policies and tags combined, the request fails if is greater than 100, which means the policies and tags exceeded the allowed space.
 
 ### AWS Macie
 
