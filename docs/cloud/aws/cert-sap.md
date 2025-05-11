@@ -12,7 +12,8 @@
 - Most IAM policies are stored in AWS as JSON documents. They have several policy elements, including a Version, Effect, Action, and Resource (also Condition).
 - IAM policies have a 2 kb size limit for users, 5 kb for groups, and a 10 kb for roles.
 - IAM lets you create roles, and doing so allows you to define a set of permissions and then let authenticated users assume them. This feature increases your security posture by granting temporary access to the resources you define.
-- You can use IAM to grant your employees and applications access to the AWS Management Console and to AWS service APIs using your existing identity systems. 
+- You can use IAM to grant your employees and applications access to the AWS Management Console and to AWS service APIs using your existing identity systems.
+- The access advisor section shows the latest time that a user, group, role or policy was used, this helps to detect unused elements.
 
 #### Limits on policy size
 
@@ -144,6 +145,8 @@
 - Using roles and cross-account access, you can define user identities in one account and use those identities to access AWS resources in other accounts that belong to your organization.
 - If you run applications on Amazon EC2 instances and those applications need access to AWS resources, you can provide temporary security credentials to your instances when you launch them.
 - When a user or application requires temporary security credentials to access AWS resources, they make the AssumeRole API request. These temporary credentials consist of an access key ID, a secret access key, and a security token. Each time a role is assumed and a set of temporary security credentials is generated, an IAM role session is created.
+- By default, all users assuming the same role get the same permissions for their role session. To create distinctive role session permissions or to further restrict overall permissions, users or systems can set a session policy when assuming a role. A session policy is an inline permissions policy that users pass in the session when they assume the role. You can pass the policy yourself, or you can configure your broker to insert the policy when your identities federate in to AWS.
+- Each IAM role session is uniquely identified by a role session name. AWS STS provides a condition key called sts:RoleSessionName that controls how IAM principals and applications name their role sessions when they assume an IAM role. Administrators can rely on the role session name to track user actions when viewing AWS CloudTrail logs.
 
 ##### AssumeRole request optional parameters
 
@@ -158,6 +161,119 @@
 - AssumeRoleUser: contains the ARN and ID of the role.
 - Credentials: contains the access key, secret access key and session token.
 - PackedPolicySize: percentage that indicates the packed size of the session policies and tags combined, the request fails if is greater than 100, which means the policies and tags exceeded the allowed space.
+
+##### Role session naming
+
+- AWS Service - EC2: the instance ID.
+- AWS Service - Lambda: function name.
+- AWS Service - Cognito Identity Pool: Cognito identity credentials.
+- SAML-Based: when you use the AssumeRolewithSAML API it uses the value provided by the identity provider.
+- User defined: when assuming an IAM role with APIs such as AssumeRole or AssumeRoleWithWebIdentity, the role session name is a required input parameter.
+
+##### Session Tagging
+
+- Session tags are attributes passed in an IAM role session when you assume a role or federate a user using the AWS CLI or AWS API.
+- To be able to add session tags, you must have the sts:TagSession action allowed in your IAM policy.
+- Session tags are principal tags that you specify while requesting a session.
+- New session tags override existing assumed role or federated user tags with the same tag key, regardless of case.
+- You cannot pass session tags using the AWS Management Console.
+- You can use session tags to control access to resources or to control the tags that can be passed into a subsequent session.
+- You can pass a maximum of 50 session tags.
+- Session tags support role chaining. Role chaining occurs when you use a role to assume a second role through the AWS CLI or API. You can assume one role and then use the temporary credentials to assume another role and continue from session to session. By default, tags are not passed to subsequent role sessions. However, you can set session tags as transitive. This ensures that those session tags pass to subsequent sessions in a role chain.
+- Role chaining is especially useful when you want to impose guardrails against yourself or an administrator in order to prevent something accidental.
+- If your company uses a SAML-based IdP to manage corporate user identities, you can use SAML attributes for access control in AWS. Attributes can include cost center identifiers, user email addresses, department classifications, and project assignments. When you pass these attributes as session tags, you can then control access to AWS based on these session tags.
+
+##### SAML-Based Federation
+
+- Before your application can call AssumeRoleWithSAML, you must configure your SAML IdP to issue the claims that AWS requires. Additionally, you must use IAM to create a SAML provider entity in your AWS account that represents your identity provider. You must also create an IAM role that specifies this SAML provider in its trust policy.
+- User attributes can be passed as session tags using standards-based SAML.
+
+###### AssumeRoleWithSAML request parameters
+
+- RoleArn
+- PrincipalArn: ARN of the configured SAML provider
+- SamlAssertion: b64 SAML authentication response
+- DurationSeconds (optional): from 15min to 12h, default is 1h. If the SAML SessionNotOnOrAfter attribute is shorter, it has preference over this.
+- Policy (optional): this parameter includes IAM policy that you want to use as an inline session policy. The resulting session's permissions are the intersection of the role's identity-based policy and the session policies.
+- PolicyArns.member.N (optional): the ARNs of the IAM managed policies that you want to use as managed session policies. The policies must exist in the same account as the role. You can provide up to 10 managed policy ARNs.
+
+###### AssumeRoleWithSAML response sections
+
+- Issuer: URL that uniquely identifies your SAML identity provider, SAML assertions sent to the service provider must match this value.
+- AssumeRoleUser: contains the ARN and ID of the role.
+- Credentials: contains the access key, secret access key and session token.
+- Audience: the service provider, is typically a URL.
+- SubjectType: provides information on the format of the name identifier of the Subject field. An identifier intended for a single session only is called a transient identifier.
+- PackedPolicySize: percentage that indicates the packed size of the session policies and tags combined, the request fails if is greater than 100, which means the policies and tags exceeded the allowed space.
+- NameQualifier: hash value based on the concatenation of the issuer response value, aws account id and the name of the saml provider in IAM. The combination of this value and the subject can be used to uniquely identify a federated user.
+- Subject
+
+##### Web-Base Federation
+
+- You must have an identity token from a supported identity provider and create a role that the application can assume.
+- The role that your application assumes must trust the identity provider that is associated with the identity token. In other words, the identity provider must be specified in the role's trust policy.
+- Calling AssumeRoleWithWebIdentity does not require the use of AWS security credentials. Therefore, you can distribute an application (for example, on mobile devices) that requests temporary security credentials without including long-term AWS credentials in the application.
+
+###### AssumeRoleWithWebIdentity request parameters
+
+- RoleArn
+- RoleSessionName: identifies the session, typically you pass the name or identifier associated with the user.
+- WebIdentityToken: the token provided by the oauth2 provider (access token) or the OpenID Connect ID token.
+- ProviderId: identifies the web identity provider and is only required for oauth2 access tokens (currently only www.amazon.com and graph.facebook.com are the only supported for oauth2).
+- DurationSeconds (optional): from 15min to 12h, default is 1h.
+- Policy (optional): this parameter includes IAM policy that you want to use as an inline session policy. The resulting session's permissions are the intersection of the role's identity-based policy and the session policies.
+- PolicyArns.member.N (optional): the ARNs of the IAM managed policies that you want to use as managed session policies. The policies must exist in the same account as the role. You can provide up to 10 managed policy ARNs.
+
+###### AssumeRoleWithWebIdentity response sections
+
+- Issuer: URL that uniquely identifies your SAML identity provider, SAML assertions sent to the service provider must match this value.
+- AssumeRoleUser: contains the ARN and ID of the role.
+- Credentials: contains the access key, secret access key and session token.
+- Audience: the service provider, is typically a URL.
+- SubjectType: provides information on the format of the name identifier of the Subject field. An identifier intended for a single session only is called a transient identifier.
+- PackedPolicySize: percentage that indicates the packed size of the session policies and tags combined, the request fails if is greater than 100, which means the policies and tags exceeded the allowed space.
+- NameQualifier: hash value based on the concatenation of the issuer response value, aws account id and the name of the saml provider in IAM. The combination of this value and the subject can be used to uniquely identify a federated user.
+- Subject
+
+###### Amazon Cognito for mobile applications
+
+- The preferred way to use web identity federation for mobile applications.
+- Supports sign-in with social identity providers, such as Apple, Facebook, Google, and Amazon, and enterprise identity providers via SAML 2.0. User sign-in can also be done directly via Amazon Cognito.
+
+![](./cert-sap/cognito-sts.png)
+
+#### AWS IAM Identity Center (successor to AWS Single Sign-On)
+
+- Built-in integrations with business cloud applications, such as Salesforce, Box, GitHub, and Office 365.
+- Built-in directory for user and group management to serve as an IdP to authenticate users to IAM Identity Center enabled applications, the AWS Management Console, and SAML 2.0 compatible cloud-based applications.
+- Integration with AWS services, such as AWS Organizations.
+- AWS Access portal for users to sign in with their existing corporate credentials and access all of their assigned accounts and applications from one place.
+- Ability to use AWS CLI v2 to access AWS resources via IAM Identity Center.
+- An IAM Identity Center permission set is a collection of administrator-defined policies that IAM Identity Center uses to determine a user's effective permissions to access a given AWS account.
+- Users who have multiple permission sets must choose one of the roles when they sign in to the AWS access portal.
+- Permission sets are used for only AWS accounts. Permission sets are not used to manage access to cloud applications. Permission sets ultimately get created as IAM roles in a given AWS account, and trust policies allow users to assume the role through IAM Identity Center.
+
+#### IAM policy simulator
+
+- You can test and troubleshoot identity-based policies, IAM permissions boundaries, AWS Organizations service control policies, and resource-based policies.
+- You can allow console or API users to test policies that are attached to IAM users, groups, or roles in your AWS account. To do so, you must provide permission to retrieve those policies.
+
+##### Use cases
+
+- Test policies that are attached to IAM users, groups, or roles in your AWS account.
+- Test and troubleshoot the effect of permissions boundaries on IAM entities one permissions boundary at a time.
+- Test policies that are attached to AWS resources.
+- Test the impact of SCPs on your IAM policies and resource policies if your AWS account is a member of an organization in AWS Organizations.
+- Test new policies that are not yet attached to a user, group, or role by typing or copying them into the simulator.
+- Simulate real-world scenarios by providing context keys, such as an IP address or date, that are included in Condition elements in the policies being tested.
+- Identify which specific statement in a policy results in allowing or denying access to a particular resource or action.
+
+#### IAM Access Analyzer
+
+- It delivers comprehensive, detailed findings through the IAM, Amazon S3, and AWS Security Hub consoles and also through its APIs.
+- Findings can also be exported as a report for auditing purposes.
+- When you enable IAM Access Analyzer, you create an analyzer for your AWS account or your entire organization if it is using AWS Organizations. The organization or account you choose is known as the zone of trust for the analyzer. You can create only one analyzer per Region in an account.
+- Each finding can be archived if the configuration is correct of you can perform actions to solve the problem navigating to the affected service.
 
 ### AWS Macie
 
@@ -359,6 +475,34 @@
 - You cannot create a VPC peering connection between VPCs with matching or overlapping IPv4 CIDR blocks. This limitation also applies to VPCs that have nonoverlapping IPv6 CIDR blocks. You cannot create a VPC peering connection if the VPCs have matching or overlapping IPv4 CIDR blocks. This applies even if you intend to use the VPC peering connection for IPv6 communication only.
 - If either VPC in a peering relationship has one of the following connections, you cannot extend the peering relationship to that connection: A VPN connection or a Direct Connect connection to a corporate network, An internet connection through an internet gateway, An internet connection in a private subnet through a NAT device, A gateway VPC endpoint to an AWS service, for example, an endpoint to Amazon S3.
 - There is no charge for setting up or running a VPC peering connection. Data transferred across peering connections is charged per gigabyte for send and receive, regardless of the Availability Zones involved.
+
+### VPC Lattice
+
+- Don't require sidecars or proxies.
+- Works across all compute options.
+- Has traffic and access controls.
+- Don't require network expertise.
+
+#### Components
+
+- Service: represents an application unit, build up of listeners, rules and target-groups. You define routing policies.
+- Service network: logical grouping mechanism, you associate VPCs to it and also services.
+- Service directory: centralized registry of services associated with VPC Lattice.
+- Auth policies: you can apply IAM resource policies on the Service Network and the service level.
+
+### AWS Cloud WAN
+
+- Global solution for connectivity for AWS and on-premise.
+- Build global networks on AWS.
+
+#### Components
+
+- Core network
+- Core network edge (exists in each desired region)
+- Network policy: you can validate it before push to production
+- Segments (Defined in desired regions): Layer 3 isolated routing boundaries. In traditional networks, this is very similar to VRF, virtual route forwarding, or Layer 3 IP VPN or MPLS networks.
+- Routing (sharing between segments and static routes)
+- Mapping attachments to segments (map using tags or metadata, also can have a human acceptance)
 
 ### ELB (Elastic Load Balancer)
 
@@ -688,7 +832,21 @@
 
 ### CloudFront
 
+- AWS has edge locations and regional edge caches that are used by CloudFront.
+- It is a content delivery network (CDN).
 - Delivers data, videos, applications and APIs with lower latency and higher transfer speeds.
+- You create a distribution by one or multiple origins (different base api path defined in behaviors).
+- You can associate custom CNAMEs.
+- Origins can be S3, ALB, MediaStore container, MediaPackage channel, Lambda function url, EC2 or AWS API Gateway.
+
+#### Use cases
+
+- Static Asset Caching
+- Live and On-Demand Video Streaming
+- Security and DDoS protection
+- Dynamic and Customized Content
+- API acceleration
+- Software distribution
 
 ### Route 53
 
@@ -696,7 +854,7 @@
 
 TODO: Route 53
 
-### Global Accelerator
+### AWS Global Accelerator
 
 - Optimizes your user traffic, from the user to your application.
 
@@ -1087,6 +1245,10 @@ stateDiagram
 - The machine that runs the containers is called a worker node or Kubernetes node.
 - An EKS container is called a pod.
 - Recommended for large monolithic applications that you want to break into container or move directly without any change.
+- EKS standard: AWS manages the Kubernetes control plane when you create a cluster with EKS. Components that manage nodes, schedule workloads, integrate with the AWS cloud, and store and scale control plane information to keep your clusters up and running, are handled for you automatically.
+- EKS Auto Mode: Using the EKS Auto Mode feature, EKS extends its control to manage Nodes (Kubernetes data plane) as well. It simplifies Kubernetes management by automatically provisioning infrastructure, selecting optimal compute instances, dynamically scaling resources, continuously optimizing costs, patching operating systems, and integrating with AWS security services.
+
+![](./cert-sap/eks.png)
 
 ### Fargate
 
@@ -3162,7 +3324,23 @@ TODO AWS SimSpace Weaver
 
 ### CloudTrail
 
-TODO CloudTrail
+- IAM and AWS STS are integrated with AWS CloudTrail, a service that provides a record of actions taken by an IAM user or role.
+- If you create a trail, you can enable continuous delivery of CloudTrail events to an Amazon S3 bucket.
+- AWS services like Amazon Athena can then be used to query the logs directly from the S3 bucket.
+- If you don't configure a trail, you can still view the most recent events in the CloudTrail console in Event history.
+
+#### Principal fields
+
+- eventTime: UTC
+- eventType: AwsConsoleSigning, AwsServiceEvent, AwsApiCall
+- eventSource: the service that the request was made of
+- eventName: the requested action
+- sourceIpAddress: IP address where the request came from, if one AWS service calls another, the DNS name of the calling service is used
+- userAgent: tool or application that made the request
+- errorMessage: any error message returned by the requested service
+- requestParameters
+- resources: arn, account number or resource type
+- userIdentity: collection of fields that describe the user or service that made the call
 
 ## Other
 
