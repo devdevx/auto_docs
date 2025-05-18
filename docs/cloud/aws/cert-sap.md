@@ -494,6 +494,7 @@
 
 - Global solution for connectivity for AWS and on-premise.
 - Build global networks on AWS.
+- If you need to connect cloud routing and software-defined wide area networks, you can use this to provide a central dashboard for making the connections between your offices, data centers and VPCs.
 
 #### Components
 
@@ -808,10 +809,6 @@
 - To make a highly available multiregional AWS environment using transit gateways, a mesh network design is required. A mesh design ensures that each transit gateway has a peered connection with every other transit gateway in the environment, so traffic moves across the environment as needed.
 
 ![](cert-sap/transit-gateway-peering.jpg)
-
-### AWS Cloud WAN
-
-- If you need to connect cloud routing and software-defined wide area networks, you can use this to provide a central dashboard for making the connections between your offices, data centers and VPCs.
 
 ### AWS App Mesh
 
@@ -3369,3 +3366,252 @@ StackSet: a named set of stacks that use the same template, but applied across d
 ### AWS WA Tool
 
 - To use the AWS WA Tool, define your workload, apply one of the AWS Well-Architected lenses or your own custom lens, and begin your review. The tool generates an improvement plan and provides a mechanism to track and measure your progress.
+
+# Exam preparation notes
+
+## Migration options
+
+- Rehosting — Otherwise known as “lift-and-shift”. Many early cloud projects gravitate toward net new development using cloud-native capabilities, but in a large legacy migration scenario where the organization is looking to scale its migration quickly to meet a business case, applications can be rehosted.
+- Replatforming — Sometimes, this is called “lift-tinker-and-shift.” Here you might make a few cloud (or other) optimizations in order to achieve some tangible benefit, but you aren’t otherwise changing the core architecture of the application. You may be looking to reduce the amount of time you spend managing database instances by migrating to a database-as-a-service platform like Amazon Relational Database Service (Amazon RDS) or migrating your application to a fully managed platform like Amazon Elastic Beanstalk.
+- Repurchasing — Moving to a different product. Repurchasing is a move to a SaaS platform. Moving a CRM to Salesforce.com, an HR system to Workday, a CMS to Drupal, etc.
+- Refactoring / Re-architecting — Re-imagining how the application is architected and developed, typically using cloud-native features. This is typically driven by a strong business need to add features, scale, or performance that would otherwise be difficult to achieve in the application’s existing environment. For example, migrating from a monolithic architecture to a service-oriented (or server-less) architecture to boost agility.
+- Retire — This strategy basically means: "Get rid of." Once you’ve discovered everything in your environment, you might ask each functional area who owns each application and see that some of the applications are no longer used. You can save costs by retiring these applications.
+- Retain — Usually this means “revisit” or do nothing (for now). Maybe you aren’t ready to prioritize an application that was recently upgraded or are otherwise not inclined to migrate some applications. You can retain these applications and revisit your migration strategy.
+
+## SCT and DMS
+
+- You can use an AWS SCT agent to extract data from your on-premises data warehouse and migrate it to AWS database service. The agent extracts your data and uploads the data to either Amazon S3 or, for large-scale migrations, an AWS Snowball Edge device. You can then use AWS SCT to copy the data to AWS database service.
+- You can configure a local task and AWS DMS task to replicate the ongoing updates in your local database to the AWS database service.
+
+## AWS VM Import/Export
+
+- Enables you to easily import virtual machine images from your existing environment to Amazon EC2 instances and export them back to your on-premises environment.
+
+## Application Migration Service
+
+- The AWS Application Migration Service (MGN) is primarily used to migrate virtual machines only, which can be from VMware vSphere and Windows Hyper-V to your AWS cloud. The first setup step for Application Migration Service is creating the Replication Settings template. Add source servers to Application Migration Service by installing the AWS Replication Agent (also referred to as "the Agent") on them. The Agent can be installed on both Linux and Windows servers. After you have added all of your source servers and configured their launch settings, you are ready to launch a Test instance. Once you have finalized the testing of all of your source servers, you are ready for cutover. The cutover will migrate your source servers to the Cutover instances on AWS.
+
+## Application Discovery Service
+
+- The AWS Application Discovery Service simply helps you to plan migration projects by gathering information about your on-premises data centers, but is not a migration service. All discovered data are stored in your AWS Migration Hub.
+
+## CloudFormation
+
+- With Amazon CloudFormation StackSets you can define an AWS resource configuration in a CloudFormation template and then roll it out across multiple AWS accounts and/or Regions with a couple of clicks.
+- On CloudFormation you can set the resources DeletionPolicy as `Retain` which keeps the resource without deleting it or its contents when its stack is deleted.
+- On CloudFormation you can set the resources DeletionPolicy as `Snapshot` which keeps the resource backup data when deleting it or its contents when its stack is deleted.
+
+## S3
+
+- Amazon S3 Cross-Region Replication (CRR) is used to copy objects across Amazon S3 buckets in different AWS Regions.
+- A bucket owner can configure a bucket to be a Requester Pays bucket. With Requester Pays buckets, the requester instead of the bucket owner pays the cost of the request and the data download from the bucket. The bucket owner always pays the cost of storing data.
+
+## DynamoDB
+
+- Amazon DynamoDB global tables provide you with a fully managed, multi-region and multi-active database.
+- DynamoDB Accelerator is used for caching requests if you need response times in microseconds.
+- Amazon DynamoDB Time to Live (TTL) allows you to define a per-item timestamp to determine when an item is no longer needed. Shortly after the date and time of the specified timestamp, DynamoDB deletes the item from your table without consuming any write throughput. TTL is provided at no extra cost as a means to reduce stored data volumes by retaining only the items that remain current for your workload’s needs.
+
+## API Gateway
+
+- Caching the API requests should be done on the API Gateway. The default TTL value for API caching is 300 seconds. The maximum TTL value is 3600 seconds. TTL=0 means caching is disabled.
+
+## CloudFront
+
+- In CloudFront you can configure your origin to add a `Cache-Control max-age` directive to your objects, and specify the longest practical value for `max-age` to increase your cache hit ratio.
+- CloudFront supports Server Name Indication (SNI) for custom SSL certificates, along with the ability to take incoming HTTP requests and redirect them to secure HTTPS requests to ensure that clients are always directed to the secure version of your website.
+- To use field-level encryption, you configure your CloudFront distribution to specify the set of fields in POST requests that you want to be encrypted, and the public key to use to encrypt them. You can encrypt up to 10 data fields in a request.
+- Lambda@Edge lets you run Lambda functions to customize the content that CloudFront delivers, executing the functions in AWS locations closer to the viewer.
+- You can use geo restriction - also known as geoblocking - to prevent users in specific geographic locations from accessing content that you're distributing through a CloudFront web distribution.
+
+## Direct Conect (DX)
+
+- To connect to services such as EC2 using just Direct Connect you need to create a private virtual interface. However, if you want to encrypt the traffic flowing through Direct Connect, you will need to use the public virtual interface of DX to create a VPN connection that will allow access to AWS services such as S3, EC2, and other services.
+
+## AWS Secrets Manager
+
+- This service enables you to easily rotate, manage, and retrieve database credentials, API keys, and other secrets throughout their lifecycle.
+
+## AWS Shield
+
+- AWS Shield is a managed Distributed Denial of Service (DDoS) protection service that safeguards applications running on AWS. Shield Advanced provides expanded DDoS attack protection.
+
+## AWS WAF
+
+- AWS WAF is a web application firewall that helps protect your web applications from common web exploits that could affect application availability, compromise security, or consume excessive resources. With AWS Config, you can track changes to WAF web access control lists (web ACLs).
+- It is easy to deploy and protect applications deployed on either Amazon CloudFront as part of your CDN solution, the Application Load Balancer that fronts all your origin servers, or Amazon API Gateway for your APIs.
+
+## AWS Firewall Manager
+
+- AWS Firewall Manager is primarily used to manage your Firewall across multiple AWS accounts under your AWS Organizations.
+
+## EC2
+
+- Setting up a diversified allocation strategy for your Spot Fleet is a best practice to increase the chances that a spot request can be fulfilled by EC2 capacity in the event of an outage in one of the Availability Zones. You can include each AZ available to you in the launch specification. And instead of using the same subnet each time, use three unique subnets (each mapping to a different AZ).
+
+## Route 53
+
+- Amazon allows you to enable Domain Name System Security Extensions (DNSSEC) signing for all existing and new public hosted zones, and enable DNSSEC validation for Amazon Route 53 Resolver.
+- A Route 53 Resolver Endpoint is a customer-managed resolver consisting of one or more Elastic Network Interfaces (ENIs) deployed on your VPC. Resolver Endpoints are classified into two types inboudn endpoint and outbound endpoint.
+- An Inbound Endpoint provides DNS resolution of AWS resources, such as EC2 instances, for your corporate network.
+- An Outbound Endpoint provides resolution of specific DNS names that you configure using forwarding rules to your VPC.
+- Outbound Resolver Endpoints host Forwarding Rules that forward queries for specified domain names to specific IP addresses. You create forwarding rules when you want to forward DNS queries for specified domain names to DNS resolvers on your network.
+- When Outbound Endpoint and Forwarding Rule are created, any resource in the VPC that queries the AmazonProvidedDNS as its DNS resolver is able to seamlessly resolve for AWS Managed Microsoft AD domain’s FQDN, as well as any AWS resources on the VPC such as (interface) VPC Endpoints.
+- To use your custom domain name with Global Accelerator when you use Route 53 as your DNS service, you create an alias record that points your custom domain name to the DNS name assigned to your accelerator.
+- Route 53 is designed to propagate updates you make to your DNS records to its worldwide network of authoritative DNS servers within 60 seconds under normal conditions.
+- You can use the Amazon Route 53 console to associate more VPCs with a private hosted zone if you created the hosted zone and the VPCs by using the same AWS account. Additionally, you can associate a VPC from one account with a private hosted zone in a different account. Using the account that created the hosted zone, authorize the association of the VPC with the private hosted zone. After associating the VPC is recommended to delete the authorization.
+- A hosted zone is a container for records, and records contain information about how you want to route traffic for a specific domain and its subdomains. A hosted zone and the corresponding domain have the same name.
+- Public hosted zones contain records that specify how you want to route traffic on the internet.
+- Private hosted zones contain records that specify how you want to route traffic in an Amazon VPC. Your VPC has attributes that determine whether your EC2 instance receives public DNS hostnames (`enableDnsHostnames`), and whether DNS resolution through the Amazon DNS server is supported (`enableDnsSupport`).
+- You can use Route 53 health checks to configure active-active and active-passive failover configurations. You configure active-active failover using any routing policy (or combination of routing policies) other than failover, and you configure active-passive failover using the failover routing policy.
+- In Route 53, an alias record is a Route 53 extension to DNS. It's similar to a CNAME record, but you can create an alias record both for the root domain, such as example.com, and for subdomains, such as www.example.com. (You can create CNAME records only for subdomains). For EC2 instances, always use a Type A Record without an Alias. For ELB, Cloudfront, and S3, always use a Type A Record with an Alias, and finally, for RDS, always use the CNAME Record with no Alias.
+- Route 53 policies:
+  - Simple routing policy – Use for a single resource that performs a given function for your domain, for example, a web server that serves content for the example.com website.
+  - Failover routing policy – Use when you want to configure active-passive failover.
+  - Geolocation routing policy – Use when you want to route traffic based on the location of your users.
+  - Geoproximity routing policy – Use when you want to route traffic based on the location of your resources and, optionally, shift traffic from resources in one location to resources in another.
+  - Latency routing policy – Use when you have resources in multiple AWS Regions and you want to route traffic to the region that provides the best latency.
+  - Multivalue answer routing policy – Use when you want Route 53 to respond to DNS queries with up to eight healthy records selected at random.
+  - Weighted routing policy – Use to route traffic to multiple resources in proportions that you specify.
+
+## AWS Global Accelerator
+
+- You create accelerators to improve the performance of your applications for local and global users.
+- With a standard accelerator, you can improve the availability of your internet applications that are used by a global audience. With a standard accelerator, Global Accelerator directs traffic over the AWS global network to endpoints in the nearest Region to the client.
+- With a custom routing accelerator, you can map one or more users to a specific destination among many destinations.
+
+## System Manager
+
+- Systems Manager Run Command service enables you to automate common administrative tasks and perform ad hoc configuration changes at scale.
+- The AWS Systems Manager Maintenance Windows feature lets you define a schedule for when to perform potentially disruptive actions on your instances such as patching an operating system, updating drivers, or installing software or patches. Each Maintenance Window has a schedule, a maximum duration, a set of registered targets (the instances that are acted upon), and a set of registered tasks.
+- AWS Systems Manager Patch Manager automates the process of patching managed instances with security-related updates. For Linux-based instances, you can also install patches for non-security updates. You can patch fleets of Amazon EC2 instances or your on-premises servers and virtual machines (VMs) by operating system type.
+- Patch Manager uses patch baselines, which include rules for auto-approving patches within days of their release, as well as a list of approved and rejected patches. You can install patches on a regular basis by scheduling patching to run as a Systems Manager Maintenance Window task. You can also install patches individually or to large groups of instances by using Amazon EC2 tags. For each auto-approval rule that you create, you can specify an auto-approval delay. This delay is the number of days of wait after the patch was released, before the patch is automatically approved for patching.
+- A patch group is an optional means of organizing instances for patching. Patch groups can help you avoid deploying patches to the wrong set of instances. They can also help you avoid deploying patches before they have been adequately tested. You create a patch group by using Amazon EC2 tags.
+- AWS Systems Manager Automation provides several runbooks with pre-defined steps that you can use to perform common tasks like restarting one or more EC2 instances or creating an Amazon Machine Image (AMI). A Systems Manager Automation runbook defines the actions that Systems Manager performs on your managed instances and other AWS resources when an automation runs. A runbook contains one or more steps that run in sequential order. Each step is built around a single action. Output from one step can be used as input in a later step.
+- Session Manager is a fully managed AWS Systems Manager capability. With Session Manager, you can manage your Amazon Elastic Compute Cloud (Amazon EC2) instances, edge devices, and on-premises servers and virtual machines (VMs). You can use either an interactive one-click browser-based shell or the AWS Command Line Interface (AWS CLI). Session Manager provides secure and auditable node management without the need to open inbound ports, maintain bastion hosts, or manage SSH keys.
+- AWS Systems Manager Parameter Store provides secure, hierarchical storage for configuration data management and secrets management. If you plan to use Systems Manager to manage on-premises servers and virtual machines (VMs) in what is called a hybrid environment, you must create an IAM role for those resources to communicate with the Systems Manager service.
+
+## AWS Service Catalog
+
+- Allows organizations to create and manage catalogs of IT services that are approved for use on AWS. These IT services can include everything from virtual machine images, servers, software, and databases to complete multi-tier application architectures. AWS Service Catalog allows you to centrally manage deployed IT services and your applications, resources, and metadata.
+- With AWS Service Catalog, you define your own catalog of AWS services and AWS Marketplace software and make them available for your organization. Then, end users can quickly discover and deploy IT services using a self-service portal.
+
+## Design Patterns
+
+- Token Vending Machine: Obtain STS tokens from user credentials. These machines provide a mechanism for obtaining tokens while abstracting the complexity of how these tokens are generated. Developers can use a TVM without having detailed knowledge of how it produces tokens.
+
+## Snowball Edge
+
+- Although some revisions of USB 3.0 or USB 3.1 can support up to 5 Gbps to 10 Gbps speeds, the network interface on the Snowball Edge supports up to 100 Gbps. 
+- Actions to positive impact the speed transfer:
+  - Perform multiple write operations at one time – To do this, run each command from multiple terminal windows on a computer with a network connection to a single AWS Snowball Edge device.
+  - Transfer small files in batches – Each copy operation has some overhead because of encryption. To speed up the process, batch files together in a single archive. When you batch files together, they can be auto-extracted when they are imported into Amazon S3.
+  - Write from multiple computers – A single AWS Snowball Edge device can be connected to many computers on a network. Each computer can connect to any of the three network interfaces at once.
+  - Don't perform other operations on files during transfer – Renaming files during transfer, changing their metadata, or writing data to the files during a copy operation has a negative impact on transfer performance. AWS recommends that your files remain in a static state while you transfer them.
+  - Reduce local network use – Your AWS Snowball Edge device communicates across your local network. So you can improve data transfer speeds by reducing other local network traffic between the AWS Snowball Edge device, the switch it's connected to, and the computer that hosts your data source.
+  - Eliminate unnecessary hops – AWS recommends that you set up your AWS Snowball Edge device, your data source, and the computer running the terminal connection between them so that they're the only machines communicating across a single switch. Doing so can improve data transfer speeds.
+- For transferring small files, AWS also recommends transferring in batches. Each copy operation has some overhead because of encryption. To speed up the process of transferring small files to your AWS Snowball Edge device, you can batch them together in a single archive. When you batch files together, they can be auto-extracted when they are imported into Amazon S3, if they were batched in one of the supported archive formats. Typically, files that are 1 MB or smaller should be included in batches. There's no hard limit on the number of files you can have in a batch, though AWS recommends that you limit your batches to about 10,000 files. Having more than 100,000 files in a batch can affect how quickly those files import into Amazon S3 after you return the device. AWS recommends that the total size of each batch be no larger than 100 GB. Batching files is a manual process, which you have to manage.
+
+## SQS
+
+- Amazon SQS supports dead-letter queues (DLQ), which other queues (source queues) can target for messages that can't be processed (consumed) successfully.
+- Occasionally, producers and consumers might fail to interpret aspects of the protocol that they use to communicate, causing message corruption or loss. Also, the consumer's hardware errors might corrupt message payload. If a message can't be consumed successfully, you can send it to a dead-letter queue (DLQ). Dead-letter queues let you isolate problematic messages to determine why they are failing.
+- The Maximum receives value determines when a message will be sent to the DLQ. If the ReceiveCount for a message exceeds the maximum receive count for the queue, Amazon SQS moves the message to the associated DLQ (with its original message ID).
+- The `maxReceiveCount` is the number of times a consumer tries receiving a message from a queue without deleting it before being moved to the dead-letter queue. Setting the maxReceiveCount to a low value, such as 1, would result in any failure to receive a message to cause the message to be moved to the dead-letter queue. Such failures include network errors and client dependency errors.
+
+## AWS Batch
+
+- AWS Batch enables developers, scientists, and engineers to easily and efficiently run hundreds of thousands of batch computing jobs on AWS. AWS Batch dynamically provisions the optimal quantity and type of compute resources (e.g., CPU or memory optimized instances) based on the volume and specific resource requirements of the batch jobs submitted. With AWS Batch, there is no need to install and manage batch computing software or server clusters that you use to run your jobs, allowing you to focus on analyzing results and solving problems.
+
+## Cloudwatch
+
+- To collect logs from your Amazon EC2 instances and on-premises servers into CloudWatch Logs, AWS offers the unified CloudWatch agent.
+- A CloudWatch alarm to detect service quota near it's limits can be created using the expression `metricid/SERVICE_QUOTA(metricid)*100` from the metrics in the `AWS/Usage` namespace.
+
+## ECS
+
+- ECS Anywhere is a feature of Amazon ECS that lets you run and manage container workloads on your infrastructure. This feature helps you meet compliance requirements and scale your business without sacrificing your on-premises investments.
+- If Amazon ECS Spot Instance draining is enabled on the instance, ECS receives the Spot Instance interruption notice and places the instance in DRAINING status. When a container instance is set to DRAINING, Amazon ECS prevents new tasks from being scheduled for placement on the container instance. Service tasks on the draining container instance that are in the PENDING state are stopped immediately. If there are container instances in the cluster that are available, replacement service tasks are started on them. Spot Instance draining is disabled by default and must be manually enabled by adding the line `ECS_ENABLE_SPOT_INSTANCE_DRAINING=true` on your `/etc/ecs/ecs.config file`.
+- Amazon ECS enables you to inject sensitive data into your containers by storing your sensitive data in either AWS Secrets Manager secrets or AWS Systems Manager Parameter Store parameters and then referencing them in your container definition. This feature is supported by tasks using both the EC2 and Fargate launch types.
+- You can configure various Docker networking modes that will be used by containers in your ECS task. The valid values are `none`, `bridge`, `awsvpc`, and `host`. The default Docker network mode is `bridge`.
+  - If the network mode is set to `none`, the task's containers do not have external connectivity, and port mappings can't be specified in the container definition.
+  - If the network mode is `bridge`, the task utilizes Docker's built-in virtual network which runs inside each container instance.
+  - If the network mode is `host`, the task bypasses Docker's built-in virtual network and maps container ports directly to the EC2 instance's network interface directly. In this mode, you can't run multiple instantiations of the same task on a single container instance when port mappings are used.
+  - If the network mode is `awsvpc`, the task is allocated an elastic network interface, and you must specify a `NetworkConfiguration` when you create a service or run a task with the task definition. When you use this network mode in your task definitions, every task that is launched from that task definition gets its own elastic network interface (ENI) and a primary private IP address. The task networking feature simplifies container networking and gives you more control over how containerized applications communicate with each other and other services within your VPCs. Task networking provides greater security for your containers by allowing you to use security groups and network monitoring tools at a more granular level within your tasks. Because each task gets its own ENI, you can also take advantage of other Amazon EC2 networking features like VPC Flow Logs so that you can monitor traffic to and from your tasks. Additionally, containers that belong to the same task can communicate over the localhost interface. A task can only have one ENI associated with it at a given time.
+
+## Rekognition
+
+- Supports the IndexFaces operation. To store facial information, you must first create (CreateCollection) a face collection in one of the AWS Regions in your account. You specify this face collection when you call the IndexFaces operation. After you create a face collection and store facial feature information for all faces, you can search the collection for face matches. To search for faces in an image, call SearchFacesByImage. To search for faces in a stored video, call StartFaceSearch. To search for faces in a streaming video, call CreateStreamProcessor.
+
+## Fargate
+
+- AWS Fargate only supports the "awsvpc" network mode. Each task is allocated its own elastic network interface (ENI) that is used for communication inside the VPC.
+
+## AWS Config
+
+- AWS Config provides AWS managed rules, which are predefined, customizable rules that AWS Config uses to evaluate whether your AWS resources comply with common best practices.
+
+## Amazon Connect
+
+- Amazon Connect provides a seamless omnichannel experience through a single unified contact center for voice and chat. Contact center agents and managers don’t have to learn multiple tools because Amazon Connect has the same contact routing, queuing, analytics, and management tools in a single UI across voice, web chat, and mobile chat.
+- Contact flows define the experience your customers have when they interact with your contact center. These are similar in concept to Interactive Voice Response (IVR). Contact flows are comprised of blocks, with each block defining a step or interaction in your contact center. For example, there are blocks to play a prompt, get input from a customer, branch based on customer input, or invoke an AWS Lambda function or an Amazon Lex bot.
+
+## Amazon Lex
+
+- Amazon Lex uses AWS Lambda functions to query your business applications and make updates as requested.
+- Amazon Lex chatbots also maintain context and manage the dialogue, dynamically adjusting responses based on the conversation.
+
+## AWS Ground Station
+
+- AWS Ground Station is a fully managed service that lets you control satellite communications, process data, and scale your operations without having to worry about building or managing your own ground station infrastructure.
+
+## AWS Elemental MediaConnect
+
+- AWS Elemental MediaConnect is just a high-quality transport service for live video.
+
+## Disaster recovery
+
+- Recovery time objective (RTO) is the time it takes after a disruption to restore a business process to its service level, as defined by the operational level agreement (OLA).
+- Recovery point objective (RPO) is the acceptable amount of data loss measured in time.
+
+## AWS Organizations
+
+- You can use organizational units (OUs) to group accounts together to administer as a single unit.
+- Service control policies (SCPs) are a type of organization policy that you can use to manage permissions in your organization. SCPs do not grant permissions to the IAM users and IAM roles in your organization. No permissions are granted by an SCP. An SCP defines a permission guardrail, or sets limits, on the actions that the IAM users and IAM roles in your organization can perform.
+- You attach SCPs to the root, OUs, or directly to accounts.
+- It is not recommended to attach the SCPs to the root of the organization.
+- By default, an SCP named `FullAWSAccess` is attached to every root, OU, and account.
+- SCPs do not affect any service-linked role. Service-linked roles enable other AWS services to integrate with AWS Organizations and can't be restricted by SCPs.
+- You can use trusted access to enable an AWS service that you specify, called the trusted service, to perform tasks in your organization and its accounts on your behalf. This involves granting permissions to the trusted service but does not otherwise affect the permissions for IAM users or roles. When you enable access, the trusted service can create an IAM role called a service-linked role in every account in your organization. That role has a permissions policy that allows the trusted service to do the tasks that are described in that service's documentation. This enables you to specify settings and configuration details that you would like the trusted service to maintain in your organization's accounts on your behalf.
+- For billing purposes, the consolidated billing feature of AWS Organizations treats all the accounts in the organization as one account. This means that all accounts in the organization can receive the hourly cost-benefit of Reserved Instances (RI) that are purchased by any other account. In the payer account, you can turn off Reserved Instance discount sharing on the Preferences page on the Billing and Cost Management console.
+
+## AWS Resource Access Manager (AWS RAM)
+
+- Enables you to share specified AWS resources that you own with other AWS accounts.
+- To enable trusted access with AWS Organizations, from the AWS RAM CLI, use the `enable-sharing-with-aws-organizations` command.
+
+## Permissions
+
+- Cross-account access with a resource-based policy has some advantages over a role. With a resource that is accessed through a resource-based policy, the user still works in the trusted account and does not have to give up his or her user permissions in place of the role permissions. In other words, the user continues to have access to resources in the trusted account at the same time as he or she has access to the resource in the trusting account. This is useful for tasks such as copying information to or from the shared resource in the other account.
+
+## Monitoring
+
+- CloudWatch agent can be installed in the on-premise servers to send logs to CloudWatch Logs.
+- You can use CloudTrail to montior calls to AWS Organizations and EventBridge and SNS to raise events when certain actions occur.
+- You can use AWS Config data aggegator (resource type that collects AWS Config data from multiple source accounts and regions) to montior the compliance of your AWS organizations, IAM, etc, and EventBridge and SNS to send alerts when changes are detected.
+- You can create an AWS CloudTrail train in a new (to avoid current permissions causing a confidentiality breach) S3 bucket to persist logs about the actions performed to the resources. With `--is-multi-region-trail` you enable all the region services, and with `--include-global-service-events` you include the global services. This logs can be encrypted using KMS. Also you can enable MFA for S3 removal and restrict access configuring bucket policies.
+
+## Amazon Inspector
+
+- Amazon Inspector is used as an automated vulnerability management service that continually scans AWS workloads for software vulnerabilities.
+
+## Pricing
+
+- Compute saving plans: up to 66% applied to any instance family and can cover usage across different services like EC2, Fargate, and Lambda. Terms of 1 or 3 years.
+- EC2 Instance saving plans: up to 72% applied to a specific instance within a chosen region. Terms of 1 or 3 years.
+- Convertible Reserved Instances (RI): up to 66% fixed instance family, any size regional only. Terms of 1 or 3 years.
+- Standard Reserved Instances (RI): up to 72% fixed instance family, any size regional only. Terms of 1 or 3 years.
+
+## Networking
+
+- Each 1 Mbps is aprox 0.3 TB per month. 
