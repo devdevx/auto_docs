@@ -3410,6 +3410,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - Amazon S3 Cross-Region Replication (CRR) is used to copy objects across Amazon S3 buckets in different AWS Regions.
 - A bucket owner can configure a bucket to be a Requester Pays bucket. With Requester Pays buckets, the requester instead of the bucket owner pays the cost of the request and the data download from the bucket. The bucket owner always pays the cost of storing data.
 - Amazon S3 Transfer Acceleration enables fast, easy, and secure transfers of files over long distances between your client and an S3 bucket. Transfer Acceleration takes advantage of Amazon CloudFront’s globally distributed edge locations. As the data arrives at an edge location, data is routed to Amazon S3 over an optimized network path.
+- When you enable versioning the existing object have the version value to null. 
 
 ## DynamoDB
 
@@ -3420,6 +3421,16 @@ StackSet: a named set of stacks that use the same template, but applied across d
 ## Kinesis
 
 - In an IoT scenario you can group the requests from API Gateway by streaming the data into an Amazon Kinesis data stream and processing the data in batches using a lambda function.
+
+## Amazon Data Firehose
+
+- A fully managed service for delivering real-time streaming data to destinations such as Amazon S3, Amazon Redshift, Amazon OpenSearch Service, and Splunk. It can automatically scale to match the throughput of your data and requires no ongoing administration. It can also batch, compress, and encrypt the data before loading it, minimizing the amount of storage used at the destination and increasing security.
+- Supports data transformation through AWS Lambda.
+
+## AWS IoT
+
+- AWS IoT Core is the central component of AWS IoT that provides the communication infrastructure for connecting IoT devices to the AWS cloud.
+- AWS IoT Core Basic Ingest is specifically designed for high-volume data ingestion, allowing devices to publish messages directly to the AWS IoT Rules Engine without maintaining a persistent connection, which helps reduce overhead.
 
 ## API Gateway
 
