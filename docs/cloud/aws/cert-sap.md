@@ -3410,7 +3410,9 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - Amazon S3 Cross-Region Replication (CRR) is used to copy objects across Amazon S3 buckets in different AWS Regions.
 - A bucket owner can configure a bucket to be a Requester Pays bucket. With Requester Pays buckets, the requester instead of the bucket owner pays the cost of the request and the data download from the bucket. The bucket owner always pays the cost of storing data.
 - Amazon S3 Transfer Acceleration enables fast, easy, and secure transfers of files over long distances between your client and an S3 bucket. Transfer Acceleration takes advantage of Amazon CloudFront’s globally distributed edge locations. As the data arrives at an edge location, data is routed to Amazon S3 over an optimized network path.
-- When you enable versioning the existing object have the version value to null. 
+- When you enable versioning the existing object have the version value to null.
+-SSE-S3 uses strong multi-factor encryption. Amazon S3 encrypts each object with a unique key. As an additional safeguard, it encrypts the key itself with a master key that it rotates regularly. Uses AES-256 to encrypt your data.
+- With SSE-KMS, you can also enable S3 Bucket Keys to decrease request traffic from Amazon S3 to AWS KMS and reduce the cost of encryption.
 
 ## DynamoDB
 
@@ -3434,7 +3436,6 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - AWS IoT Device Management is a service that makes it easy to securely register, organize, monitor, and remotely manage IoT devices at scale throughout their lifecycle. You can use IoT Device Management to upload and view device information and configuration, organize your device inventory, monitor your fleet of devices, troubleshoot individual devices, and remotely manage devices deployed across many locations including updating device software over-the-air (OTA).
 - AWS IoT Defender is primarily used for security audit, alerting, and mitigation of IoT resources.
 - AWS IoT SiteWise is used for collecting and gaining insights to equipment data for industrial operations management.
-- 
 
 ## API Gateway
 
@@ -3474,6 +3475,10 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 - Setting up a diversified allocation strategy for your Spot Fleet is a best practice to increase the chances that a spot request can be fulfilled by EC2 capacity in the event of an outage in one of the Availability Zones. You can include each AZ available to you in the launch specification. And instead of using the same subnet each time, use three unique subnets (each mapping to a different AZ).
 
+## ELB
+
+- You can either terminate the SSL on the ELB side or on the EC2 instance. If you choose the former, the X.509 certificate will only be present in the ELB and if you choose the latter, the X.509 certificate will be stored inside the EC2 instance.
+
 ## RDS
 
 - Oracle RMAN and RAC are not supported in RDS
@@ -3502,6 +3507,13 @@ StackSet: a named set of stacks that use the same template, but applied across d
   - Latency routing policy – Use when you have resources in multiple AWS Regions and you want to route traffic to the region that provides the best latency.
   - Multivalue answer routing policy – Use when you want Route 53 to respond to DNS queries with up to eight healthy records selected at random.
   - Weighted routing policy – Use to route traffic to multiple resources in proportions that you specify.
+
+## AWS Certificate Manager
+
+- With AWS Certificate Manager, you can generate public or private SSL/TLS certificates that you can use to secure your site.
+- Public SSL/TLS certificates provisioned through AWS Certificate Manager are free. You pay only for the AWS resources that you create to run your application.
+- Public certificates generated from ACM can be used on Amazon CloudFront, Elastic Load Balancing, or Amazon API Gateway but not directly on EC2 instances, unlike private certificates.
+- For private certificates, the ACM Private Certificate Authority (CA) is priced along two dimensions: (1) You pay a monthly fee for the operation of each private CA until you delete it and (2) you pay for the private certificates you issue each month.
 
 ## AWS Global Accelerator
 
