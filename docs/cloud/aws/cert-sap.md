@@ -3404,6 +3404,8 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - With Amazon CloudFormation StackSets you can define an AWS resource configuration in a CloudFormation template and then roll it out across multiple AWS accounts and/or Regions with a couple of clicks.
 - On CloudFormation you can set the resources DeletionPolicy as `Retain` which keeps the resource without deleting it or its contents when its stack is deleted.
 - On CloudFormation you can set the resources DeletionPolicy as `Snapshot` which keeps the resource backup data when deleting it or its contents when its stack is deleted.
+- The `AWS::AutoScaling::AutoScalingGroup` resource defines an Amazon EC2 Auto Scaling group. You can add an `UpdatePolicy` attribute to your stack to perform rolling updates (or replace the group) when a change has been made to the group. Alternatively, you can force a rolling update on your instances at any time after updating the stack by starting an instance refresh. To specify how AWS CloudFormation handles rolling updates for an Auto Scaling group, use the `AutoScalingRollingUpdate` policy. Rolling updates enable you to specify whether AWS CloudFormation updates instances that are in an Auto Scaling group in batches or all at once. For example, suppose you have updated the `MaxBatchSize` in your stack template's `UpdatePolicy` from 1 to 10. This allows you to perform updates without causing downtime to your currently running application.
+- You can get enable data sharing between CloudFormation and Organizations from the StackSets console. Once done, you will be able to use StackSets in the Organizations master account to deploy stacks to all accounts in your organization or in specific organizational units (OUs).
 
 ## S3
 
@@ -3452,7 +3454,13 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ## Direct Conect (DX)
 
-- To connect to services such as EC2 using just Direct Connect you need to create a private virtual interface. However, if you want to encrypt the traffic flowing through Direct Connect, you will need to use the public virtual interface of DX to create a VPN connection that will allow access to AWS services such as S3, EC2, and other services.
+- AWS Direct Connect is a cloud service solution that makes it easy to establish a dedicated network connection from your premises to AWS.
+- This dedicated connection can be partitioned into multiple virtual interfaces.
+- You can use an AWS Direct Connect gateway to connect your AWS Direct Connect connection over a private virtual interface to one or more VPCs in your account that are located in the same or different Regions. You associate a Direct Connect gateway with the virtual private gateway for the VPC. Then, create a private virtual interface for your AWS Direct Connect connection to the Direct Connect gateway. You can attach multiple private virtual interfaces to your Direct Connect gateway.
+- With Direct Connect Gateway, you no longer need to establish multiple BGP sessions for each VPC; this reduces your administrative workload as well as the load on your network devices.
+- Public virtual interfaces are used to connect to AWS resources reachable by public IP.
+- Private virtual interfaces are used to connect to your resources hosted in one VPC usin private IP.
+- Transit virtual interfaces are used to connect to your resources hosted in multiple VPCs usin private IP, for hub and spoke or multi-vpc architectures.
 
 ## AWS Secrets Manager
 
@@ -3465,7 +3473,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 ## AWS WAF
 
 - AWS WAF is a web application firewall that helps protect your web applications from common web exploits that could affect application availability, compromise security, or consume excessive resources. With AWS Config, you can track changes to WAF web access control lists (web ACLs).
-- It is easy to deploy and protect applications deployed on either Amazon CloudFront as part of your CDN solution, the Application Load Balancer that fronts all your origin servers, or Amazon API Gateway for your APIs.
+- It is easy to deploy and protect applications deployed on either Amazon CloudFront as part of your CDN solution, the Application Load Balancer that fronts all your origin servers (but not a Network Load Balancer), or Amazon Rest API Gateway for your APIs, also AppSync GraphQL API, Cognito user pool, App Runnr service, Verified Access instance and Amplify.
 
 ## AWS Firewall Manager
 
@@ -3481,7 +3489,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ## RDS
 
-- Oracle RMAN and RAC are not supported in RDS
+- Amazon RDS does not support certain features in Oracle such as Multitenant Database, Real Application Clusters (RAC), RMAN, Unified Auditing, Database Vault, and many more.
 
 ## Route 53
 
@@ -3537,6 +3545,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 - Allows organizations to create and manage catalogs of IT services that are approved for use on AWS. These IT services can include everything from virtual machine images, servers, software, and databases to complete multi-tier application architectures. AWS Service Catalog allows you to centrally manage deployed IT services and your applications, resources, and metadata.
 - With AWS Service Catalog, you define your own catalog of AWS services and AWS Marketplace software and make them available for your organization. Then, end users can quickly discover and deploy IT services using a self-service portal.
+- AWS Service Catalog enables a self-service capability for users, allowing them to provision the services they need while also helping you to maintain consistent governance – including the application of required tags and tag values.
 
 ## Design Patterns
 
@@ -3642,6 +3651,11 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - Warm standby (RPO in seconds, RTO in minutes): Maintain a scaled-down but fully functional version of your workload always running in the DR Region. Business-critical systems are fully duplicated and are always on, but with a scaled down fleet. When the time comes for recovery, the system is scaled up quickly to handle the production load.
 - Multi-region (multi-site) active-active (RPO near zero, RTO potentially zero): Your workload is deployed to, and actively serving traffic from, multiple AWS Regions. This strategy requires you to synchronize data across Regions.
 
+## Amazon FSx for Windows File Server
+
+- Don't support dynamic file size.
+- Using the `update-file-system` command, you can use AWS SDK or CLI to programmatically increase the size of the FSx file system.
+
 ## AWS Organizations
 
 - You can use organizational units (OUs) to group accounts together to administer as a single unit.
@@ -3651,7 +3665,15 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - By default, an SCP named `FullAWSAccess` is attached to every root, OU, and account.
 - SCPs do not affect any service-linked role. Service-linked roles enable other AWS services to integrate with AWS Organizations and can't be restricted by SCPs.
 - You can use trusted access to enable an AWS service that you specify, called the trusted service, to perform tasks in your organization and its accounts on your behalf. This involves granting permissions to the trusted service but does not otherwise affect the permissions for IAM users or roles. When you enable access, the trusted service can create an IAM role called a service-linked role in every account in your organization. That role has a permissions policy that allows the trusted service to do the tasks that are described in that service's documentation. This enables you to specify settings and configuration details that you would like the trusted service to maintain in your organization's accounts on your behalf.
-- For billing purposes, the consolidated billing feature of AWS Organizations treats all the accounts in the organization as one account. This means that all accounts in the organization can receive the hourly cost-benefit of Reserved Instances (RI) that are purchased by any other account. In the payer account, you can turn off Reserved Instance discount sharing on the Preferences page on the Billing and Cost Management console.
+- For billing purposes, the consolidated billing feature of AWS Organizations treats all the accounts in the organization as one account. This means that all accounts in the organization can receive the hourly cost-benefit of Reserved Instances (RI) that are purchased by any other account. In the payer account, you can turn off Reserved Instance discount sharing on the Preferences page on the Billing and Cost Management console for the desired accounts.
+- After you create an Organization and verify that you own the email address associated with the master account, you can invite existing AWS accounts to join your organization. When you invite an account, AWS Organizations sends an invitation to the account owner, who decides whether to accept or decline the invitation. You can use the AWS Organizations console to initiate and manage invitations that you send to other accounts. You can send an invitation to another account only from the master account of your organization. When an invited account joins your organization, you do not automatically have full administrator control over the account, unlike created accounts. If you want the master account to have full administrative control over an invited member account, you must create the  `OrganizationAccountAccessRole` IAM role in the member account and grant permission to the master account to assume the role.
+
+## IAM
+
+- Supports federated identity with SAML 2.0-compatible IdP.
+- For other scenarios like LDAP you need to create an identiy broker that authenticates to LDAP and then calls STS to assume a role.
+- For administrators you can use the `AdministratorAccess` policiy.
+- For developer power users you can use the `PoweruserAccess` policiy.
 
 ## AWS Identity Federation with SAML 2.0
 
@@ -3664,6 +3686,26 @@ StackSet: a named set of stacks that use the same template, but applied across d
 ## AWS Directory Service
 
 - AWS Directory Service helps you to set up and run a standalone AWS Managed Microsoft AD directory hosted in the AWS Cloud. You can also use AWS Directory Service to connect your AWS resources with an existing on-premises Microsoft Active Directory. To configure AWS Directory Service to work with your on-premises Active Directory, you must first set up trust relationships to extend authentication from on-premises to the cloud.
+
+## AWS Security Hub
+
+- AWS Organizations allows central management of multiple AWS accounts. It supports service delegation, enabling specific accounts to act as delegated administrators for various AWS services, including Security Hub. This helps streamline security operations by consolidating security management into a single account. A delegated administrator account is a member account within an AWS Organization that has been assigned the authority to manage specific services on behalf of the management account. For AWS Security Hub, the delegated administrator can:
+  - Enable Security Hub across all member accounts.
+  - Aggregate findings from all accounts into the delegated administrator account.
+  - Provide a unified security view, reducing the need for individual account management and aligning with AWS best practices.
+
+## AWS Control Tower
+
+- Automates setup of a secure multi-account AWS environment (landing zone).
+- Uses AWS Organizations to manage organizational units (OUs) and accounts.
+- Creates baseline accounts: Management, Log Archive, and Audit.
+- Applies preventive and detective guardrails (SCPs and AWS Config rules).
+- Provides a dashboard to monitor account status and compliance.
+- Includes Account Factory to create and configure new accounts with best practices.
+- Supports drift detection to identify configuration changes outside of Control Tower.
+- Integrates with AWS IAM Identity Center (SSO) for centralized access management.
+- Works with AWS CloudTrail, AWS Config, and AWS Service Catalog.
+- Enables extension and customization through APIs and lifecycle hooks.
 
 ## AWS Resource Access Manager (AWS RAM)
 
@@ -3684,6 +3726,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 ## Amazon Inspector
 
 - Amazon Inspector is used as an automated vulnerability management service that continually scans AWS workloads for software vulnerabilities.
+- You can use Amazon Inspector to conduct a detailed scan for CVE in your fleet of EC2 instances.
 
 ## Pricing
 
@@ -3691,6 +3734,18 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - EC2 Instance saving plans: up to 72% applied to a specific instance within a chosen region. Terms of 1 or 3 years.
 - Convertible Reserved Instances (RI): up to 66% fixed instance family, any size regional only. Terms of 1 or 3 years.
 - Standard Reserved Instances (RI): up to 72% fixed instance family, any size regional only. Terms of 1 or 3 years.
+
+## Lambda
+
+- Can run up to 15 min.
+
+## EBS
+
+- Amazon Data Lifecycle Manager (DLM) for EBS Snapshots provides a simple, automated way to back up data stored on Amazon EBS volumes. You can define backup and retention schedules for EBS snapshots by creating lifecycle policies based on tags. With this feature, you no longer have to rely on custom scripts to create and manage your backups.
+
+## Amazon MQ
+
+- Amazon MQ is a managed message broker service that provides compatibility with many popular message brokers. AWS recommends Amazon MQ for migrating applications from existing message brokers that rely on compatibility with APIs such as JMS or protocols such as AMQP, MQTT, OpenWire, and STOMP.
 
 ## Networking
 
