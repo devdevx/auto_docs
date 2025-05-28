@@ -3433,7 +3433,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ## AWS IoT
 
-- AWS IoT Core is the central component of AWS IoT that provides the communication infrastructure for connecting IoT devices to the AWS cloud.
+- AWS IoT Core is the central component of AWS IoT that provides the communication infrastructure for connecting IoT devices to the AWS cloud. Supports MQTT, MQTT over WSS, HTTPS and LoRaWAN. The data plane endpoints are specific to each AWS account and AWS Region (the Data-ATS). 
 - AWS IoT Core Basic Ingest is specifically designed for high-volume data ingestion, allowing devices to publish messages directly to the AWS IoT Rules Engine without maintaining a persistent connection, which helps reduce overhead.
 - AWS IoT Device Management is a service that makes it easy to securely register, organize, monitor, and remotely manage IoT devices at scale throughout their lifecycle. You can use IoT Device Management to upload and view device information and configuration, organize your device inventory, monitor your fleet of devices, troubleshoot individual devices, and remotely manage devices deployed across many locations including updating device software over-the-air (OTA).
 - AWS IoT Defender is primarily used for security audit, alerting, and mitigation of IoT resources.
@@ -3442,6 +3442,13 @@ StackSet: a named set of stacks that use the same template, but applied across d
 ## API Gateway
 
 - Caching the API requests should be done on the API Gateway. The default TTL value for API caching is 300 seconds. The maximum TTL value is 3600 seconds. TTL=0 means caching is disabled.
+- API Gateway supports multiple mechanisms for controlling and managing access:
+  - Resource policies let you create resource-based policies to allow or deny access to your APIs and methods from specified source IP addresses or VPC endpoints.
+  - Standard AWS IAM roles and policies offer flexible and robust access controls that can be applied to an entire API or individual methods. IAM roles and policies can be used for controlling who can create and manage your APIs, as well as who can invoke them.
+  - IAM tags can be used together with IAM policies to control access.
+  - Endpoint policies for interface VPC endpoints allow you to attach IAM resource policies to interface VPC endpoints to improve the security of your private APIs.
+  - Lambda authorizers are Lambda functions that control access to REST API methods using bearer token authentication—as well as information described by headers, paths, query strings, stage variables, or context variables request parameters. Lambda authorizers are used to control who can invoke REST API methods.
+  - Amazon Cognito user pools let you create customizable authentication and authorization solutions for your REST APIs. Amazon Cognito user pools are used to control who can invoke REST API methods.
 
 ## CloudFront
 
@@ -3482,6 +3489,11 @@ StackSet: a named set of stacks that use the same template, but applied across d
 ## EC2
 
 - Setting up a diversified allocation strategy for your Spot Fleet is a best practice to increase the chances that a spot request can be fulfilled by EC2 capacity in the event of an outage in one of the Availability Zones. You can include each AZ available to you in the launch specification. And instead of using the same subnet each time, use three unique subnets (each mapping to a different AZ).
+- Elastic Fabric Adapter (EFA) is a network interface for Amazon EC2 instances that enables customers to run applications requiring high levels of inter-node communications at scale on AWS. 
+- You can use placement groups to influence the placement of a group of interdependent instances to meet the needs of your workload.
+  - Cluster – packs instances close together inside an Availability Zone. This strategy enables workloads to achieve the low-latency network performance necessary for tightly-coupled node-to-node communication that is typical of HPC applications.
+  - Partition – spreads your instances across logical partitions such that groups of instances in one partition do not share the underlying hardware with groups of instances in different partitions. This strategy is typically used by large distributed and replicated workloads, such as Hadoop, Cassandra, and Kafka.
+  - Spread – strictly places a small group of instances across distinct underlying hardware to reduce correlated failures.
 
 ## ELB
 
@@ -3489,11 +3501,13 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ## RDS
 
+- Used for OLTP scenarios.
 - Amazon RDS does not support certain features in Oracle such as Multitenant Database, Real Application Clusters (RAC), RMAN, Unified Auditing, Database Vault, and many more.
 
 ## Aurora
 
 - Offers high availability by default.
+- Amazon Aurora Global Database is designed for globally distributed applications, allowing a single Amazon Aurora database to span multiple AWS regions. It replicates your data with no impact on database performance, enables fast local reads with low latency in each region, and provides disaster recovery from region-wide outages. This provides your application with an effective Recovery Point Objective (RPO) of 1 second and a Recovery Time Objective (RTO) of less than 1 minute, providing a strong foundation for a global business continuity plan.
 
 ## Route 53
 
@@ -3768,6 +3782,18 @@ StackSet: a named set of stacks that use the same template, but applied across d
 ## Redshift
 
 - WS KMS keys are specific to a region. If you want to enable cross-region snapshot copy for an AWS KMS-encrypted cluster, you must configure a `snapshot copy grant` for a master key in the destination region so that Amazon Redshift can perform encryption operations in the destination region.
+- Used for OLAP scenarios.
+
+## Amazon EMR
+
+- S3DistCp tool is used to copy large amounts of data from Amazon S3 into HDFS.
+- Master node: A node that manages the cluster by running software components to coordinate the distribution of data and tasks among other nodes for processing. The master node tracks the status of tasks and monitors the health of the cluster. Every cluster has a master node, and it's possible to create a single-node cluster with only the master node.
+- Core node: A node with software components that run tasks and store data in the Hadoop Distributed File System (HDFS) on your cluster. Multi-node clusters have at least one core node.
+- Task node: A node with software components that only runs tasks and does not store data in HDFS. Task nodes are optional.
+- To optimize cost and performance:
+  - Master node: Unless your cluster is very short-lived and the runs are cost-driven, avoid running your Master node on a Spot Instance. A Spot interruption on the Master node terminates the entire cluster. Alternatively to On-Demand, you can set up the Master node on a Spot Block. Setting the defined duration of the node and failing over to On-Demand if the Spot Block capacity is unavailable. 
+  - Core nodes: Avoid using Spot Instances for Core nodes if the jobs on the cluster use HDFS. That prevents a situation where Spot interruptions cause data loss for data that was written to the HDFS volumes on the instances.
+  - Task nodes: Use Spot Instances for your task nodes by selecting up to five instance types that match your hardware requirement. Amazon EMR fulfills the most suitable capacity by price and capacity availability.
 
 ## Networking
 
