@@ -1247,6 +1247,44 @@ stateDiagram
 
 ![](./cert-sap/eks.png)
 
+#### Components
+
+##### Pods
+
+- Its best practice to run a single container in a pod.
+- Multiple container in the same pod share the same IP.
+- Pods are immutable.
+- Worker nodes are where we run our apps.
+- The control plane needs scaling fo high availability.
+
+##### Control plane
+
+- Four main control plane components: kube-apiserver, etcd, kube-scheduler and kube-controller-manager.
+- If you are using the cloud you will need to use the cloud-controller-manager.
+- You can run control plane nodes across multiple machines.
+
+##### Namespaces
+
+- Helps to isolate groups of resources in a cluster.
+
+##### Deployments
+
+- Manager ReplicaSets (list the number of each pod to run) and provides declarative updates.
+
+##### Services
+
+- Services allow you to group pods together and expose them over a network.
+- Tou can create a service for pods in a cluster and outside of the cluster.
+- Services are often used alongside Ingresses.
+
+##### Ingress
+
+- Without Ingress, we need a LB per service.
+- Uses port 80 or 443 and host-based and path-based routing.
+- Two core components, the controller (implements the rules) and the object spec (defines rules to govern traffic).
+- Operates at layer 7.
+- Insects HTTP headers and forwards traffic based on hostnames and paths.
+
 ### Fargate
 
 - AWS Fargate is a purpose-built serverless compute engine for containers.
@@ -3406,6 +3444,8 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - On CloudFormation you can set the resources DeletionPolicy as `Snapshot` which keeps the resource backup data when deleting it or its contents when its stack is deleted.
 - The `AWS::AutoScaling::AutoScalingGroup` resource defines an Amazon EC2 Auto Scaling group. You can add an `UpdatePolicy` attribute to your stack to perform rolling updates (or replace the group) when a change has been made to the group. Alternatively, you can force a rolling update on your instances at any time after updating the stack by starting an instance refresh. To specify how AWS CloudFormation handles rolling updates for an Auto Scaling group, use the `AutoScalingRollingUpdate` policy. Rolling updates enable you to specify whether AWS CloudFormation updates instances that are in an Auto Scaling group in batches or all at once. For example, suppose you have updated the `MaxBatchSize` in your stack template's `UpdatePolicy` from 1 to 10. This allows you to perform updates without causing downtime to your currently running application.
 - You can get enable data sharing between CloudFormation and Organizations from the StackSets console. Once done, you will be able to use StackSets in the Organizations master account to deploy stacks to all accounts in your organization or in specific organizational units (OUs).
+- Instance profiles are used to pass an IAM role to an EC2 instance, in the template you reference the IAM Role as a property inside the `AWS::IAM::InstanceProfile` of the application instance.
+- AWS Cloud Development Kit (AWS CDK) is a software development framework for defining cloud infrastructure in code and provisioning it through AWS CloudFormation.
 
 ## S3
 
@@ -3415,12 +3455,19 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - When you enable versioning the existing object have the version value to null.
 -SSE-S3 uses strong multi-factor encryption. Amazon S3 encrypts each object with a unique key. As an additional safeguard, it encrypts the key itself with a master key that it rotates regularly. Uses AES-256 to encrypt your data.
 - With SSE-KMS, you can also enable S3 Bucket Keys to decrease request traffic from Amazon S3 to AWS KMS and reduce the cost of encryption.
+- You can use `sync` comand to synchronize the data in your on-premises server and in AWS. Executing another `sync` only uploads the "delta" or in other words, the "difference" in the subset.
+- Glacier doesn't have a built-in search function to help you retrieve the data, you can use another service like DynamoDB to associate archive ID with the search metadata.
+- To grant access to an AWS KMS-encrypted bucket in Account A to a user in Account B, you must have these permissions in place:
+  - The bucket policy in Account A must grant access to Account B.
+  - The AWS KMS key policy in Account A must grant access to the user in Account B.
+  - The IAM policy in Account B must grant user access to the bucket and the AWS KMS key in Account A.
 
 ## DynamoDB
 
 - Amazon DynamoDB global tables provide you with a fully managed, multi-region and multi-active database.
 - DynamoDB Accelerator is used for caching requests if you need response times in microseconds.
 - Amazon DynamoDB Time to Live (TTL) allows you to define a per-item timestamp to determine when an item is no longer needed. Shortly after the date and time of the specified timestamp, DynamoDB deletes the item from your table without consuming any write throughput. TTL is provided at no extra cost as a means to reduce stored data volumes by retaining only the items that remain current for your workload’s needs.
+- You can purchase reserved capacity in advance to lower the costs of running your DynamoDB instance.
 
 ## Kinesis
 
@@ -3430,6 +3477,12 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 - A fully managed service for delivering real-time streaming data to destinations such as Amazon S3, Amazon Redshift, Amazon OpenSearch Service, and Splunk. It can automatically scale to match the throughput of your data and requires no ongoing administration. It can also batch, compress, and encrypt the data before loading it, minimizing the amount of storage used at the destination and increasing security.
 - Supports data transformation through AWS Lambda.
+- Useful to buffer data.
+
+## OpenSearch
+
+- Amazon OpenSearch Service is a managed service that makes it easy to deploy, operate, and scale OpenSearch clusters in the AWS Cloud. Amazon OpenSearch Service supports OpenSearch and legacy Elasticsearch OSS (up to 7.10, the final open-source version of the software). When you create a cluster, you have the option of which search engine to use.
+- OpenSearch Dashboards is an open-source visualization tool designed to work with OpenSearch. Amazon OpenSearch Service provides an installation of OpenSearch Dashboards with every OpenSearch Service domain. You can find a link to Dashboards on your domain dashboard on the OpenSearch Service console.
 
 ## AWS IoT
 
@@ -3494,6 +3547,8 @@ StackSet: a named set of stacks that use the same template, but applied across d
   - Cluster – packs instances close together inside an Availability Zone. This strategy enables workloads to achieve the low-latency network performance necessary for tightly-coupled node-to-node communication that is typical of HPC applications.
   - Partition – spreads your instances across logical partitions such that groups of instances in one partition do not share the underlying hardware with groups of instances in different partitions. This strategy is typically used by large distributed and replicated workloads, such as Hadoop, Cassandra, and Kafka.
   - Spread – strictly places a small group of instances across distinct underlying hardware to reduce correlated failures.
+- A Spot Fleet is a set of Spot Instances and optionally On-Demand Instances that are launched based on criteria that you specify. The Spot Fleet selects the Spot capacity pools that meet your needs and launches Spot Instances to meet the target capacity for the fleet.
+- EC2Rescue can help you diagnose and troubleshoot problems on Amazon EC2 Linux and Windows Server instances. You can run the tool manually, or you can run the tool automatically by using Systems Manager Automation and the AWSSupport-ExecuteEC2Rescue document. The AWSSupport-ExecuteEC2Rescue document is designed to perform a combination of Systems Manager actions, AWS CloudFormation actions, and Lambda functions that automate the steps normally required to use EC2Rescue.
 
 ## ELB
 
@@ -3503,11 +3558,31 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 - Used for OLTP scenarios.
 - Amazon RDS does not support certain features in Oracle such as Multitenant Database, Real Application Clusters (RAC), RMAN, Unified Auditing, Database Vault, and many more.
+- Amazon RDS Proxy is a fully managed, highly available database proxy for Amazon Relational Database Service (RDS) that makes applications more scalable, more resilient to database failures, and more. Amazon RDS Proxy sits between your application and your relational database to efficiently manage connections to the database and improve the scalability of the application. Amazon RDS Proxy can be enabled for most applications with no code changes.
+- Database sharding is the process of storing a large database across multiple machines. A single machine, or database server, can store and process only a limited amount of data. Database sharding overcomes this limitation by splitting data into smaller chunks, called shards, and storing them across several database servers. All database servers usually have the same underlying technologies, and they work together to store and process large volumes of data.
+- You can set up replication between an Amazon RDS MySQL (or MariaDB DB instance) that is running in AWS and a MySQL (or MariaDB instance) to your on-premises data center.
 
 ## Aurora
 
 - Offers high availability by default.
 - Amazon Aurora Global Database is designed for globally distributed applications, allowing a single Amazon Aurora database to span multiple AWS regions. It replicates your data with no impact on database performance, enables fast local reads with low latency in each region, and provides disaster recovery from region-wide outages. This provides your application with an effective Recovery Point Objective (RPO) of 1 second and a Recovery Time Objective (RTO) of less than 1 minute, providing a strong foundation for a global business continuity plan.
+- You can set auto scaling for replica database but not for master.
+- It is recommended to use Aurora Serverless for lightly-used applications, with peaks of 30 minutes to several hours a few times each day or several times per year, such as human resources, budgeting, or operational reporting application.
+
+## Amazon Keyspaces
+
+- Amazon Keyspaces is designed to be compatible with Apache Cassandra databases.
+
+## Data Pipeline
+
+- AWS Data Pipeline is a web service that you can use to automate the movement and transformation of data. With AWS Data Pipeline, you can define data-driven workflows, so that tasks can be dependent on the successful completion of previous tasks. You define the parameters of your data transformations and AWS Data Pipeline enforces the logic that you've set up.
+
+## AppSync
+
+- AWS AppSync is a fully managed service that makes it easy to develop GraphQL APIs by handling the heavy lifting of securely connecting to data sources like Amazon DynamoDB, Lambda, and more. Adding caches to improve performance, subscriptions to support real-time updates, and client-side data stores that keep offline clients in sync are just as easy. Once deployed, AWS AppSync automatically scales your GraphQL API execution engine up and down to meet API request volumes.
+- With managed GraphQL subscriptions, AWS AppSync can push real-time data updates over Websockets to millions of clients. For mobile and web applications, AppSync also provides local data access when devices go offline, and data synchronization with customizable conflict resolution, when they are back online.
+- AppSync supports real-time chat applications. You can build conversational mobile or web applications that support multiple private chat rooms, offer access to conversation history, and queue outbound messages, even when a device is offline.
+- AppSync can also be used for real-time collaboration. You can broadcast data from the backend to all connected clients (one-to-many) or between clients (many-to-many), such as in a second screen scenario where you broadcast the same data to all clients, who can then reply.
 
 ## Route 53
 
@@ -3660,6 +3735,13 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 - AWS Elemental MediaConnect is just a high-quality transport service for live video.
 
+## CodePipeline, CodeBuild, CodeDeploy and CodeArtifact
+
+- AWS CodePipeline is a continuous delivery service for fast and reliable application and infrastructure updates. CodePipeline builds, tests, and deploys your code every time there is a code change based on the release process models you define. Supports executions from third-party Git sources
+- AWS CodeBuild is a fully managed continuous integration service that compiles source code, runs tests, and produces software packages that are ready to deploy. AWS CodeBuild scales continuously and processes multiple builds concurrently, so your builds are not left waiting in a queue.
+- AWS CodeDeploy helps to deploy the changes in your desired environment.
+- AWS CodeArtifact is used to automatically fetch software packages and dependencies from public artifact repositories.
+
 ## Disaster recovery
 
 - Recovery time objective (RTO) is the time it takes after a disruption to restore a business process to its service level, as defined by the operational level agreement (OLA).
@@ -3692,6 +3774,10 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - For other scenarios like LDAP you need to create an identiy broker that authenticates to LDAP and then calls STS to assume a role.
 - For administrators you can use the `AdministratorAccess` policiy.
 - For developer power users you can use the `PoweruserAccess` policiy.
+- IAM Access Analyzer can analyze your CloudTrail events to identify actions and services used by an IAM entity (user or role).
+- AWS IAM Identity Center (successor to AWS SSO) expands the capabilities of AWS Identity and Access Management (IAM) to provide a central place that brings together administration of users and their access to AWS accounts and cloud applications. Has integration with Microsoft AD through the AWS Directory Service.
+- You can store SSL certificates in IAM but is preffered to use AWS Certificate Manager (ACM).
+- IAM trust policies for IAM roles specify which entities, like users, roles, or services, can assume a role and request temporary credentials, whether across multiple accounts or within a single one.
 
 ## AWS Identity Federation with SAML 2.0
 
@@ -3700,6 +3786,10 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - Web-based single sign-on (SSO) to the AWS Management Console from your organization. Users can sign in to a portal in your organization hosted by a SAML 2.0–compatible IdP, select an option to go to AWS, and be redirected to the console without having to provide additional sign-in information. You can use a third-party SAML IdP to establish SSO access to the console or you can create a custom IdP to enable console access for your external users.
 - Before you can use SAML 2.0-based federation, you must configure your organization's IdP and your AWS account to trust each other. Inside your organization, you must have an IdP that supports SAML 2.0, like Microsoft Active Directory Federation Service (AD FS, part of Windows Server), Shibboleth, or another compatible SAML 2.0 provider. In your organization's IdP, you define assertions that map users or groups in your organization to the IAM roles. Note that different users and groups in your organization might map to different IAM roles. The exact steps for performing the mapping depend on what IdP you're using.
 - The role or roles that you create in IAM define what federated users from your organization are allowed to do in AWS. When you create the trust policy for the role, you specify the SAML provider that you created earlier as the Principal. You can additionally scope the trust policy with a Condition element to allow only users that match certain SAML attributes to access the role.
+
+## VPN
+
+- Secure Sockets Layer (SSL) VPN is an emerging technology that provides remote-access VPN capability, using the SSL function that is already built into a modern web browser. SSL VPN allows users from any Internet-enabled location to launch a web browser to establish remote-access VPN connections, thus promising productivity enhancements and improved availability, as well as further IT cost reduction for VPN client software and support.
 
 ## AWS Directory Service
 
@@ -3743,6 +3833,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ## Amazon Inspector
 
+- An automated security assessment service that helps improve the security and compliance of applications deployed on AWS.
 - Amazon Inspector is used as an automated vulnerability management service that continually scans AWS workloads for software vulnerabilities.
 - You can use Amazon Inspector to conduct a detailed scan for CVE in your fleet of EC2 instances.
 
@@ -3774,6 +3865,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
   - Immutable – A slower deployment method that ensures your new application version is always deployed to new instances instead of updating existing instances. It also has the additional advantage of a quick and safe rollback in case the deployment fails.
   - Traffic splitting – A canary testing deployment method. Suitable if you want to test the health of your new application version using a portion of incoming traffic while keeping the rest of the traffic served by the old application version.
 - You can avoid this downtime by performing a blue/green deployment, where you deploy the new version to a separate environment and then swap CNAMEs of the two environments to redirect traffic to the new version instantly. With this method, you can have two independent environments and you can quickly switch between the version by swapping the URLs.
+- You can use platform hooks to run custom scripts: prebuild, predeploy and postdeploy.
 
 ## AppStream 2.0
 
@@ -3783,6 +3875,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 - WS KMS keys are specific to a region. If you want to enable cross-region snapshot copy for an AWS KMS-encrypted cluster, you must configure a `snapshot copy grant` for a master key in the destination region so that Amazon Redshift can perform encryption operations in the destination region.
 - Used for OLAP scenarios.
+- Redshift is configured with automatic snapshot by default but you need to enable cross-region snapshot if you require it.
 
 ## Amazon EMR
 
@@ -3795,7 +3888,21 @@ StackSet: a named set of stacks that use the same template, but applied across d
   - Core nodes: Avoid using Spot Instances for Core nodes if the jobs on the cluster use HDFS. That prevents a situation where Spot interruptions cause data loss for data that was written to the HDFS volumes on the instances.
   - Task nodes: Use Spot Instances for your task nodes by selecting up to five instance types that match your hardware requirement. Amazon EMR fulfills the most suitable capacity by price and capacity availability.
 
+## Trusted Advisor
+
+- AWS Trusted Advisor is primarily used to check if your cloud infrastructure is in compliance with the best practices and recommendations across five categories: cost optimization, security, fault tolerance, performance, and service limits.
+
+## Audit Manager
+
+- AWS Audit Manager is used to map compliance requirements to AWS usage data with prebuilt and custom frameworks and automated evidence collection.
+
+## Amazon WorkDocs
+
+- Amazon WorkDocs is a fully managed, secure content creation, storage, and collaboration service. With Amazon WorkDocs, you can easily create, edit, and share content, and because it’s stored centrally on AWS, access it from anywhere on any device.
+- Amazon WorkDocs lets you integrate with your existing systems, and offers a rich API so that you can develop your own content-rich applications.
+- Amazon WorkDocs Content Manager is a high-level utility tool that uploads content or downloads it from an Amazon WorkDocs site. It can be used for both administrative and user applications. For user applications, a developer must construct the Amazon WorkDocs Content Manager with anonymous AWS credentials and an authentication token. For administrative applications, the Amazon WorkDocs client must be initialized with AWS Identity and Access Management (IAM) credentials. In addition, the authentication token must be omitted in subsequent API calls.
+
 ## Networking
 
-- Each 1 Mbps is aprox 0.3 TB per month.
+- Each 1 Mbps is aprox 0.3 TB per month or 10 Mbsp is aprox 0.1 TB per day. 
 - If you want to filter by url, instead of using security groups or NACL, you use a web proxy. A forward proxy server acts as an intermediary for requests from internal users and servers, often caching content to speed up subsequent requests. Companies usually implement proxy solutions to provide URL and web content filtering, IDS/IPS, data loss prevention, monitoring, and advanced threat protection. AWS customers often use a VPN or AWS Direct Connect connection to leverage existing corporate proxy server infrastructure, or build a forward proxy farm on AWS using software such as Squid proxy servers with internal Elastic Load Balancing (ELB). You can limit outbound web connections from your VPC to the internet, using a web proxy (such as a squid server) with custom domain whitelists or DNS content filtering services. The solution is scalable, highly available, and deploys in a fully automated way.
