@@ -3696,6 +3696,11 @@ StackSet: a named set of stacks that use the same template, but applied across d
   - If the network mode is `host`, the task bypasses Docker's built-in virtual network and maps container ports directly to the EC2 instance's network interface directly. In this mode, you can't run multiple instantiations of the same task on a single container instance when port mappings are used.
   - If the network mode is `awsvpc`, the task is allocated an elastic network interface, and you must specify a `NetworkConfiguration` when you create a service or run a task with the task definition. When you use this network mode in your task definitions, every task that is launched from that task definition gets its own elastic network interface (ENI) and a primary private IP address. The task networking feature simplifies container networking and gives you more control over how containerized applications communicate with each other and other services within your VPCs. Task networking provides greater security for your containers by allowing you to use security groups and network monitoring tools at a more granular level within your tasks. Because each task gets its own ENI, you can also take advantage of other Amazon EC2 networking features like VPC Flow Logs so that you can monitor traffic to and from your tasks. Additionally, containers that belong to the same task can communicate over the localhost interface. A task can only have one ENI associated with it at a given time.
 
+## EKS
+
+- A solution to use when needs Kubernetes comatibility.
+- Main solution to use if the requiremens mention multi-cloud configuration that runs additional clusters on other cloud service providers to further improve the site’s performance.
+
 ## Rekognition
 
 - Supports the IndexFaces operation. To store facial information, you must first create (CreateCollection) a face collection in one of the AWS Regions in your account. You specify this face collection when you call the IndexFaces operation. After you create a face collection and store facial feature information for all faces, you can search the collection for face matches. To search for faces in an image, call SearchFacesByImage. To search for faces in a stored video, call StartFaceSearch. To search for faces in a streaming video, call CreateStreamProcessor.
@@ -3819,6 +3824,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 - Enables you to share specified AWS resources that you own with other AWS accounts.
 - To enable trusted access with AWS Organizations, from the AWS RAM CLI, use the `enable-sharing-with-aws-organizations` command.
+- AWS AWS RAM does not support direct sharing of Lambda functions between accounts.
 
 ## Permissions
 
@@ -3847,6 +3853,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 ## Lambda
 
 - Can run up to 15 min.
+- In scenarios where you need more than 15 min for async tasks maybe you can solve the problem using ECS task triggered from lambda.
 
 ## EBS
 
@@ -3858,6 +3865,8 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ## AWS Elastic Beanstalk
 
+- AWS Elastic Beanstalk is an easy-to-use service for deploying and scaling web applications and services developed with Java, .NET, PHP, Node.js, Python, Ruby, Go, and Docker on familiar servers such as Apache, Nginx, Passenger, and IIS.
+- The `.ebextensions` configuration files are used to customize the software that runs on the EC2 instances of your Elastic Beanstalk environment. You can use `.ebextensions` configuration files to mount the EFS onto the EC2 instances.
 - It has different deployment policies:
   - All at once – The quickest deployment method. Suitable if you can accept a short loss of service and if quick deployments are important to you. With this method, Elastic Beanstalk deploys the new application version to each instance.
   - Rolling – Avoids downtime and minimizes reduced availability at a cost of a longer deployment time. Suitable if you can't accept any period of completely lost service. With this method, your application is deployed to your environment one batch of instances at a time.
@@ -3901,6 +3910,33 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - Amazon WorkDocs is a fully managed, secure content creation, storage, and collaboration service. With Amazon WorkDocs, you can easily create, edit, and share content, and because it’s stored centrally on AWS, access it from anywhere on any device.
 - Amazon WorkDocs lets you integrate with your existing systems, and offers a rich API so that you can develop your own content-rich applications.
 - Amazon WorkDocs Content Manager is a high-level utility tool that uploads content or downloads it from an Amazon WorkDocs site. It can be used for both administrative and user applications. For user applications, a developer must construct the Amazon WorkDocs Content Manager with anonymous AWS credentials and an authentication token. For administrative applications, the Amazon WorkDocs client must be initialized with AWS Identity and Access Management (IAM) credentials. In addition, the authentication token must be omitted in subsequent API calls.
+
+## AWS DataSync
+
+- AWS DataSync is an online data transfer service that simplifies, automates, and accelerates moving data between on-premises storage systems and AWS Storage services, as well as between AWS Storage services. DataSync can copy data between Network File System (NFS) shares, Server Message Block (SMB) shares, self-managed object storage, AWS Snowcone, Amazon Simple Storage Service (Amazon S3) buckets, Amazon Elastic File System (Amazon EFS) file systems, and Amazon FSx for Windows File Server file systems.
+- Main use cases for AWS DataSync:
+  - Data migration – Move active datasets rapidly over the network into Amazon S3, Amazon EFS, or FSx for Windows File Server.
+  - Archiving cold data – Move cold data stored in on-premises storage directly to durable and secure long-term storage such as Amazon S3 Glacier or S3 Glacier Deep Archive.
+  - Data protection – Move data into any Amazon S3 storage class, choosing the most cost-effective storage class for your needs.
+  - Data movement for timely in-cloud processing – Move data into or out of AWS for processing when working with systems that generate data on-premises. This approach can speed up critical hybrid cloud workflows across many industries.
+
+## VM Import/Export
+
+- VM Import/Export enables you to import virtual machine (VM) images from your existing virtualization environment to Amazon EC2 and then export them back. This enables you to migrate applications and workloads to Amazon EC2, copy your VM image catalog to Amazon EC2, or create a repository of VM images for backup and disaster recovery.
+
+## SES
+
+- Amazon Simple Email Service (Amazon SES) is a scalable and secure cloud-based email-sending service designed to help businesses send marketing, transactional, and other types of professional emails.
+- The Amazon SES SMTP endpoint requires that all connections be encrypted using Transport Layer Security (TLS). Amazon SES supports two mechanisms for establishing a TLS-encrypted connection: STARTTLS and TLS Wrapper.
+- STARTTLS is a means of upgrading an unencrypted connection to an encrypted connection. To set up a STARTTLS connection, the SMTP client connects to the Amazon SES SMTP endpoint on port 25, 587, or 2587, issues an EHLO command, and waits for the server to announce that it supports the STARTTLS SMTP extension. The client then issues the STARTTLS command, initiating TLS negotiation. When negotiation is complete, the client issues an EHLO command over the new encrypted connection, and the SMTP session proceeds normally.
+- Amazon SES supports sending emails through two main interfaces: the Simple Mail Transfer Protocol (SMTP) and the SES API.
+
+##  Migration Evaluator
+
+- The Migration Evaluator Agentless Collector is a tool provided by AWS that can be deployed on a Windows Amazon EC2 instance. This tool is designed to collect data from on-premises servers via the Simple Network Management Protocol (SNMP). The types of data collected by the Migration Evaluator Agentless Collector include server configuration, utilization, annual costs to operate, eligibility for bring-your-own-license, and hundreds of other parameters. This data is crucial for understanding the current state of the on-premises servers and planning for their migration to the AWS cloud.
+- Once the data is collected, it is then analyzed by the Migration Evaluator to generate a comprehensive Total Cost of Ownership (TCO) analysis. The TCO analysis provides a clear baseline of what your organization is running today and projects AWS costs based on measured on-premises provisioning and utilization. This analysis is essential for understanding the financial impact of migrating the on-premises servers to the AWS cloud. The Migration Evaluator service analyzes an enterprise’s compute footprint, including server configuration, utilization, annual costs to operate, eligibility for bring-your-own-license, and hundreds of other parameters. This allows the company to make informed decisions about using AWS.
+- The Migration Evaluator Collector facilitates the gathering of data from on-premises environments. It collects detailed information on infrastructure usage and resource consumption, which can then be imported into the Migration Evaluator. Once the data is collected, the tool analyzes it. Produces a Quick Insights report, highlighting potential cost savings and providing a side-by-side comparison of the on-premises environment versus the proposed AWS environment. This analysis helps businesses make informed decisions about migration, budgeting, and resource planning, ensuring they understand the financial benefits and trade-offs of moving to the cloud.
+- Also offers insights into optimization opportunities, assisting companies in refining their cloud strategy. It simplifies the complex process of evaluating cloud costs, enabling businesses to make more informed choices about their infrastructure and future cloud investments.
 
 ## Networking
 
