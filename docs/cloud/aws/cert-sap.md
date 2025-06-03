@@ -14,6 +14,7 @@
 - IAM lets you create roles, and doing so allows you to define a set of permissions and then let authenticated users assume them. This feature increases your security posture by granting temporary access to the resources you define.
 - You can use IAM to grant your employees and applications access to the AWS Management Console and to AWS service APIs using your existing identity systems.
 - The access advisor section shows the latest time that a user, group, role or policy was used, this helps to detect unused elements.
+- If you need to interact with AWS from GithubActions, instead of using hardcoded credentials, you can configure an IAM OpenID Connect (OIDC) Identity Provider (IdP) in AWS IAM, associated with GitHub. Create an IAM role with a trust policy for the sts:AssumeRoleWithWebIdentity AWS STS API calls from the GitHub OIDC IdP. Modify the GitHub Actions CI/CD pipeline to use this IAM role for its deployment processes. This uses ` aws-actions/configure-aws-credentials@v1` with `role-to-assume`, `role-session-name` and `aws-region`. You can define a role with the condition to only allow the sub to match the repo name to avoid that other CIs assume the same role.
 
 #### Limits on policy size
 
@@ -3421,10 +3422,6 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - You can use an AWS SCT agent to extract data from your on-premises data warehouse and migrate it to AWS database service. The agent extracts your data and uploads the data to either Amazon S3 or, for large-scale migrations, an AWS Snowball Edge device. You can then use AWS SCT to copy the data to AWS database service.
 - You can configure a local task and AWS DMS task to replicate the ongoing updates in your local database to the AWS database service.
 
-## AWS VM Import/Export
-
-- Enables you to easily import virtual machine images from your existing environment to Amazon EC2 instances and export them back to your on-premises environment.
-
 ## Application Migration Service
 
 - The AWS Application Migration Service (MGN) is primarily used to migrate virtual machines only, which can be from VMware vSphere and Windows Hyper-V to your AWS cloud. The first setup step for Application Migration Service is creating the Replication Settings template. Add source servers to Application Migration Service by installing the AWS Replication Agent (also referred to as "the Agent") on them. The Agent can be installed on both Linux and Windows servers. After you have added all of your source servers and configured their launch settings, you are ready to launch a Test instance. Once you have finalized the testing of all of your source servers, you are ready for cutover. The cutover will migrate your source servers to the Cutover instances on AWS.
@@ -3432,6 +3429,15 @@ StackSet: a named set of stacks that use the same template, but applied across d
 ## Application Discovery Service
 
 - The AWS Application Discovery Service simply helps you to plan migration projects by gathering information about your on-premises data centers, but is not a migration service. All discovered data are stored in your AWS Migration Hub.
+- Application Discovery Service offers two ways of performing discovery and collecting data about your on-premises servers:
+  - Agentless discovery can be performed by deploying the AWS Agentless Discovery Connector (OVA file) through your VMware Center.
+  - Agent-based discovery can be performed by deploying the AWS Application Discovery Agent on each of your VMs and physical servers.
+
+## AWS Migration Hub
+
+- AWS Migration Hub (Migration Hub) provides a single place to discover your existing servers, plan migrations, and track the status of each application migration. The Migration Hub provides visibility into your application portfolio and streamlines planning and tracking. You can visualize the connections and the status of the servers and databases that make up each of the applications you are migrating, regardless of which migration tool you are using. Migration Hub gives you the choice to start migrating right away and group servers while migration is underway or to first discover servers and then group them into applications.
+- Offers data exploration features integrated with Amazon Athena. Enabling Data exploration in AWS Migration Hub allows data from on-premises servers to be automatically stored in an Amazon S3 bucket at regular intervals, making it readily available for analysis.
+- Use the `put-resource-attributes` CLI command to send the collected data to AWS Migration Hub.
 
 ## AWS Cloud Adoption Readiness Tool (CART)
 
@@ -3461,6 +3467,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
   - The bucket policy in Account A must grant access to Account B.
   - The AWS KMS key policy in Account A must grant access to the user in Account B.
   - The IAM policy in Account B must grant user access to the bucket and the AWS KMS key in Account A.
+- Amazon S3 Transfer Acceleration (S3TA) can speed up content transfers to and from Amazon S3 by as much as 50% - 500% for long-distance transfer of larger objects.
 
 ## DynamoDB
 
@@ -3495,6 +3502,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 ## API Gateway
 
 - Caching the API requests should be done on the API Gateway. The default TTL value for API caching is 300 seconds. The maximum TTL value is 3600 seconds. TTL=0 means caching is disabled.
+- Switching the existing Amazon API Gateway from a Regional endpoint to an Edge-Optimized endpoint would enhance API call performance for users worldwide.
 - API Gateway supports multiple mechanisms for controlling and managing access:
   - Resource policies let you create resource-based policies to allow or deny access to your APIs and methods from specified source IP addresses or VPC endpoints.
   - Standard AWS IAM roles and policies offer flexible and robust access controls that can be applied to an entire API or individual methods. IAM roles and policies can be used for controlling who can create and manage your APIs, as well as who can invoke them.
@@ -3760,6 +3768,8 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 - Don't support dynamic file size.
 - Using the `update-file-system` command, you can use AWS SDK or CLI to programmatically increase the size of the FSx file system.
+- Can be Single-AZ or Multi-AZ.
+- You can use Use AWS DataSync to copy data to a new Amazon FSx file system that uses a Multi-AZ deployment type to migrate from a Single-AZ. After copying, point the applications to use the new Amazon FSx share. It is not possible to update the deployment type of the FSx file system once it is created.
 
 ## AWS Organizations
 
@@ -3854,6 +3864,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 - Can run up to 15 min.
 - In scenarios where you need more than 15 min for async tasks maybe you can solve the problem using ECS task triggered from lambda.
+- Lambda function URLs are HTTP(S) endpoints dedicated to your Lambda function. You can easily create and set up a function URL using the Lambda console or API. Once created, Lambda generates a unique URL endpoint for your use. Function URLs are dual stack-enabled, supporting IPv4 and IPv6. After you configure a function URL for your function, you can invoke your function through its HTTP(S) endpoint via a web browser, curl, Postman, or any HTTP client.
 
 ## EBS
 
@@ -3885,6 +3896,8 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - WS KMS keys are specific to a region. If you want to enable cross-region snapshot copy for an AWS KMS-encrypted cluster, you must configure a `snapshot copy grant` for a master key in the destination region so that Amazon Redshift can perform encryption operations in the destination region.
 - Used for OLAP scenarios.
 - Redshift is configured with automatic snapshot by default but you need to enable cross-region snapshot if you require it.
+- Redshif Spectrum can be used to analyze data stored in S3.
+- Apache Parquet is an open-source file format that is optimized for use with big data processing frameworks. It stores data in a columnar format, which means it organizes the data by columns rather than by rows. This can lead to significant performance improvements when executing analytical queries.
 
 ## Amazon EMR
 
@@ -3937,6 +3950,10 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - Once the data is collected, it is then analyzed by the Migration Evaluator to generate a comprehensive Total Cost of Ownership (TCO) analysis. The TCO analysis provides a clear baseline of what your organization is running today and projects AWS costs based on measured on-premises provisioning and utilization. This analysis is essential for understanding the financial impact of migrating the on-premises servers to the AWS cloud. The Migration Evaluator service analyzes an enterprise’s compute footprint, including server configuration, utilization, annual costs to operate, eligibility for bring-your-own-license, and hundreds of other parameters. This allows the company to make informed decisions about using AWS.
 - The Migration Evaluator Collector facilitates the gathering of data from on-premises environments. It collects detailed information on infrastructure usage and resource consumption, which can then be imported into the Migration Evaluator. Once the data is collected, the tool analyzes it. Produces a Quick Insights report, highlighting potential cost savings and providing a side-by-side comparison of the on-premises environment versus the proposed AWS environment. This analysis helps businesses make informed decisions about migration, budgeting, and resource planning, ensuring they understand the financial benefits and trade-offs of moving to the cloud.
 - Also offers insights into optimization opportunities, assisting companies in refining their cloud strategy. It simplifies the complex process of evaluating cloud costs, enabling businesses to make more informed choices about their infrastructure and future cloud investments.
+
+## Copute Optimizer
+
+- AWS Compute Optimizer provides recommendations for optimal AWS resource utilization based on historical usage data.
 
 ## Networking
 
