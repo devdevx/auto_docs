@@ -850,8 +850,6 @@
 
 - The DNS for AWS.
 
-TODO: Route 53
-
 ### AWS Global Accelerator
 
 - Optimizes your user traffic, from the user to your application.
@@ -1122,10 +1120,6 @@ TODO: Route 53
 - For startups starting from scratch Serverless with SAM is the best option to focus only on code.
 - For teams that already have containers ECS or EKS running on Fargate.
 - For a team with an existing monolithic app the recommended solution is Elastic Beanstalk.
-
-### AWS App Runner
-
-TODO AWS App Runner
 
 ### EC2
 
@@ -1644,14 +1638,6 @@ APIs created by Amazon API Gateway and AWS SDK integrations to call over two hun
 - VPS provider and is a useful way to get started with AWS for users who need a solution to build and host their applications on AWS Cloud.
 - Provides low-cost, pre-configured cloud resources for simple workloads just starting on AWS.
 - Cheap prices.
-
-### Serverless Application Repository
-
-TODO Serverless Application Repository
-
-### AWS SimSpace Weaver
-
-TODO AWS SimSpace Weaver
 
 ### Scaling Serverless Architecture
 
@@ -3406,6 +3392,18 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 - To use the AWS WA Tool, define your workload, apply one of the AWS Well-Architected lenses or your own custom lens, and begin your review. The tool generates an improvement plan and provides a mechanism to track and measure your progress.
 
+
+
+
+
+
+
+
+
+
+
+
+
 ---
 
 # [Exam preparation notes](https://d1.awsstatic.com/onedam/marketing-channels/website/aws/en_US/certification/approved/pdfs/docs-sa-pro/AWS-Certified-Solutions-Architect-Professional_Exam-Guide.pdf)
@@ -3506,7 +3504,9 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ### AWS Step Functions
 
-TODO
+- You can use to coordinate the components of distributed applications and microservices using visual workflows.
+- Standard workflows for long-running, durable and auditable workflows.
+- Express workflows for high-volume, event-processing workloads such as IoT data ingestion, streaming data processing and transformation, and mobile application backends. 
 
 ## Blockchain
 
@@ -3533,7 +3533,11 @@ TODO
 
 ### AWS Cost and Usage Report
 
-TODO
+- You can use tags to organize your resources and cost allocation tags, you need to activate them in the Billing and Cost Management console.
+- AWS generates a cost allocation report as a comma-separated value (CSV file) with your usage and costs grouped by your active tags.
+- If you use AWS Organizations, the management account, with its organization-wide visibility, is best suited. By enabling the cost allocation tag at this level, all analytics-related resources across accounts can be tracked.
+- Only a management account in an organization and single accounts that aren't members of an organization have access to the cost allocation tags manager in the Billing and Cost Management console.
+- The AWS Cost and Usage Reports (AWS CUR) contains the most comprehensive set of cost and usage data available. You can use Cost and Usage Reports to publish your AWS billing reports to an Amazon Simple Storage Service (Amazon S3) bucket that you own.
 
 ### AWS Cost Explorer
 
@@ -3550,7 +3554,8 @@ TODO
 
 ### AWS App Runner
 
-TODO
+- AWS App Runner builds and deploys web applications automatically, load balances traffic with encryption, scales to meet your traffic needs, and allows for the configuration of how services are accessed and communicate with other AWS applications in a private Amazon VPC.
+- Requires a container image.
 
 ### AWS Auto Scaling
 
@@ -3603,13 +3608,13 @@ TODO
 
 ### AWS Wavelength
 
-TODO
+- AWS Wavelength helps you build and deploy applications that meet your data residency, security, and low-latency requirements leveraging AWS services and APIs for digital transformation and using familiar tools for automation, deployments, security, and operational consistency enabling you to support telecom, finance, public sector, healthcare, and gaming use cases.
 
 ## Containers
 
 ### Amazon Elastic Container Registry (Amazon ECR)
 
-TODO
+- Container registry.
 
 ### Amazon Elastic Container Service (Amazon ECS)
 
@@ -3693,7 +3698,8 @@ TODO
 
 ### Amazon Timestream 
 
-TODO
+- Amazon Timestream offers fully managed InfluxDB, one of the most popular open source time-series databases in the market, and LiveAnalytics, a serverless time-series database built for scale.
+- Amazon Timestream for InfluxDB should be used for use cases that require near real-time time-series queries and when you need InfluxDB features or open source APIs. The existing Timestream engine, Amazon Timestream for LiveAnalytics, should be used when you need to ingest more than tens of gigabytes of time-series data per minute and run SQL queries on terabytes of time-series data in seconds.
 
 ## Developer Tools
 
@@ -3818,7 +3824,7 @@ TODO
 
 ### Amazon Polly
 
-TODO
+- Used to convert text to audio.
 
 ### Amazon Rekognition
 
@@ -3830,15 +3836,15 @@ TODO
 
 ### Amazon Textract
 
-TODO
+Used to extract text from documents.
 
 ### Amazon Transcribe
 
-TODO
+- Used to convert audio to text.
 
 ### Amazon Translate
 
-TODO
+- Used to translate text between languages.
 
 ## Management and Governance
 
@@ -3917,7 +3923,6 @@ TODO
 
 ### AWS Organizations
 
-
 - You can use organizational units (OUs) to group accounts together to administer as a single unit.
 - Service control policies (SCPs) are a type of organization policy that you can use to manage permissions in your organization. SCPs do not grant permissions to the IAM users and IAM roles in your organization. No permissions are granted by an SCP. An SCP defines a permission guardrail, or sets limits, on the actions that the IAM users and IAM roles in your organization can perform.
 - You attach SCPs to the root, OUs, or directly to accounts.
@@ -3945,7 +3950,16 @@ TODO
 
 ### AWS Systems Manager
 
-TODO
+- Systems Manager Run Command service enables you to automate common administrative tasks and perform ad hoc configuration changes at scale.
+- The AWS Systems Manager Maintenance Windows feature lets you define a schedule for when to perform potentially disruptive actions on your instances such as patching an operating system, updating drivers, or installing software or patches. Each Maintenance Window has a schedule, a maximum duration, a set of registered targets (the instances that are acted upon), and a set of registered tasks.
+- AWS Systems Manager Patch Manager automates the process of patching managed instances with security-related updates. For Linux-based instances, you can also install patches for non-security updates. You can patch fleets of Amazon EC2 instances or your on-premises servers and virtual machines (VMs) by operating system type.
+- Patch Manager uses patch baselines, which include rules for auto-approving patches within days of their release, as well as a list of approved and rejected patches. You can install patches on a regular basis by scheduling patching to run as a Systems Manager Maintenance Window task. You can also install patches individually or to large groups of instances by using Amazon EC2 tags. For each auto-approval rule that you create, you can specify an auto-approval delay. This delay is the number of days of wait after the patch was released, before the patch is automatically approved for patching.
+- A patch group is an optional means of organizing instances for patching. Patch groups can help you avoid deploying patches to the wrong set of instances. They can also help you avoid deploying patches before they have been adequately tested. You create a patch group by using Amazon EC2 tags.
+- Patch Manager provides a convenient view of patch status in the console and lets you export this data as a CSV file for analysis.
+- AWS Systems Manager Automation provides several runbooks with pre-defined steps that you can use to perform common tasks like restarting one or more EC2 instances or creating an Amazon Machine Image (AMI). A Systems Manager Automation runbook defines the actions that Systems Manager performs on your managed instances and other AWS resources when an automation runs. A runbook contains one or more steps that run in sequential order. Each step is built around a single action. Output from one step can be used as input in a later step.
+- AWS Systems Manager State Manager is primarily used as a secure and scalable configuration management service that automates the process of keeping your Amazon EC2 and hybrid infrastructure in a state that you define.
+- Session Manager is a fully managed AWS Systems Manager capability. With Session Manager, you can manage your Amazon Elastic Compute Cloud (Amazon EC2) instances, edge devices, and on-premises servers and virtual machines (VMs). You can use either an interactive one-click browser-based shell or the AWS Command Line Interface (AWS CLI). Session Manager provides secure and auditable node management without the need to open inbound ports, maintain bastion hosts, or manage SSH keys.
+- AWS Systems Manager Parameter Store provides secure, hierarchical storage for configuration data management and secrets management. If you plan to use Systems Manager to manage on-premises servers and virtual machines (VMs) in what is called a hybrid environment, you must create an IAM role for those resources to communicate with the Systems Manager service.
 
 ### AWS Trusted Advisor
 
@@ -3953,8 +3967,7 @@ TODO
 
 ### AWS Well-Architected Tool 
 
-TODO
-
+- To use the AWS WA Tool, define your workload, apply one of the AWS Well-Architected lenses or your own custom lens, and begin your review. The tool generates an improvement plan and provides a mechanism to track and measure your progress.
 
 ## Media Services
 
@@ -3964,7 +3977,8 @@ TODO
 
 ### Amazon Kinesis Video Streams 
 
-TODO
+- Amazon Kinesis Video Streams makes it easy to securely stream video from connected devices to AWS for analytics, machine learning (ML), playback, and other processing. Kinesis Video Streams automatically provisions and elastically scales all the infrastructure needed to ingest streaming video data from millions of devices.
+- Kinesis Video Streams also supports WebRTC, an open-source project that enables real-time media streaming and interaction between web browsers, mobile applications, and connected devices via simple APIs.
 
 ## Migration and Transfer
 
@@ -4018,7 +4032,7 @@ TODO
 
 ### AWS Transfer Family 
 
-TODO
+- Used to create FTP, FTPS and SFTP linked to S3.
 
 ## Networking and Content Delivery
 
@@ -4045,7 +4059,10 @@ TODO
 
 ### Elastic Load Balancing (ELB)
 
-TODO
+- You can either terminate the SSL on the ELB side or on the EC2 instance. If you choose the former, the X.509 certificate will only be present in the ELB and if you choose the latter, the X.509 certificate will be stored inside the EC2 instance.
+- In ALB, Client Port Preservation simply preserves the source client port, allowing backend applications to see the original client-side source port.
+- In ALB, Sticky sessions enable the load balancer to bind a user's session to a specific instance, ensuring that all requests from the user during the session are sent to the same instance.
+- Use a NLB to create VPC Endpoint Services.
 
 ### AWS Global Accelerator
 
@@ -4103,7 +4120,7 @@ TODO
 
 ### AWS Artifact
 
-TODO
+- Self-service portal that provides access to on-demand AWS compliance documentation. This service offers a comprehensive repository of AWS's security and compliance reports, including certifications, attestations, and agreements. These documents are essential for customers in highly regulated industries, such as healthcare, finance, and biotechnology, as they prove AWS's adherence to industry standards and regulatory requirements. AWS Artifact helps organizations ensure that their data hosted on AWS complies with frameworks like HIPAA, GDPR, and PCI DSS.
 
 ### AWS Audit Manager
 
@@ -4111,19 +4128,19 @@ TODO
 
 ### AWS Certificate Manager (ACM)
 
-TODO
+- Used to store certificates.
 
 ### AWS CloudHSM
 
-TODO
+- For keys managed by the customer where AWS can not see anything.
 
 ### Amazon Cognito
 
-TODO
+- Idp.
 
 ### Amazon Detective
 
-TODO
+- Amazon Detective automatically collects log data from your AWS resources and uses machine learning (ML), statistical analysis, and graph theory to build a dataset that you can use to conduct more efficient security investigations.
 
 ### AWS Directory Service
 
@@ -4142,7 +4159,8 @@ TODO
 
 ### Amazon GuardDuty
 
-TODO
+- Amazon GuardDuty is a security monitoring service that analyzes and processes certain types of AWS logs, such as AWS CloudTrail data event logs for Amazon S3 and CloudTrail management event logs.
+- It uses threat intelligence feeds, such as lists of malicious IP addresses and domains, and machine learning to identify unexpected and potentially unauthorized and malicious activity within your AWS environment.
 
 ### AWS IAM Identity Center
 
@@ -4167,15 +4185,15 @@ TODO
 
 ### AWS Key Management Service (AWS KMS)
 
-TODO
+- Key management service to be used by other services and applications.
 
 ### Amazon Macie
 
-TODO
+- Macie automates the discovery of sensitive data, such as personally identifiable information (PII), personal health information (PHI) and financial data, to provide you with a better understanding of the types of data in Amazon S3.
 
 ### AWS Network Firewall
 
-TODO
+- Deploys network security access for your VPC.
 
 ### AWS Resource Access Manager (AWS RAM)
 
@@ -4197,7 +4215,8 @@ TODO
 
 ### AWS Security Token Service (AWS STS)
 
-TODO
+- At a high level, the external ID is a piece of data that can be passed to the AssumeRole API of the Security Token Service (STS). You can then use the external ID in the condition element in a role’s trust policy, allowing the role to be assumed only when a certain value is present in the external ID. This prevents transitive asume role from another account that can asume roles from the allowed account.
+- A cross-account role should be created in the destination accounts, not origin account.
 
 ### AWS Shield
 
@@ -4217,25 +4236,57 @@ TODO
 
 ### Amazon Elastic Block Store (Amazon EBS)
 
-TODO
+- Block storage.
+- Can attach multiple volumes to one instance.
+- We can de-attach from one instance and attach to another.
+- Depending on the instance type and EBS volume, you can have the same volume attached to multiple instances (EBS Multi-Attach).
+- Amazon Data Lifecycle Manager (DLM) for EBS Snapshots provides a simple, automated way to back up data stored on Amazon EBS volumes. You can define backup and retention schedules for EBS snapshots by creating lifecycle policies based on tags. With this feature, you no longer have to rely on custom scripts to create and manage your backups.
 
 ### AWS Elastic Disaster Recovery
 
-TODO
+- Recovery time objective (RTO) is the time it takes after a disruption to restore a business process to its service level, as defined by the operational level agreement (OLA).
+- Recovery point objective (RPO) is the acceptable amount of data loss measured in time.
+- Backup and restore (RPO in hours, RTO in 24 hours or less): Back up your data and applications using point-in-time backups into the DR Region. Restore this data when necessary to recover from a disaster.
+- Pilot light (RPO in minutes, RTO in hours): Replicate your data from one region to another and provision a copy of your core workload infrastructure. Resources required to support data replication and backup such as databases and object storage are always on. Other elements such as application servers are loaded with application code and configurations, but are switched off and are only used during testing or when Disaster Recovery failover is invoked.
+- Warm standby (RPO in seconds, RTO in minutes): Maintain a scaled-down but fully functional version of your workload always running in the DR Region. Business-critical systems are fully duplicated and are always on, but with a scaled down fleet. When the time comes for recovery, the system is scaled up quickly to handle the production load.
+- Multi-region (multi-site) active-active (RPO near zero, RTO potentially zero): Your workload is deployed to, and actively serving traffic from, multiple AWS Regions. This strategy requires you to synchronize data across Regions.
 
 ### Amazon Elastic File System (Amazon EFS)
 
-TODO
+- File storage.
+- Operates as a Regional service.
+- Automatically grows and shrinks as you add and remove files.
+- Can grow to petabyte scale.
+- You can connect tens, hundreds, and even thousands of compute instances to an Amazon EFS file system at the same time.
 
 ### Amazon FSx (for all types)
 
-TODO
+#### FSx for Lustre
+
+- For high performance computing (HPC).
+
+#### FSx for NetApp ONTAP
+
+- Provides rich data management features and flexible shared file storage that are broadly accessible from Linux, Windows, and macOS compute instances running in AWS or on premises.
+- Sub-millisecond latencies.
+- These block services use NetApp's application programming interface (API) calls and management interface.
+
+#### FSx for OpenZFS
+
+- Implementation of the Open Zettabyte File System (ZFS).
+- Supports NFS and SMB protocols for a wide range of application implementations. 
+- Delivers leading performance for latency-sensitive and small-file workloads with popular NAS data management capabilities (snapshots, and cloning), at a lower price than commercially licensed alternatives.
+
+#### FSx for Windows File Server
+
+- Provides file storage that is accessible over the Service Message Block (SMB) protocol and has the ability to serve as a drop-in replacement for existing Windows file server deployments.
+- Built on Windows Server.
+- Don't support dynamic file size.
+- Using the `update-file-system` command, you can use AWS SDK or CLI to programmatically increase the size of the FSx file system.
+- Can be Single-AZ or Multi-AZ.
+- You can use Use AWS DataSync to copy data to a new Amazon FSx file system that uses a Multi-AZ deployment type to migrate from a Single-AZ. After copying, point the applications to use the new Amazon FSx share. It is not possible to update the deployment type of the FSx file system once it is created.
 
 ### Amazon Simple Storage Service (Amazon S3)
-
-TODO
-
-### Amazon S3 Glacier
 
 - Amazon S3 Cross-Region Replication (CRR) is used to copy objects across Amazon S3 buckets in different AWS Regions.
 - A bucket owner can configure a bucket to be a Requester Pays bucket. With Requester Pays buckets, the requester instead of the bucket owner pays the cost of the request and the data download from the bucket. The bucket owner always pays the cost of storing data.
@@ -4253,9 +4304,47 @@ TODO
 - S3 Replication Time Control (S3 RTC) helps you meet compliance or business requirements for data replication and provides visibility into Amazon S3 replication times. S3 RTC replicates most objects that you upload to Amazon S3 in seconds and 99.99 percent of those objects within 15 minutes.
 - Amazon S3 Storage Lens is a cloud-storage analytics feature that you can use to gain organization-wide visibility into object-storage usage and activity. You can use S3 Storage Lens metrics to generate summary insights, such as finding out how much storage you have across your entire organization or which are the fastest-growing buckets and prefixes.
 
+### Amazon S3 Glacier
+
+- Archival storage solution.
+- You can use instant retrieval, flexible retriebal (retrieval time of 1-5 min expedited, or 5-12 h free) and deep archive (retrieval time of 12 h).
+
 ### AWS Storage Gateway
 
-TODO
+#### S3 File gateway
+
+- Amazon S3 File Gateway presents a file-based interface to Amazon S3, which appears as a network file share. It enables you to store and retrieve Amazon S3 objects through standard file storage protocols. File Gateway allows your existing file-based applications or devices to use secure and durable cloud storage without needing to be modified. With S3 File Gateway, your configured S3 buckets will be available as Network File System (NFS) mount points or Server Message Block (SMB) file shares. Your applications read and write files and directories over NFS or SMB, interfacing to the gateway as a file server. In turn, the gateway translates these file operations into object requests on your S3 buckets. Your most recently used data is cached on the gateway for low-latency access, and data transfer between your data center and AWS is fully managed and optimized by the gateway. Once in S3, you can access the objects directly or manage them using S3 features such as S3 Lifecycle Policies and S3 Cross-Region Replication (CRR). You can run S3 File Gateway on-premises or in EC2.
+
+#### FSx File gateway
+
+- Amazon FSx File Gateway optimizes on-premises access to Windows file shares on Amazon FSx, making it easy for users to access FSx for Windows File Server data with low latency and conserving shared bandwidth. Users benefit from a local cache of frequently used data that they can access, enabling faster performance and reduced data transfer traffic. File system operations, such as reading and writing files, are all performed against the local cache, while Amazon FSx File Gateway synchronizes changed data to FSx for Windows File Server in the background. With these capabilities, you can consolidate all of your on-premises file share data in AWS on FSx for Windows File Server and benefit from protected, resilient, fully managed file systems.
+
+#### Tape gateway
+
+- Tape Gateway is a cloud-based Virtual Tape Library (VTL). It presents your backup application with a VTL interface, consisting of a media changer and tape drives. You can create virtual tapes in your virtual tape library using the AWS Management Console. Your backup application can read data from or write data to virtual tapes by mounting them to virtual tape drives using the virtual media changer. Virtual tapes are discovered by your backup application using its standard media inventory procedure. Virtual tapes are available for immediate access and are backed by Amazon S3. You can also archive tapes. Archived tapes are stored in Amazon S3 Glacier or Amazon S3 Glacier Deep Archive.
+
+#### Volume gateway
+
+- Volume Gateway provides an iSCSI target, which enables you to create block storage volumes and mount them as iSCSI devices from your on-premises or EC2 application servers. The Volume Gateway runs in either a cached or stored mode.
+- In the cached mode, your primary data is written to S3, while retaining your frequently accessed data locally in a cache for low-latency access.
+- In the stored mode, your primary data is stored locally and your entire dataset is available for low-latency access while asynchronously backed up to AWS.
+- In either mode, you can take point-in-time snapshots of your volumes, which are stored as Amazon EBS Snapshots in AWS, enabling you to make space-efficient versioned copies of your volumes for data protection, recovery, migration and various other copy data needs.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4294,15 +4383,6 @@ TODO
 - When Amazon EC2 Auto Scaling responds to a scale in event, it terminates one or more instances. These instances are detached from the Auto Scaling group and enter the `Terminating` state. If you added an `autoscaling:EC2_INSTANCE_TERMINATING` lifecycle hook to your Auto Scaling group, the instances move from the `Terminating` state to the `Terminating:Wait` state. After you complete the lifecycle action, the instances enter the `Terminating:Proceed` state. When the instances are fully terminated, they enter the `Terminated` state.
 - If you want to keep the last logs of an EC2 from a terminated instance in Auto Scaling Group, you can dd a lifecycle hook to the Auto Scaling Group for the `autoscaling:EC2_INSTANCE_TERMINATING` event and set the default result to `CONTINUE`. Implement a script using an AWS Systems Manager Automation document to backup log data to an Amazon S3 bucket. Create an Amazon EventBridge rule that invokes a Lambda function when an instance is in the `Terminating:Wait` state. Configure the function to call the `SendCommand` API to run the automation document.
 
-## Load balancers
-
-- In ALB, Client Port Preservation simply preserves the source client port, allowing backend applications to see the original client-side source port.
-- In ALB, Sticky sessions enable the load balancer to bind a user's session to a specific instance, ensuring that all requests from the user during the session are sent to the same instance.
-- Use a NLB to create VPC Endpoint Services.
-## ELB
-
-- You can either terminate the SSL on the ELB side or on the EC2 instance. If you choose the former, the X.509 certificate will only be present in the ELB and if you choose the latter, the X.509 certificate will be stored inside the EC2 instance.
-
 ## OpsCenter
 
 - OpsCenter is oriented towards incident management.
@@ -4318,27 +4398,9 @@ TODO
 - Public certificates generated from ACM can be used on Amazon CloudFront, Elastic Load Balancing, or Amazon API Gateway but not directly on EC2 instances, unlike private certificates.
 - For private certificates, the ACM Private Certificate Authority (CA) is priced along two dimensions: (1) You pay a monthly fee for the operation of each private CA until you delete it and (2) you pay for the private certificates you issue each month.
 
-## System Manager
-
-- Systems Manager Run Command service enables you to automate common administrative tasks and perform ad hoc configuration changes at scale.
-- The AWS Systems Manager Maintenance Windows feature lets you define a schedule for when to perform potentially disruptive actions on your instances such as patching an operating system, updating drivers, or installing software or patches. Each Maintenance Window has a schedule, a maximum duration, a set of registered targets (the instances that are acted upon), and a set of registered tasks.
-- AWS Systems Manager Patch Manager automates the process of patching managed instances with security-related updates. For Linux-based instances, you can also install patches for non-security updates. You can patch fleets of Amazon EC2 instances or your on-premises servers and virtual machines (VMs) by operating system type.
-- Patch Manager uses patch baselines, which include rules for auto-approving patches within days of their release, as well as a list of approved and rejected patches. You can install patches on a regular basis by scheduling patching to run as a Systems Manager Maintenance Window task. You can also install patches individually or to large groups of instances by using Amazon EC2 tags. For each auto-approval rule that you create, you can specify an auto-approval delay. This delay is the number of days of wait after the patch was released, before the patch is automatically approved for patching.
-- A patch group is an optional means of organizing instances for patching. Patch groups can help you avoid deploying patches to the wrong set of instances. They can also help you avoid deploying patches before they have been adequately tested. You create a patch group by using Amazon EC2 tags.
-- Patch Manager provides a convenient view of patch status in the console and lets you export this data as a CSV file for analysis.
-- AWS Systems Manager Automation provides several runbooks with pre-defined steps that you can use to perform common tasks like restarting one or more EC2 instances or creating an Amazon Machine Image (AMI). A Systems Manager Automation runbook defines the actions that Systems Manager performs on your managed instances and other AWS resources when an automation runs. A runbook contains one or more steps that run in sequential order. Each step is built around a single action. Output from one step can be used as input in a later step.
-- AWS Systems Manager State Manager is primarily used as a secure and scalable configuration management service that automates the process of keeping your Amazon EC2 and hybrid infrastructure in a state that you define.
-- Session Manager is a fully managed AWS Systems Manager capability. With Session Manager, you can manage your Amazon Elastic Compute Cloud (Amazon EC2) instances, edge devices, and on-premises servers and virtual machines (VMs). You can use either an interactive one-click browser-based shell or the AWS Command Line Interface (AWS CLI). Session Manager provides secure and auditable node management without the need to open inbound ports, maintain bastion hosts, or manage SSH keys.
-- AWS Systems Manager Parameter Store provides secure, hierarchical storage for configuration data management and secrets management. If you plan to use Systems Manager to manage on-premises servers and virtual machines (VMs) in what is called a hybrid environment, you must create an IAM role for those resources to communicate with the Systems Manager service.
-
 ## Design Patterns
 
 - Token Vending Machine: Obtain STS tokens from user credentials. These machines provide a mechanism for obtaining tokens while abstracting the complexity of how these tokens are generated. Developers can use a TVM without having detailed knowledge of how it produces tokens.
-
-## Security Token Service (STS)
-
-- At a high level, the external ID is a piece of data that can be passed to the AssumeRole API of the Security Token Service (STS). You can then use the external ID in the condition element in a role’s trust policy, allowing the role to be assumed only when a certain value is present in the external ID. This prevents transitive asume role from another account that can asume roles from the allowed account.
-- A cross-account role should be created in the destination accounts, not origin account.
 
 ## Amazon Connect
 
@@ -4357,22 +4419,6 @@ TODO
 
 - AWS Elemental MediaConvert is a file-based video transcoding service with broadcast-grade features. It provides a comprehensive suite of advanced transcoding features with on-demand rates. It allows you to easily create video-on-demand (VOD) content for broadcast and multiscreen delivery at scale. The service combines advanced video and audio capabilities with a simple web services interface and pay-as-you-go pricing. With AWS Elemental MediaConvert, you can focus on delivering compelling media experiences without having to worry about the complexity of building and operating your own video processing infrastructure. MediaConvert is optimized to improve scalability, which allows you to process more files in parallel.
 
-## Disaster recovery
-
-- Recovery time objective (RTO) is the time it takes after a disruption to restore a business process to its service level, as defined by the operational level agreement (OLA).
-- Recovery point objective (RPO) is the acceptable amount of data loss measured in time.
-- Backup and restore (RPO in hours, RTO in 24 hours or less): Back up your data and applications using point-in-time backups into the DR Region. Restore this data when necessary to recover from a disaster.
-- Pilot light (RPO in minutes, RTO in hours): Replicate your data from one region to another and provision a copy of your core workload infrastructure. Resources required to support data replication and backup such as databases and object storage are always on. Other elements such as application servers are loaded with application code and configurations, but are switched off and are only used during testing or when Disaster Recovery failover is invoked.
-- Warm standby (RPO in seconds, RTO in minutes): Maintain a scaled-down but fully functional version of your workload always running in the DR Region. Business-critical systems are fully duplicated and are always on, but with a scaled down fleet. When the time comes for recovery, the system is scaled up quickly to handle the production load.
-- Multi-region (multi-site) active-active (RPO near zero, RTO potentially zero): Your workload is deployed to, and actively serving traffic from, multiple AWS Regions. This strategy requires you to synchronize data across Regions.
-
-## Amazon FSx for Windows File Server
-
-- Don't support dynamic file size.
-- Using the `update-file-system` command, you can use AWS SDK or CLI to programmatically increase the size of the FSx file system.
-- Can be Single-AZ or Multi-AZ.
-- You can use Use AWS DataSync to copy data to a new Amazon FSx file system that uses a Multi-AZ deployment type to migrate from a Single-AZ. After copying, point the applications to use the new Amazon FSx share. It is not possible to update the deployment type of the FSx file system once it is created.
-
 ## AWS Identity Federation with SAML 2.0
 
 - Enables federated single sign-on (SSO), so users can log into the AWS Management Console or call the AWS API operations without having to create an IAM user for everyone in your organization. By using SAML, you can simplify the process of configuring federation with AWS because you can use the IdP's service instead of writing custom identity proxy code.
@@ -4388,10 +4434,6 @@ TODO
 ## Monitoring
 
 - You can use AWS Config data aggegator (resource type that collects AWS Config data from multiple source accounts and regions) to montior the compliance of your AWS organizations, IAM, etc, and EventBridge and SNS to send alerts when changes are detected.
-
-## EBS
-
-- Amazon Data Lifecycle Manager (DLM) for EBS Snapshots provides a simple, automated way to back up data stored on Amazon EBS volumes. You can define backup and retention schedules for EBS snapshots by creating lifecycle policies based on tags. With this feature, you no longer have to rely on custom scripts to create and manage your backups.
 
 ## Amazon WorkDocs
 
@@ -4409,14 +4451,6 @@ TODO
 - Once the data is collected, it is then analyzed by the Migration Evaluator to generate a comprehensive Total Cost of Ownership (TCO) analysis. The TCO analysis provides a clear baseline of what your organization is running today and projects AWS costs based on measured on-premises provisioning and utilization. This analysis is essential for understanding the financial impact of migrating the on-premises servers to the AWS cloud. The Migration Evaluator service analyzes an enterprise’s compute footprint, including server configuration, utilization, annual costs to operate, eligibility for bring-your-own-license, and hundreds of other parameters. This allows the company to make informed decisions about using AWS.
 - The Migration Evaluator Collector facilitates the gathering of data from on-premises environments. It collects detailed information on infrastructure usage and resource consumption, which can then be imported into the Migration Evaluator. Once the data is collected, the tool analyzes it. Produces a Quick Insights report, highlighting potential cost savings and providing a side-by-side comparison of the on-premises environment versus the proposed AWS environment. This analysis helps businesses make informed decisions about migration, budgeting, and resource planning, ensuring they understand the financial benefits and trade-offs of moving to the cloud.
 - Also offers insights into optimization opportunities, assisting companies in refining their cloud strategy. It simplifies the complex process of evaluating cloud costs, enabling businesses to make more informed choices about their infrastructure and future cloud investments.
-
-## Billing and Cost Management
-
-- You can use tags to organize your resources and cost allocation tags, you need to activate them in the Billing and Cost Management console.
-- AWS generates a cost allocation report as a comma-separated value (CSV file) with your usage and costs grouped by your active tags.
-- If you use AWS Organizations, the management account, with its organization-wide visibility, is best suited. By enabling the cost allocation tag at this level, all analytics-related resources across accounts can be tracked.
-- Only a management account in an organization and single accounts that aren't members of an organization have access to the cost allocation tags manager in the Billing and Cost Management console.
-- The AWS Cost and Usage Reports (AWS CUR) contains the most comprehensive set of cost and usage data available. You can use Cost and Usage Reports to publish your AWS billing reports to an Amazon Simple Storage Service (Amazon S3) bucket that you own.
 
 ## AWS Resource Groups
 
