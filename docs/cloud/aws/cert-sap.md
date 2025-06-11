@@ -3443,6 +3443,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 ### Amazon Kinesis Data Streams
 
 - In an IoT scenario you can group the requests from API Gateway by streaming the data into an Amazon Kinesis data stream and processing the data in batches using a lambda function.
+- The amount of data per shard is 1 MB/s.
 
 ### AWS Lake Formation
 
@@ -3556,6 +3557,7 @@ TODO
 
 - AWS App Runner builds and deploys web applications automatically, load balances traffic with encryption, scales to meet your traffic needs, and allows for the configuration of how services are accessed and communicate with other AWS applications in a private Amazon VPC.
 - Requires a container image.
+- It is a regional service. If you require to do a multiple region deployment, you need to set up cross-region replication to the second region for the ECR images, deploy App Runner to the second Region and set up a Route 53 routing policy and use a global database like Aurora global database with write forwarding or DynamoDB global table.
 
 ### AWS Auto Scaling
 
@@ -3947,6 +3949,14 @@ TODO
 ### Service Quotas
 
 TODO
+TODO dynamodb
+- Lambda can run up to 15 minutes.
+- In Kinesis Data Streams the max amount of data per shard is 1 MB/s.
+- Max standard SQS delay is 15 minutes.
+- Max SQS message payload is 256 Kb.
+- Max SQS retention is 14 days.
+- Api gateway max payload size is 10 Mb.
+- Api gateway max request timeout is 29s.
 
 ### AWS Systems Manager
 
@@ -4225,7 +4235,7 @@ TODO
 ### AWS WAF
 
 - AWS WAF is a web application firewall that helps protect your web applications from common web exploits that could affect application availability, compromise security, or consume excessive resources. With AWS Config, you can track changes to WAF web access control lists (web ACLs).
-- It is easy to deploy and protect applications deployed on either Amazon CloudFront as part of your CDN solution, the Application Load Balancer that fronts all your origin servers (but not a Network Load Balancer), or Amazon Rest API Gateway for your APIs, also AppSync GraphQL API, Cognito user pool, App Runnr service, Verified Access instance and Amplify.
+- It is easy to deploy and protect applications deployed on either Amazon CloudFront as part of your CDN solution, the Application Load Balancer that fronts all your origin servers (but not a Network Load Balancer), or Amazon Rest API Gateway for your APIs, also AppSync GraphQL API, Cognito user pool, App Runner service, Verified Access instance and Amplify.
 
 ## Storage
 
