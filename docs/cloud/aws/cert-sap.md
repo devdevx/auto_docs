@@ -3602,11 +3602,15 @@ TODO
 
 ### Amazon Lightsail
 
-TODO
+- VPS provider and is a useful way to get started with AWS for users who need a solution to build and host their applications on AWS Cloud.
+- Provides low-cost, pre-configured cloud resources for simple workloads just starting on AWS.
 
 ### AWS Outposts
 
-TODO
+- On-premises cloud storage that includes EBS and S3 services.
+- Offers the same functionality but on-premise.
+- You can create resources like EC2, EBS, ECS, EKS, ElastiCache, EMR, S3, ALB, App Mesh Envoy proxy and RDS.
+- Requires connectivity to an AWS Region. A service link is a network route that enables communication between your Outpost and its associated AWS Region. Each Outpost is an extension of an Availability Zone and its associated Region.
 
 ### AWS Wavelength
 
@@ -3620,6 +3624,7 @@ TODO
 
 ### Amazon Elastic Container Service (Amazon ECS)
 
+- ECS task execution role is for the ECS agent (pull images from ECS, using the awslogs, etc) and the ECS task role is for the task itself (services that the code needs, like S3 for example). 
 - If Amazon ECS Spot Instance draining is enabled on the instance, ECS receives the Spot Instance interruption notice and places the instance in DRAINING status. When a container instance is set to DRAINING, Amazon ECS prevents new tasks from being scheduled for placement on the container instance. Service tasks on the draining container instance that are in the PENDING state are stopped immediately. If there are container instances in the cluster that are available, replacement service tasks are started on them. Spot Instance draining is disabled by default and must be manually enabled by adding the line `ECS_ENABLE_SPOT_INSTANCE_DRAINING=true` on your `/etc/ecs/ecs.config file`.
 - Amazon ECS enables you to inject sensitive data into your containers by storing your sensitive data in either AWS Secrets Manager secrets or AWS Systems Manager Parameter Store parameters and then referencing them in your container definition. This feature is supported by tasks using both the EC2 and Fargate launch types.
 - You can configure various Docker networking modes that will be used by containers in your ECS task. The valid values are `none`, `bridge`, `awsvpc`, and `host`. The default Docker network mode is `bridge`.
@@ -3637,14 +3642,16 @@ TODO
 - A solution to use when needs Kubernetes comatibility.
 - Main solution to use if the requiremens mention multi-cloud configuration that runs additional clusters on other cloud service providers to further improve the site’s performance.
 
-
 ### Amazon EKS Anywhere
 
-TODO
+- Amazon EKS Anywhere is built on the Kubernetes sub-project Cluster API (CAPI) and supports a range of infrastructure including VMware vSphere, bare metal, Nutanix, Apache CloudStack, and AWS Snow. Amazon EKS Anywhere can be run in air-gapped environments and offers optional integrations with regional AWS services for observability and identity management. 
+- For customers operating Kubernetes clusters on-premises.
+- EKS Connector is a software agent that runs on a Kubernetes cluster and enables the cluster to register with the Amazon EKS console.
+- Amazon EKS Anywhere is not supported on AWS Outposts. If you plan to run Kubernetes on AWS Outposts, we strongly recommend using Amazon EKS on AWS Outposts.
 
 ### Amazon EKS Distro 
 
-TODO
+- Amazon EKS Distro is a Kubernetes distribution of the same open source components and dependencies deployed by Amazon EKS. Amazon EKS Distro includes binaries and containers of open source Kubernetes, etcd, networking, and storage plugins, all tested for compatibility. Amazon EKS Distro provides extended support for Kubernetes versions after community support expires. You can securely access Amazon EKS Distro releases from GitHub or within AWS via Amazon S3 and Amazon ECR for a common source of releases and updates.
 
 ## Database
 
@@ -3653,15 +3660,29 @@ TODO
 - Offers high availability by default.
 - Amazon Aurora Global Database is designed for globally distributed applications, allowing a single Amazon Aurora database to span multiple AWS regions. It replicates your data with no impact on database performance, enables fast local reads with low latency in each region, and provides disaster recovery from region-wide outages. This provides your application with an effective Recovery Point Objective (RPO) of 1 second and a Recovery Time Objective (RTO) of less than 1 minute, providing a strong foundation for a global business continuity plan.
 - You can set auto scaling for replica database but not for master.
-- It is recommended to use Aurora Serverless for lightly-used applications, with peaks of 30 minutes to several hours a few times each day or several times per year, such as human resources, budgeting, or operational reporting application.
+- You can switch your existing database clusters once every 30 days to Aurora I/O-Optimized. You can switch back to Aurora Standard at any time.
+- Encrypting an existing unencrypted Aurora instance is not supported. To use Amazon Aurora encryption for an existing unencrypted database, create a new DB Instance with encryption enabled and migrate your data into it.
 
 ### Amazon Aurora Serverless
 
-TODO
+- It is recommended to use Aurora Serverless for lightly-used applications, with peaks of 30 minutes to several hours a few times each day or several times per year, such as human resources, budgeting, or operational reporting application.
+- In Aurora Serverless, database capacity is measured in Aurora Capacity Units (ACUs). You pay a flat rate per second of ACU usage.
+- 1 ACU has approximately 2 GiB of memory with corresponding CPU and networking.
+
+### Amazon Aurora PostgreSQL Limitless Database (Horizontal Scaling)
+
+- For applications that need to scale horizontally and require more write throughput or data storage capacity than a single Aurora database instance supports.
+- Supports three types of tables:
+  - Sharded tables: These tables are distributed across multiple shards. Data is split among the shards based on the values of designated columns in the table, called shard keys. They are useful for scaling the largest, most I/O-intensive tables in your application.
+  - Reference tables: These tables copy data in full on every shard so that join queries can work faster by removing unnecessary data movement. They are commonly used for infrequently modified reference data, such as product catalogs and zip codes.
+  - Standard tables: These tables are like regular Aurora PostgreSQL tables. Standard tables are all placed together on a single shard so join queries can work faster by removing unnecessary data movement. You can create sharded and reference tables from standard tables.
 
 ### Amazon DocumentDB (with MongoDB compatibility)
 
-TODO
+- Amazon DocumentDB interacts with the Apache 2.0 open source MongoDB 3.6, 4.0, and 5.0 APIs.
+- You can switch your existing database clusters once every 30 days to Amazon DocumentDB I/O-Optimized. You can switch back to Amazon DocumentDB standard storage configurations at any time.
+- Amazon DocumentDB Elastic Clusters enables you to elastically scale your document database to handle millions of writes and reads, with petabytes of storage capacity.
+- Choosing an optimal shard key for Elastic Clusters is no different than other databases. A great shard key has two characteristics - high frequency and high cardinality. For example, if your application stores user_orders in DocumentDB, then generally you have to retrieve the data by the user.
 
 ### Amazon DynamoDB
 
@@ -3672,7 +3693,11 @@ TODO
 
 ### Amazon ElastiCache
 
-TODO
+- ElastiCache offers fully managed Valkey, Memcached, and Redis OSS for your most demanding applications that require submillisecond response times.
+- ElastiCache Serverless continuously monitors your cache’s memory, compute, and network utilization to instantly scale.
+- Global Datastore is a feature of ElastiCache that provides fully managed, fast, reliable and security-focused cross-Region replication. With Global Datastore, you can write to your cache in one Region and have the data available for read in up to two other cross-Region replica clusters, thereby enabling low-latency reads and disaster recovery across Regions.
+- Use Memcached for simple data types and multi-thread.
+- Redis and Valkey are Multi-AZ and support pub/sub, sorted sets and geospatial indexing.
 
 ### Amazon Keyspaces (for Apache Cassandra)
 
@@ -3680,7 +3705,8 @@ TODO
 
 ### Amazon Neptune
 
-TODO
+- Graph database.
+- Supports Gremlin (Apache TinkerPop), openCypher and RDF/SPARQL.
 
 ### Amazon Relational Database Service (Amazon RDS)
 
@@ -3719,7 +3745,7 @@ TODO
 
 ### Amazon CodeGuru
 
-TODO
+- CodeGuru Security is a machine learning (ML) and program analysis-based tool that finds security vulnerabilities in your application code. CodeGuru Security also scans for hardcoded credentials. CodeGuru Profiler optimizes performance for applications running in production and identifies the most expensive lines of code, reducing operational costs significantly.
 
 ### AWS CodePipeline
 
@@ -3727,7 +3753,7 @@ TODO
 
 ### AWS X-Ray
 
-TODO
+- With X-Ray, you can understand how your application and its underlying services are performing to identify and troubleshoot the root cause of performance issues and errors. X-Ray provides an end-to-end view of requests as they travel through your application, and shows a map of your application’s underlying components. You can use X-Ray to analyze both applications in development and in production, from simple three-tier applications to complex microservices applications consisting of thousands of services.
 
 ## End User Computing
 
@@ -3744,7 +3770,9 @@ TODO
 
 ### AWS Amplify
 
-TODO
+- AWS Amplify consists of a set of tools (open source framework, visual development environment, console) and services (web app and static website hosting) to accelerate the development of mobile and web applications on AWS.
+- Amplify's open source framework includes an opinionated set of libraries, UI components, and a command line interface (CLI) to build an app backend and integrate it with your iOS, Android, Web, and React Native apps. The framework leverages a core set of AWS Cloud Services to offer capabilities including offline data, authentication, analytics, push notifications, and bots at high scale.
+- AWS Amplify web hosting is priced for two features – build & deploy, and web hosting.
 
 ### Amazon API Gateway
 
@@ -3764,7 +3792,7 @@ TODO
 
 ### Amazon Pinpoint
 
-TODO
+- Amazon Pinpoint is a versatile AWS service designed for engaging with customers through various messaging channels. It allows you to send push notifications, emails, SMS text messages, and voice messages. Beyond basic messaging, Pinpoint helps build and execute targeted marketing campaigns, segment audiences, and analyze campaign performance across different channels.
 
 ## Internet of Things (IoT)
 
@@ -3783,11 +3811,11 @@ TODO
 
 ### AWS IoT Events
 
-TODO
+- AWS IoT Events is a new IoT service that helps companies continuously monitor their equipment and fleets of devices for failure or changes in operation and trigger alerts to respond when events occur.
 
 ### AWS IoT Greengrass
 
-TODO
+- AWS IoT Greengrass is an Internet of Things (IoT) open source edge runtime and cloud service that helps you build, deploy, and manage device software. Customers use AWS IoT Greengrass for their IoT applications on millions of devices in homes, factories, vehicles, and businesses. You can program your devices to act locally on the data they generate, execute predictions based on machine learning models, filter and aggregate device data, and only transmit necessary information to the cloud.
 
 ### AWS IoT SiteWise
 
@@ -3795,25 +3823,27 @@ TODO
 
 ### AWS IoT Things Graph
 
-TODO
+- You can represent your business logic in a flow composed of devices and services.
 
 ### AWS IoT 1-Click
 
-TODO
+- Simple devices that are ready to execute a Lambda function when activated.
 
 ## Machine Learning
 
 ### Amazon Comprehend
 
-TODO
+- You can use Amazon Comprehend to identify the language of the text, extract key phrases, places, people, brands, or events, understand sentiment about products or services, and identify the main topics from a library of documents.
 
 ### Amazon Fraud Detector
 
-TODO
+- To cover use cases like suspicious payments, new account frauds, trial and loyalty program abuse and account takeover.
 
 ### Amazon Kendra
 
-TODO
+- Amazon Kendra is a highly accurate and easy-to-use enterprise search service that’s powered by machine learning (ML). It allows developers to add search capabilities to their applications so their end users can discover information stored within the vast amount of content spread across their company.
+- Multiple data origins likeS3, Microsoft SharePoint, Salesforce, ServiceNow, RDS databases, or Microsoft OneDrive.
+- Amazon Kendra does not support questions where the answers require cross-document passage aggregation or calculations.
 
 ### Amazon Lex
 
@@ -3822,7 +3852,7 @@ TODO
 
 ### Amazon Personalize
 
-TODO
+- Amazon Personalize is a fully managed machine learning (ML) service that uses your data to generate product and content recommendations for your users. You provide data about your end-users (e.g., age, location, device type), items in your catalog (e.g., genre, price) and interactions between users and items (e.g., clicks, purchases). Personalize uses this data to train custom, private models that generate recommendations which can be surfaced via an API.
 
 ### Amazon Polly
 
@@ -3834,11 +3864,11 @@ TODO
 
 ### Amazon SageMaker AI (previously known as Amazon SageMaker)
 
-TODO
+- Used to train and refine your ML models.
 
 ### Amazon Textract
 
-Used to extract text from documents.
+- Used to extract text from documents.
 
 ### Amazon Transcribe
 
@@ -3938,7 +3968,7 @@ TODO
 
 ### AWS Proton
 
-TODO
+1- AWS Proton is a deployment workflow tool for modern applications. It can be used to manage Infrastructure as Code (IaC) templates build using tools like CloudFormation or Terraform.
 
 ### AWS Service Catalog
 
@@ -3948,8 +3978,8 @@ TODO
 
 ### Service Quotas
 
-TODO
-TODO dynamodb
+- A DynamoDB RCU is up to 4 KB for a 1 strong or 2 eventually consisten reads per second.
+- A DynamoDB WCU is up to 1 KB for writes per second.
 - Lambda can run up to 15 minutes.
 - In Kinesis Data Streams the max amount of data per shard is 1 MB/s.
 - Max standard SQS delay is 15 minutes.
@@ -3957,6 +3987,10 @@ TODO dynamodb
 - Max SQS retention is 14 days.
 - Api gateway max payload size is 10 Mb.
 - Api gateway max request timeout is 29s.
+- Aurora minimum storage is 10 GiB, automatically grows by 10 GiB increments up to 128 TiB.
+- Max number of Aurora replicas are 15.
+- DocumentDB minimum storage is 10 GiB, automatically grows by 10 GiB increments up to 128 TiB.
+- Max number of DocumentDB replicas are 15.
 
 ### AWS Systems Manager
 
