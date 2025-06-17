@@ -3561,7 +3561,8 @@ TODO
 
 ### AWS Auto Scaling
 
-TODO
+- AWS Auto Scaling, offers a centralized place to manage configurations for a wider range of scalable resources, like EC2, ECS, Amazon DynamoDB tables or Amazon Relational Database Aurora read replicas.
+- AWS Auto Scaling introduced the concept of scaling plans, which use scaling strategies in order to manage resource utilization. Application owners can select a target utilization, such as CPU utilization at 50%, and AWS Auto Scaling will add or remove capacity to achieve that target.
 
 ### AWS Batch
 
@@ -3582,11 +3583,25 @@ TODO
 
 ### Amazon Elastic Compute Cloud (Amazon EC2)
 
-TODO
+- Setting up a diversified allocation strategy for your Spot Fleet is a best practice to increase the chances that a spot request can be fulfilled by EC2 capacity in the event of an outage in one of the Availability Zones. You can include each AZ available to you in the launch specification. And instead of using the same subnet each time, use three unique subnets (each mapping to a different AZ).
+- Elastic Fabric Adapter (EFA) is a network interface for Amazon EC2 instances that enables customers to run applications requiring high levels of inter-node communications at scale on AWS. 
+- You can use placement groups to influence the placement of a group of interdependent instances to meet the needs of your workload.
+  - Cluster – packs instances close together inside an Availability Zone. This strategy enables workloads to achieve the low-latency network performance necessary for tightly-coupled node-to-node communication that is typical of HPC applications.
+  - Partition – spreads your instances across logical partitions such that groups of instances in one partition do not share the underlying hardware with groups of instances in different partitions. This strategy is typically used by large distributed and replicated workloads, such as Hadoop, Cassandra, and Kafka.
+  - Spread – strictly places a small group of instances across distinct underlying hardware to reduce correlated failures.
+- A Spot Fleet is a set of Spot Instances and optionally On-Demand Instances that are launched based on criteria that you specify. The Spot Fleet selects the Spot capacity pools that meet your needs and launches Spot Instances to meet the target capacity for the fleet.
+- EC2Rescue can help you diagnose and troubleshoot problems on Amazon EC2 Linux and Windows Server instances. You can run the tool manually, or you can run the tool automatically by using Systems Manager Automation and the AWSSupport-ExecuteEC2Rescue document. The AWSSupport-ExecuteEC2Rescue document is designed to perform a combination of Systems Manager actions, AWS CloudFormation actions, and Lambda functions that automate the steps normally required to use EC2Rescue.
 
 ### Amazon EC2 Auto Scaling
 
-TODO
+- EC2 Auto Scaling provides several methods:
+  - Manual Scaling: You can manually adjust the desired capacity of your Auto -Scaling group. This method is useful when you need to make immediate changes to your group's capacity.
+  - Scheduled Scaling: This method allows you to set up scheduled actions to scale your group at specific times. It's ideal for predictable load changes that occur at fixed times.
+  - Dynamic Scaling: This approach automatically adjusts capacity in response to changing demand. There are three types of dynamic scaling policies: a. Target Tracking Scaling: Adjusts capacity to maintain a specific metric at a target value. b. Step Scaling: Uses step adjustments to scale based on the size of the alarm breach. c. Simple Scaling: Adjusts capacity based on a single scaling adjustment.
+  - Predictive Scaling: This method uses machine learning to forecast future traffic and automatically provisions the right number of EC2 instances in advance. It's useful for handling cyclical traffic patterns.
+- When Amazon EC2 Auto Scaling responds to a scale out event, it launches one or more instances. These instances start in the `Pending` state. If you added an `autoscaling:EC2_INSTANCE_LAUNCHING` lifecycle hook to your Auto Scaling group, the instances move from the `Pending` state to the `Pending:Wait` state. After you complete the lifecycle action, the instances enter the `Pending:Proceed` state. When the instances are fully configured, they are attached to the Auto Scaling group and they enter the InService state.
+- When Amazon EC2 Auto Scaling responds to a scale in event, it terminates one or more instances. These instances are detached from the Auto Scaling group and enter the `Terminating` state. If you added an `autoscaling:EC2_INSTANCE_TERMINATING` lifecycle hook to your Auto Scaling group, the instances move from the `Terminating` state to the `Terminating:Wait` state. After you complete the lifecycle action, the instances enter the `Terminating:Proceed` state. When the instances are fully terminated, they enter the `Terminated` state.
+- If you want to keep the last logs of an EC2 from a terminated instance in Auto Scaling Group, you can dd a lifecycle hook to the Auto Scaling Group for the `autoscaling:EC2_INSTANCE_TERMINATING` event and set the default result to `CONTINUE`. Implement a script using an AWS Systems Manager Automation document to backup log data to an Amazon S3 bucket. Create an Amazon EventBridge rule that invokes a Lambda function when an instance is in the `Terminating:Wait` state. Configure the function to call the `SendCommand` API to run the automation document.
 
 ### AWS Fargate
 
@@ -3721,6 +3736,7 @@ TODO
 - WS KMS keys are specific to a region. If you want to enable cross-region snapshot copy for an AWS KMS-encrypted cluster, you must configure a `snapshot copy grant` for a master key in the destination region so that Amazon Redshift can perform encryption operations in the destination region.
 - Used for OLAP scenarios.
 - Redshift is configured with automatic snapshot by default but you need to enable cross-region snapshot if you require it.
+- Amazon Redshift only has cross-region backup feature (using snapshots), not Cross-Region Replication.
 - Redshif Spectrum can be used to analyze data stored in S3.
 - Apache Parquet is an open-source file format that is optimized for use with big data processing frameworks. It stores data in a columnar format, which means it organizes the data by columns rather than by rows. This can lead to significant performance improvements when executing analytical queries.
 
@@ -3907,7 +3923,7 @@ TODO
 
 ### AWS Command Line Interface (AWS CLI)
 
-TODO
+- CLI.
 
 ### AWS Compute Optimizer
 
@@ -3919,6 +3935,7 @@ TODO
 ### AWS Config
 
 - AWS Config provides AWS managed rules, which are predefined, customizable rules that AWS Config uses to evaluate whether your AWS resources comply with common best practices.
+- You can use AWS Config data aggegator (resource type that collects AWS Config data from multiple source accounts and regions) to montior the compliance of your AWS organizations, IAM, etc, and EventBridge and SNS to send alerts when changes are detected.
 
 ### AWS Control Tower
 
@@ -3935,23 +3952,26 @@ TODO
 
 ### AWS Health Dashboard
 
-TODO
+- To view account-specific health information or receive AWS Health event updates using Amazon EventBridge.
 
 ### AWS License Manager
 
-TODO
+- AWS License Manager is used to create customized licensing rules that emulate the terms of their licensing agreements and then enforce these rules.
+- It is not used for storing software licenses.
 
 ### Amazon Managed Grafana 
 
-TODO
+- Build, package, and deploy workspaces that are provisioned, set up, scaled, and maintained for you.
+- Migrate from your self-managed Grafana environment, so there’s no need to start from scratch.
 
 ### Amazon Managed Service for Prometheus
 
-TODO
+- Amazon Managed Service for Prometheus is a serverless monitoring service for metrics compatible with open source Prometheus, making it easier for you to securely monitor and alert on container environments.
+- The Amazon Managed Service for Prometheus collector is an agentless scraper that enables customers to automatically discover and monitor their Amazon EKS applications and infrastructure by removing the undifferentiated heavy lifting of managing Prometheus agents to collect Prometheus metrics.
 
 ### AWS Management Console
 
-TODO
+- Web.
 
 ### AWS Organizations
 
@@ -3964,7 +3984,6 @@ TODO
 - You can use trusted access to enable an AWS service that you specify, called the trusted service, to perform tasks in your organization and its accounts on your behalf. This involves granting permissions to the trusted service but does not otherwise affect the permissions for IAM users or roles. When you enable access, the trusted service can create an IAM role called a service-linked role in every account in your organization. That role has a permissions policy that allows the trusted service to do the tasks that are described in that service's documentation. This enables you to specify settings and configuration details that you would like the trusted service to maintain in your organization's accounts on your behalf.
 - For billing purposes, the consolidated billing feature of AWS Organizations treats all the accounts in the organization as one account. This means that all accounts in the organization can receive the hourly cost-benefit of Reserved Instances (RI) that are purchased by any other account. In the payer account, you can turn off Reserved Instance discount sharing on the Preferences page on the Billing and Cost Management console for the desired accounts.
 - After you create an Organization and verify that you own the email address associated with the master account, you can invite existing AWS accounts to join your organization. When you invite an account, AWS Organizations sends an invitation to the account owner, who decides whether to accept or decline the invitation. You can use the AWS Organizations console to initiate and manage invitations that you send to other accounts. You can send an invitation to another account only from the master account of your organization. When an invited account joins your organization, you do not automatically have full administrator control over the account, unlike created accounts. If you want the master account to have full administrative control over an invited member account, you must create the  `OrganizationAccountAccessRole` IAM role in the member account and grant permission to the master account to assume the role.
-
 
 ### AWS Proton
 
@@ -4026,12 +4045,26 @@ TODO
 
 ## Migration and Transfer
 
+### Migration options
+
+- Rehosting — Otherwise known as “lift-and-shift”. Many early cloud projects gravitate toward net new development using cloud-native capabilities, but in a large legacy migration scenario where the organization is looking to scale its migration quickly to meet a business case, applications can be rehosted.
+- Replatforming — Sometimes, this is called “lift-tinker-and-shift.” Here you might make a few cloud (or other) optimizations in order to achieve some tangible benefit, but you aren’t otherwise changing the core architecture of the application. You may be looking to reduce the amount of time you spend managing database instances by migrating to a database-as-a-service platform like Amazon Relational Database Service (Amazon RDS) or migrating your application to a fully managed platform like Amazon Elastic Beanstalk.
+- Repurchasing — Moving to a different product. Repurchasing is a move to a SaaS platform. Moving a CRM to Salesforce.com, an HR system to Workday, a CMS to Drupal, etc.
+- Refactoring / Re-architecting — Re-imagining how the application is architected and developed, typically using cloud-native features. This is typically driven by a strong business need to add features, scale, or performance that would otherwise be difficult to achieve in the application’s existing environment. For example, migrating from a monolithic architecture to a service-oriented (or server-less) architecture to boost agility.
+- Retire — This strategy basically means: "Get rid of." Once you’ve discovered everything in your environment, you might ask each functional area who owns each application and see that some of the applications are no longer used. You can save costs by retiring these applications.
+- Retain — Usually this means “revisit” or do nothing (for now). Maybe you aren’t ready to prioritize an application that was recently upgraded or are otherwise not inclined to migrate some applications. You can retain these applications and revisit your migration strategy.
+
+### AWS Cloud Adoption Readiness Tool (CART)
+
+- Helps organizations of all sizes develop efficient and effective plans for cloud adoption and enterprise cloud migrations. This 16-question online survey and assessment report detail your cloud migration readiness across six perspectives, including business, people, process, platform, operations, and security. Once you complete a CART survey, you can provide your contact details to download a customized cloud migration assessment that charts your readiness and what you can do to improve it. This tool is designed to help organizations assess their progress with cloud adoption and identify gaps in organizational skills and processes.
+
 ### AWS Application Discovery Service
 
 - The AWS Application Discovery Service simply helps you to plan migration projects by gathering information about your on-premises data centers, but is not a migration service. All discovered data are stored in your AWS Migration Hub.
 - Application Discovery Service offers two ways of performing discovery and collecting data about your on-premises servers:
   - Agentless discovery can be performed by deploying the AWS Agentless Discovery Connector (OVA file) through your VMware Center.
   - Agent-based discovery can be performed by deploying the AWS Application Discovery Agent on each of your VMs and physical servers.
+- The collected data is retained in encrypted format in an AWS Application Discovery Service data store. You can export this data as a CSV file and use it to estimate the Total Cost of Ownership (TCO) of running on AWS and to plan your migration to AWS. In addition, this data is also available in AWS Migration Hub, where you can migrate the discovered servers and track their progress as they get migrated to AWS.
 
 ### AWS Application Migration Service
 
@@ -4134,6 +4167,7 @@ TODO
 - Private hosted zones contain records that specify how you want to route traffic in an Amazon VPC. Your VPC has attributes that determine whether your EC2 instance receives public DNS hostnames (`enableDnsHostnames`), and whether DNS resolution through the Amazon DNS server is supported (`enableDnsSupport`).
 - You can use Route 53 health checks to configure active-active and active-passive failover configurations. You configure active-active failover using any routing policy (or combination of routing policies) other than failover, and you configure active-passive failover using the failover routing policy.
 - In Route 53, an alias record is a Route 53 extension to DNS. It's similar to a CNAME record, but you can create an alias record both for the root domain, such as example.com, and for subdomains, such as www.example.com. (You can create CNAME records only for subdomains). For EC2 instances, always use a Type A Record without an Alias. For ELB, Cloudfront, and S3, always use a Type A Record with an Alias, and finally, for RDS, always use the CNAME Record with no Alias.
+- Use an A record to point to an IPv4, AAAA to point to an IPv6 and an Alias record to point to another domain name.
 - Route 53 policies:
   - Simple routing policy – Use for a single resource that performs a given function for your domain, for example, a web server that serves content for the example.com website.
   - Failover routing policy – Use when you want to configure active-passive failover.
@@ -4173,6 +4207,10 @@ TODO
 ### AWS Certificate Manager (ACM)
 
 - Used to store certificates.
+- With AWS Certificate Manager, you can generate public or private SSL/TLS certificates that you can use to secure your site.
+- Public SSL/TLS certificates provisioned through AWS Certificate Manager are free. You pay only for the AWS resources that you create to run your application.
+- Public certificates generated from ACM can be used on Amazon CloudFront, Elastic Load Balancing, or Amazon API Gateway but not directly on EC2 instances, unlike private certificates.
+- For private certificates, the ACM Private Certificate Authority (CA) is priced along two dimensions: (1) You pay a monthly fee for the operation of each private CA until you delete it and (2) you pay for the private certificates you issue each month.
 
 ### AWS CloudHSM
 
@@ -4209,7 +4247,9 @@ TODO
 ### AWS IAM Identity Center
 
 - AWS IAM Identity Center (successor to AWS SSO) expands the capabilities of AWS Identity and Access Management (IAM) to provide a central place that brings together administration of users and their access to AWS accounts and cloud applications. Has integration with Microsoft AD through the AWS Directory Service.
+- AWS IAM Identity Center supports only SAML 2.0–based applications
 - IAM Identity Center supports automatic provisioning (synchronization) of user and group information from your identity provider (IdP) into IAM Identity Center using the System for Cross-domain Identity Management (SCIM) v2.0 protocol. When you configure SCIM synchronization, you create a mapping of your identity provider (IdP) user attributes to the named attributes in IAM Identity Center. This causes the expected attributes to match between IAM Identity Center and your IdP.
+- AWS IAM Identity  Center supports single sign-on to business applications through web browsers only.
 
 ### AWS Identity and Access Management (IAM)
 
@@ -4394,39 +4434,6 @@ TODO
 
 ---
 
-## Migration options
-
-- Rehosting — Otherwise known as “lift-and-shift”. Many early cloud projects gravitate toward net new development using cloud-native capabilities, but in a large legacy migration scenario where the organization is looking to scale its migration quickly to meet a business case, applications can be rehosted.
-- Replatforming — Sometimes, this is called “lift-tinker-and-shift.” Here you might make a few cloud (or other) optimizations in order to achieve some tangible benefit, but you aren’t otherwise changing the core architecture of the application. You may be looking to reduce the amount of time you spend managing database instances by migrating to a database-as-a-service platform like Amazon Relational Database Service (Amazon RDS) or migrating your application to a fully managed platform like Amazon Elastic Beanstalk.
-- Repurchasing — Moving to a different product. Repurchasing is a move to a SaaS platform. Moving a CRM to Salesforce.com, an HR system to Workday, a CMS to Drupal, etc.
-- Refactoring / Re-architecting — Re-imagining how the application is architected and developed, typically using cloud-native features. This is typically driven by a strong business need to add features, scale, or performance that would otherwise be difficult to achieve in the application’s existing environment. For example, migrating from a monolithic architecture to a service-oriented (or server-less) architecture to boost agility.
-- Retire — This strategy basically means: "Get rid of." Once you’ve discovered everything in your environment, you might ask each functional area who owns each application and see that some of the applications are no longer used. You can save costs by retiring these applications.
-- Retain — Usually this means “revisit” or do nothing (for now). Maybe you aren’t ready to prioritize an application that was recently upgraded or are otherwise not inclined to migrate some applications. You can retain these applications and revisit your migration strategy.
-
-
-## AWS Cloud Adoption Readiness Tool (CART)
-
-- Helps organizations of all sizes develop efficient and effective plans for cloud adoption and enterprise cloud migrations. This 16-question online survey and assessment report detail your cloud migration readiness across six perspectives, including business, people, process, platform, operations, and security. Once you complete a CART survey, you can provide your contact details to download a customized cloud migration assessment that charts your readiness and what you can do to improve it. This tool is designed to help organizations assess their progress with cloud adoption and identify gaps in organizational skills and processes.
-
-## EC2
-
-- Setting up a diversified allocation strategy for your Spot Fleet is a best practice to increase the chances that a spot request can be fulfilled by EC2 capacity in the event of an outage in one of the Availability Zones. You can include each AZ available to you in the launch specification. And instead of using the same subnet each time, use three unique subnets (each mapping to a different AZ).
-- Elastic Fabric Adapter (EFA) is a network interface for Amazon EC2 instances that enables customers to run applications requiring high levels of inter-node communications at scale on AWS. 
-- You can use placement groups to influence the placement of a group of interdependent instances to meet the needs of your workload.
-  - Cluster – packs instances close together inside an Availability Zone. This strategy enables workloads to achieve the low-latency network performance necessary for tightly-coupled node-to-node communication that is typical of HPC applications.
-  - Partition – spreads your instances across logical partitions such that groups of instances in one partition do not share the underlying hardware with groups of instances in different partitions. This strategy is typically used by large distributed and replicated workloads, such as Hadoop, Cassandra, and Kafka.
-  - Spread – strictly places a small group of instances across distinct underlying hardware to reduce correlated failures.
-- A Spot Fleet is a set of Spot Instances and optionally On-Demand Instances that are launched based on criteria that you specify. The Spot Fleet selects the Spot capacity pools that meet your needs and launches Spot Instances to meet the target capacity for the fleet.
-- EC2 Auto Scaling provides several methods:
-  - Manual Scaling: You can manually adjust the desired capacity of your Auto -Scaling group. This method is useful when you need to make immediate changes to your group's capacity.
-  - Scheduled Scaling: This method allows you to set up scheduled actions to scale your group at specific times. It's ideal for predictable load changes that occur at fixed times.
-  - Dynamic Scaling: This approach automatically adjusts capacity in response to changing demand. There are three types of dynamic scaling policies: a. Target Tracking Scaling: Adjusts capacity to maintain a specific metric at a target value. b. Step Scaling: Uses step adjustments to scale based on the size of the alarm breach. c. Simple Scaling: Adjusts capacity based on a single scaling adjustment.
-  - Predictive Scaling: This method uses machine learning to forecast future traffic and automatically provisions the right number of EC2 instances in advance. It's useful for handling cyclical traffic patterns.
-- EC2Rescue can help you diagnose and troubleshoot problems on Amazon EC2 Linux and Windows Server instances. You can run the tool manually, or you can run the tool automatically by using Systems Manager Automation and the AWSSupport-ExecuteEC2Rescue document. The AWSSupport-ExecuteEC2Rescue document is designed to perform a combination of Systems Manager actions, AWS CloudFormation actions, and Lambda functions that automate the steps normally required to use EC2Rescue.
-- When Amazon EC2 Auto Scaling responds to a scale out event, it launches one or more instances. These instances start in the `Pending` state. If you added an `autoscaling:EC2_INSTANCE_LAUNCHING` lifecycle hook to your Auto Scaling group, the instances move from the `Pending` state to the `Pending:Wait` state. After you complete the lifecycle action, the instances enter the `Pending:Proceed` state. When the instances are fully configured, they are attached to the Auto Scaling group and they enter the InService state.
-- When Amazon EC2 Auto Scaling responds to a scale in event, it terminates one or more instances. These instances are detached from the Auto Scaling group and enter the `Terminating` state. If you added an `autoscaling:EC2_INSTANCE_TERMINATING` lifecycle hook to your Auto Scaling group, the instances move from the `Terminating` state to the `Terminating:Wait` state. After you complete the lifecycle action, the instances enter the `Terminating:Proceed` state. When the instances are fully terminated, they enter the `Terminated` state.
-- If you want to keep the last logs of an EC2 from a terminated instance in Auto Scaling Group, you can dd a lifecycle hook to the Auto Scaling Group for the `autoscaling:EC2_INSTANCE_TERMINATING` event and set the default result to `CONTINUE`. Implement a script using an AWS Systems Manager Automation document to backup log data to an Amazon S3 bucket. Create an Amazon EventBridge rule that invokes a Lambda function when an instance is in the `Terminating:Wait` state. Configure the function to call the `SendCommand` API to run the automation document.
-
 ## OpsCenter
 
 - OpsCenter is oriented towards incident management.
@@ -4434,13 +4441,6 @@ TODO
 ## Data Pipeline
 
 - AWS Data Pipeline is a web service that you can use to automate the movement and transformation of data. With AWS Data Pipeline, you can define data-driven workflows, so that tasks can be dependent on the successful completion of previous tasks. You define the parameters of your data transformations and AWS Data Pipeline enforces the logic that you've set up.
-
-## AWS Certificate Manager
-
-- With AWS Certificate Manager, you can generate public or private SSL/TLS certificates that you can use to secure your site.
-- Public SSL/TLS certificates provisioned through AWS Certificate Manager are free. You pay only for the AWS resources that you create to run your application.
-- Public certificates generated from ACM can be used on Amazon CloudFront, Elastic Load Balancing, or Amazon API Gateway but not directly on EC2 instances, unlike private certificates.
-- For private certificates, the ACM Private Certificate Authority (CA) is priced along two dimensions: (1) You pay a monthly fee for the operation of each private CA until you delete it and (2) you pay for the private certificates you issue each month.
 
 ## Design Patterns
 
@@ -4474,10 +4474,6 @@ TODO
 ## Permissions
 
 - Cross-account access with a resource-based policy has some advantages over a role. With a resource that is accessed through a resource-based policy, the user still works in the trusted account and does not have to give up his or her user permissions in place of the role permissions. In other words, the user continues to have access to resources in the trusted account at the same time as he or she has access to the resource in the trusting account. This is useful for tasks such as copying information to or from the shared resource in the other account.
-
-## Monitoring
-
-- You can use AWS Config data aggegator (resource type that collects AWS Config data from multiple source accounts and regions) to montior the compliance of your AWS organizations, IAM, etc, and EventBridge and SNS to send alerts when changes are detected.
 
 ## Amazon WorkDocs
 
