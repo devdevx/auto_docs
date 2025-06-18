@@ -3936,6 +3936,7 @@ TODO
 
 - AWS Config provides AWS managed rules, which are predefined, customizable rules that AWS Config uses to evaluate whether your AWS resources comply with common best practices.
 - You can use AWS Config data aggegator (resource type that collects AWS Config data from multiple source accounts and regions) to montior the compliance of your AWS organizations, IAM, etc, and EventBridge and SNS to send alerts when changes are detected.
+- With Config, you can review changes in configurations and relationships between AWS resources, dive into detailed resource configuration histories, and determine your overall compliance against the configurations specified in your internal guidelines.
 
 ### AWS Control Tower
 
@@ -4117,11 +4118,13 @@ TODO
 
 - In CloudFront you can configure your origin to add a `Cache-Control max-age` directive to your objects, and specify the longest practical value for `max-age` to increase your cache hit ratio.
 - CloudFront supports Server Name Indication (SNI) for custom SSL certificates, along with the ability to take incoming HTTP requests and redirect them to secure HTTPS requests to ensure that clients are always directed to the secure version of your website.
+- If you configure CloudFront to serve HTTPS requests using SNI, CloudFront associates your alternate domain name with an IP address for each edge location. The IP address to your domain name is determined during the SSL/TLS handshake negotiation and isn’t dedicated to your distribution.
 - To use field-level encryption, you configure your CloudFront distribution to specify the set of fields in POST requests that you want to be encrypted, and the public key to use to encrypt them. You can encrypt up to 10 data fields in a request.
 - Lambda@Edge lets you run Lambda functions to customize the content that CloudFront delivers, executing the functions in AWS locations closer to the viewer.
 - You can use geo restriction - also known as geoblocking - to prevent users in specific geographic locations from accessing content that you're distributing through a CloudFront web distribution.
 - Origin Access Control (OAC) enables CloudFront customers to easily secure their S3 origins by permitting only designated CloudFront distributions to access their S3 buckets. Customers can now enable AWS Signature Version 4 (SigV4) on CloudFront requests to S3 buckets with the ability to set when and if CloudFront should sign requests. Additionally, customers can now use AWS KMS keys SSE-KMS when performing uploads and downloads through CloudFront.
 - You can customize error responses to return a custom error page, it's configured at distribution level.
+- Amazon CloudFront only accepts well-formed connections to prevent many common DDoS attacks like SYN floods and UDP reflection attacks from reaching your origin.
 
 ### AWS Direct Connect
 
@@ -4214,7 +4217,8 @@ TODO
 
 ### AWS CloudHSM
 
-- For keys managed by the customer where AWS can not see anything.
+- AWS CloudHSM is a cloud-based hardware security module (HSM) that enables you to easily generate and use your own encryption keys on the AWS Cloud.
+- You can use AWS CloudHSM to offload SSL/TLS processing for your web servers. Using CloudHSM for this processing reduces the burden on your web server and provides extra security by storing your web server’s private key in CloudHSM. Secure Sockets Layer (SSL) and Transport Layer Security (TLS) are used to confirm the identity of web servers and establish secure HTTPS connections over the Internet.
 
 ### Amazon Cognito
 
