@@ -14,7 +14,6 @@
 - IAM lets you create roles, and doing so allows you to define a set of permissions and then let authenticated users assume them. This feature increases your security posture by granting temporary access to the resources you define.
 - You can use IAM to grant your employees and applications access to the AWS Management Console and to AWS service APIs using your existing identity systems.
 - The access advisor section shows the latest time that a user, group, role or policy was used, this helps to detect unused elements.
-- If you need to interact with AWS from GithubActions, instead of using hardcoded credentials, you can configure an IAM OpenID Connect (OIDC) Identity Provider (IdP) in AWS IAM, associated with GitHub. Create an IAM role with a trust policy for the sts:AssumeRoleWithWebIdentity AWS STS API calls from the GitHub OIDC IdP. Modify the GitHub Actions CI/CD pipeline to use this IAM role for its deployment processes. This uses ` aws-actions/configure-aws-credentials@v1` with `role-to-assume`, `role-session-name` and `aws-region`. You can define a role with the condition to only allow the sub to match the repo name to avoid that other CIs assume the same role.
 
 #### Limits on policy size
 
@@ -93,51 +92,51 @@
 
 #### IAM Condition Keys
 
-- iam:AWSServiceName : control access for a specific service role. Use case: roles need to be attached to only specific services.
-- iam:OrganizationsPolicyId : provides the IAM entity access to specific SCPs. Use case: users are also required to be authenticated via a service control policy.
-- iam:PermissionsBoundary : checks that the specified policy is attached as a permissions boundary on the IAM principal resource. Use case: guardrails need to be configured for a policy attached to an IAM group.
-- iam:PolicyARN : control how users can apply AWS managed and customer managed policies. Use case: users can attach specific customer managed policies to only certain IAM groups and roles.
-- iam:ResourceTag : checks that the tag attached to the identity resource, either a user or role, matches the specified key name and value provided. Use case: permissions should be assigned to only a certain IAM role.
+- `iam:AWSServiceName` : control access for a specific service role. Use case: roles need to be attached to only specific services.
+- `iam:OrganizationsPolicyId : provides the IAM entity access to specific SCPs. Use case: users are also required to be authenticated via a service control policy.
+- `iam:PermissionsBoundary` : checks that the specified policy is attached as a permissions boundary on the IAM principal resource. Use case: guardrails need to be configured for a policy attached to an IAM group.
+- `iam:PolicyARN` : control how users can apply AWS managed and customer managed policies. Use case: users can attach specific customer managed policies to only certain IAM groups and roles.
+- `iam:ResourceTag` : checks that the tag attached to the identity resource, either a user or role, matches the specified key name and value provided. Use case: permissions should be assigned to only a certain IAM role.
 
 ##### Condition keys for passing roles (iam:passRole)
 
-- iam:PassedToService : specifies the service principal of the service to which a role can be passed. Use case: service roles should be created and passed to only specific AWS services.
-- iam:AssociatedResourceArn : specifies the ARN of the resource to which this role will be associated at the destination service. Use case: users can pass a role that is associated with only a certain resource.
+- `iam:PassedToService` : specifies the service principal of the service to which a role can be passed. Use case: service roles should be created and passed to only specific AWS services.
+- `iam:AssociatedResourceArn` : specifies the ARN of the resource to which this role will be associated at the destination service. Use case: users can pass a role that is associated with only a certain resource.
 
 #### Global Condition Key
 
-- aws:CalledVia : List of services that are calling in the chain of execution (ex: User calls CF, CF calls DynamoDB and DynamoDB calls KMS)
-- aws:CalledViaFirst
-- aws:CalledViaLast
-- aws:ViaAWSService : boolean
-- aws:CurrentTime : YYYY-MM-DDThh:mm:ssZ
-- aws:EpochTime : unix timestamp
-- aws:TokenIssueTime
-- aws:MultiFactorAge : age in seconds
-- aws:MultiFactorAuthPresent : boolean
-- aws:SecureTransport : if the request is sent using SSL
-- aws:SourceAccount
-- aws:SourceArn
-- aws:SourceIp : IP range or single value
-- aws:SourceVpc
-- aws:SourceVpce : for vpc endpoint
-- aws:VpcSourceIp : for vpc endpoint with the IP range or single value
-- aws:PrincipalAccount
-- aws:PrincipalArn
-- aws:PrincipalOrgId
-- aws:PrincipalOrgPaths
-- aws:PrincipalType : to restrict access to only certain principal type (Account, User, AssumedRole, AWS service, FederatedUser)
-- aws:PrincipalTag : "aws.PrincipalTag/\<key>" : "\<value>"
-- aws:RequestTag : "aws.RequestTag/\<key>" : "\<value>"
-- aws:ResourceTag : "ec2.ResourceTag/\<key>" : "\<value>"
-- aws:TagsKeys : to define wich tag keys are allowed to be used when tagging a resource
-- aws:Referer : when calling API operations using a web browser
-- aws:RequestedRegion : limit access to regions
-- aws:UserAgent
-- aws:userid : restrict access to specific IAM users or IAM roles
-- aws:username : restrict access to specific IAM users
+- `aws:CalledVia` : List of services that are calling in the chain of execution (ex: User calls CF, CF calls DynamoDB and DynamoDB calls KMS)
+- `aws:CalledViaFirst`
+- `aws:CalledViaLast`
+- `aws:ViaAWSService` : boolean
+- `aws:CurrentTime` : YYYY-MM-DDThh:mm:ssZ
+- `aws:EpochTime` : unix timestamp
+- `aws:TokenIssueTime`
+- `aws:MultiFactorAge` : age in seconds
+- `aws:MultiFactorAuthPresent` : boolean
+- `aws:SecureTransport` : if the request is sent using SSL
+- `aws:SourceAccount`
+- `aws:SourceArn`
+- `aws:SourceIp` : IP range or single value
+- `aws:SourceVpc`
+- `aws:SourceVpce` : for vpc endpoint
+- `aws:VpcSourceIp` : for vpc endpoint with the IP range or single value
+- `aws:PrincipalAccount`
+- `aws:PrincipalArn`
+- `aws:PrincipalOrgId`
+- `aws:PrincipalOrgPaths`
+- `aws:PrincipalType` : to restrict access to only certain principal type (Account, User, AssumedRole, AWS service, FederatedUser)
+- `aws:PrincipalTag` : `aws.PrincipalTag/<key>` : `<value>`
+- `aws:RequestTag` : `aws.RequestTag/<key>` : `<value>`
+- `aws:ResourceTag` : `ec2.ResourceTag/<key>` : `<value>`
+- `aws:TagsKeys` : to define which tag keys are allowed to be used when tagging a resource
+- `aws:Referer` : when calling API operations using a web browser
+- `aws:RequestedRegion` : limit access to regions
+- `aws:UserAgent`
+- `aws:userid` : restrict access to specific IAM users or IAM roles
+- `aws:username` : restrict access to specific IAM users
 
-- If a condition key is missing from a request context, the policy can fail the evaluation. If you use condition keys that are available only in some circumstances, you can use the IfExists versions of the condition operators.
+- If a condition key is missing from a request context, the policy can fail the evaluation. If you use condition keys that are available only in some circumstances, you can use the `IfExists` versions of the condition operators.
 
 #### AWS STS
 
@@ -151,30 +150,30 @@
 
 ##### AssumeRole request optional parameters
 
-- DurationSeconds: if not defined, by default is 1h, you can provide a value between 900s (15m) up to 12h.
+- `DurationSeconds`: if not defined, by default is 1h, you can provide a value between 900s (15m) up to 12h.
 - Policy: this parameter includes IAM policy that you want to use as an inline session policy. The resulting session's permissions are the intersection of the role's identity-based policy and the session policies.
-- PolicyArns.member.N: the ARNs of the IAM managed policies that you want to use as managed session policies. The policies must exist in the same account as the role. You can provide up to 10 managed policy ARNs.
-- Tags.member.N: the session tags that you want to pass with the role. Each session tag consists of a key name and an associated value.
-- SerialNumber and TokenCode: you can include MFA information when you call AssumeRole with these parameters. This is useful for cross-account scenarios to ensure that the user who assumes the role has been authenticated with an AWS MFA device. In that scenario, the trust policy of the role being assumed includes a condition that tests for MFA.
+- `PolicyArns.member.N`: the ARNs of the IAM managed policies that you want to use as managed session policies. The policies must exist in the same account as the role. You can provide up to 10 managed policy ARNs.
+- `Tags.member.N`: the session tags that you want to pass with the role. Each session tag consists of a key name and an associated value.
+- `SerialNumber` and `TokenCode`: you can include MFA information when you call AssumeRole with these parameters. This is useful for cross-account scenarios to ensure that the user who assumes the role has been authenticated with an AWS MFA device. In that scenario, the trust policy of the role being assumed includes a condition that tests for MFA.
 
 ##### AssumeRole response sections
 
-- AssumeRoleUser: contains the ARN and ID of the role.
-- Credentials: contains the access key, secret access key and session token.
-- PackedPolicySize: percentage that indicates the packed size of the session policies and tags combined, the request fails if is greater than 100, which means the policies and tags exceeded the allowed space.
+- `AssumeRoleUser`: contains the ARN and ID of the role.
+- `Credentials`: contains the access key, secret access key and session token.
+- `PackedPolicySize`: percentage that indicates the packed size of the session policies and tags combined, the request fails if is greater than 100, which means the policies and tags exceeded the allowed space.
 
 ##### Role session naming
 
 - AWS Service - EC2: the instance ID.
 - AWS Service - Lambda: function name.
 - AWS Service - Cognito Identity Pool: Cognito identity credentials.
-- SAML-Based: when you use the AssumeRolewithSAML API it uses the value provided by the identity provider.
-- User defined: when assuming an IAM role with APIs such as AssumeRole or AssumeRoleWithWebIdentity, the role session name is a required input parameter.
+- SAML-Based: when you use the `AssumeRolewithSAML` API it uses the value provided by the identity provider.
+- User defined: when assuming an IAM role with APIs such as AssumeRole or `AssumeRoleWithWebIdentity`, the role session name is a required input parameter.
 
 ##### Session Tagging
 
 - Session tags are attributes passed in an IAM role session when you assume a role or federate a user using the AWS CLI or AWS API.
-- To be able to add session tags, you must have the sts:TagSession action allowed in your IAM policy.
+- To be able to add session tags, you must have the `sts:TagSession` action allowed in your IAM policy.
 - Session tags are principal tags that you specify while requesting a session.
 - New session tags override existing assumed role or federated user tags with the same tag key, regardless of case.
 - You cannot pass session tags using the AWS Management Console.
@@ -186,55 +185,55 @@
 
 ##### SAML-Based Federation
 
-- Before your application can call AssumeRoleWithSAML, you must configure your SAML IdP to issue the claims that AWS requires. Additionally, you must use IAM to create a SAML provider entity in your AWS account that represents your identity provider. You must also create an IAM role that specifies this SAML provider in its trust policy.
+- Before your application can call `AssumeRoleWithSAML`, you must configure your SAML IdP to issue the claims that AWS requires. Additionally, you must use IAM to create a SAML provider entity in your AWS account that represents your identity provider. You must also create an IAM role that specifies this SAML provider in its trust policy.
 - User attributes can be passed as session tags using standards-based SAML.
 
 ###### AssumeRoleWithSAML request parameters
 
-- RoleArn
-- PrincipalArn: ARN of the configured SAML provider
-- SamlAssertion: b64 SAML authentication response
-- DurationSeconds (optional): from 15min to 12h, default is 1h. If the SAML SessionNotOnOrAfter attribute is shorter, it has preference over this.
-- Policy (optional): this parameter includes IAM policy that you want to use as an inline session policy. The resulting session's permissions are the intersection of the role's identity-based policy and the session policies.
-- PolicyArns.member.N (optional): the ARNs of the IAM managed policies that you want to use as managed session policies. The policies must exist in the same account as the role. You can provide up to 10 managed policy ARNs.
+- `RoleArn`
+- `PrincipalArn`: ARN of the configured SAML provider
+- `SamlAssertion`: b64 SAML authentication response
+- `DurationSeconds` (optional): from 15min to 12h, default is 1h. If the SAML `SessionNotOnOrAfter` attribute is shorter, it has preference over this.
+- `Policy` (optional): this parameter includes IAM policy that you want to use as an inline session policy. The resulting session's permissions are the intersection of the role's identity-based policy and the session policies.
+- `PolicyArns.member.N` (optional): the ARNs of the IAM managed policies that you want to use as managed session policies. The policies must exist in the same account as the role. You can provide up to 10 managed policy ARNs.
 
 ###### AssumeRoleWithSAML response sections
 
-- Issuer: URL that uniquely identifies your SAML identity provider, SAML assertions sent to the service provider must match this value.
-- AssumeRoleUser: contains the ARN and ID of the role.
-- Credentials: contains the access key, secret access key and session token.
-- Audience: the service provider, is typically a URL.
-- SubjectType: provides information on the format of the name identifier of the Subject field. An identifier intended for a single session only is called a transient identifier.
-- PackedPolicySize: percentage that indicates the packed size of the session policies and tags combined, the request fails if is greater than 100, which means the policies and tags exceeded the allowed space.
-- NameQualifier: hash value based on the concatenation of the issuer response value, aws account id and the name of the saml provider in IAM. The combination of this value and the subject can be used to uniquely identify a federated user.
-- Subject
+- `Issuer`: URL that uniquely identifies your SAML identity provider, SAML assertions sent to the service provider must match this value.
+- `AssumeRoleUser`: contains the ARN and ID of the role.
+- `Credentials`: contains the access key, secret access key and session token.
+- `Audience`: the service provider, is typically a URL.
+- `SubjectType`: provides information on the format of the name identifier of the Subject field. An identifier intended for a single session only is called a transient identifier.
+- `PackedPolicySize`: percentage that indicates the packed size of the session policies and tags combined, the request fails if is greater than 100, which means the policies and tags exceeded the allowed space.
+- `NameQualifier`: hash value based on the concatenation of the issuer response value, aws account id and the name of the saml provider in IAM. The combination of this value and the subject can be used to uniquely identify a federated user.
+- `Subject`
 
 ##### Web-Base Federation
 
 - You must have an identity token from a supported identity provider and create a role that the application can assume.
 - The role that your application assumes must trust the identity provider that is associated with the identity token. In other words, the identity provider must be specified in the role's trust policy.
-- Calling AssumeRoleWithWebIdentity does not require the use of AWS security credentials. Therefore, you can distribute an application (for example, on mobile devices) that requests temporary security credentials without including long-term AWS credentials in the application.
+- Calling `AssumeRoleWithWebIdentity` does not require the use of AWS security credentials. Therefore, you can distribute an application (for example, on mobile devices) that requests temporary security credentials without including long-term AWS credentials in the application.
 
 ###### AssumeRoleWithWebIdentity request parameters
 
-- RoleArn
-- RoleSessionName: identifies the session, typically you pass the name or identifier associated with the user.
-- WebIdentityToken: the token provided by the oauth2 provider (access token) or the OpenID Connect ID token.
-- ProviderId: identifies the web identity provider and is only required for oauth2 access tokens (currently only www.amazon.com and graph.facebook.com are the only supported for oauth2).
-- DurationSeconds (optional): from 15min to 12h, default is 1h.
-- Policy (optional): this parameter includes IAM policy that you want to use as an inline session policy. The resulting session's permissions are the intersection of the role's identity-based policy and the session policies.
-- PolicyArns.member.N (optional): the ARNs of the IAM managed policies that you want to use as managed session policies. The policies must exist in the same account as the role. You can provide up to 10 managed policy ARNs.
+- `RoleArn`
+- `RoleSessionName`: identifies the session, typically you pass the name or identifier associated with the user.
+- `WebIdentityToken`: the token provided by the oauth2 provider (access token) or the OpenID Connect ID token.
+- `ProviderId`: identifies the web identity provider and is only required for oauth2 access tokens (currently only www.amazon.com and graph.facebook.com are the only supported for oauth2).
+- `DurationSeconds` (optional): from 15min to 12h, default is 1h.
+- `Policy` (optional): this parameter includes IAM policy that you want to use as an inline session policy. The resulting session's permissions are the intersection of the role's identity-based policy and the session policies.
+- `PolicyArns.member.N` (optional): the ARNs of the IAM managed policies that you want to use as managed session policies. The policies must exist in the same account as the role. You can provide up to 10 managed policy ARNs.
 
 ###### AssumeRoleWithWebIdentity response sections
 
-- Issuer: URL that uniquely identifies your SAML identity provider, SAML assertions sent to the service provider must match this value.
-- AssumeRoleUser: contains the ARN and ID of the role.
-- Credentials: contains the access key, secret access key and session token.
-- Audience: the service provider, is typically a URL.
-- SubjectType: provides information on the format of the name identifier of the Subject field. An identifier intended for a single session only is called a transient identifier.
-- PackedPolicySize: percentage that indicates the packed size of the session policies and tags combined, the request fails if is greater than 100, which means the policies and tags exceeded the allowed space.
-- NameQualifier: hash value based on the concatenation of the issuer response value, aws account id and the name of the saml provider in IAM. The combination of this value and the subject can be used to uniquely identify a federated user.
-- Subject
+- `Issuer`: URL that uniquely identifies your SAML identity provider, SAML assertions sent to the service provider must match this value.
+- `AssumeRoleUser`: contains the ARN and ID of the role.
+- `Credentials`: contains the access key, secret access key and session token.
+- `Audience`: the service provider, is typically a URL.
+- `SubjectType`: provides information on the format of the name identifier of the Subject field. An identifier intended for a single session only is called a transient identifier.
+- `PackedPolicySize`: percentage that indicates the packed size of the session policies and tags combined, the request fails if is greater than 100, which means the policies and tags exceeded the allowed space.
+- `NameQualifier`: hash value based on the concatenation of the issuer response value, aws account id and the name of the saml provider in IAM. The combination of this value and the subject can be used to uniquely identify a federated user.
+- `Subject`
 
 ###### Amazon Cognito for mobile applications
 
@@ -3412,20 +3411,24 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ### Amazon Athena
 
+- Regional service.
 - Amazon Athena is a interactive query serverless service that makes it easy for you to analyze data directly in Amazon S3, using standard SQL. Can process unstructured, semi-structured, and structured data sets. It integrates with Amazon QuickSight for easy visualization. It can also be used with third-party reporting and business intelligence tools by connecting these tools to Athena with a JDBC driver. Typically used for ad hoc data discovery and SQL querying.
 
 ### AWS Data Exchange
 
+- Global service.
 - AWS Data Exchange is a service that enables customers to find, subscribe to, and use third-party data sets in the AWS Cloud.
 
 ### Amazon Data Firehose
 
+- Regional service.
 - A fully managed service for delivering real-time streaming data to destinations such as Amazon S3, Amazon Redshift, Amazon OpenSearch Service, and Splunk. It can automatically scale to match the throughput of your data and requires no ongoing administration. It can also batch, compress, and encrypt the data before loading it, minimizing the amount of storage used at the destination and increasing security.
 - Supports data transformation through AWS Lambda.
 - Useful to buffer data.
 
 ### Amazon EMR
 
+- Regional service. Support single-AZ or multi-AZ.
 - S3DistCp tool is used to copy large amounts of data from Amazon S3 into HDFS.
 - Master node: A node that manages the cluster by running software components to coordinate the distribution of data and tasks among other nodes for processing. The master node tracks the status of tasks and monitors the health of the cluster. Every cluster has a master node, and it's possible to create a single-node cluster with only the master node.
 - Core node: A node with software components that run tasks and store data in the Hadoop Distributed File System (HDFS) on your cluster. Multi-node clusters have at least one core node.
@@ -3437,28 +3440,34 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ### AWS Glue
 
+- Regional service.
 - AWS Glue is a fully managed ETL (extract, transform, and load) service that makes it simple and cost-effective to categorize your data, clean it, enrich it, and move it reliably between various data stores and data streams. AWS Glue consists of a central metadata repository known as the AWS Glue Data Catalog, an ETL engine that automatically generates Python or Scala code, and a flexible scheduler that handles dependency resolution, job monitoring, and retries. AWS Glue is serverless, so there’s no infrastructure to set up or manage.
 - You can use a crawler to populate the AWS Glue Data Catalog with tables. This is the primary method used by most AWS Glue users. A crawler can crawl multiple data stores in a single run. Upon completion, the crawler creates or updates one or more tables in your Data Catalog. A classifier reads the data in a data store. If it recognizes the format of the data, it generates a schema. The classifier also returns a "certainty" number to indicate how certain the format recognition was.
 
 ### Amazon Kinesis Data Streams
 
+- Regional service.
 - In an IoT scenario you can group the requests from API Gateway by streaming the data into an Amazon Kinesis data stream and processing the data in batches using a lambda function.
 - The amount of data per shard is 1 MB/s.
 
 ### AWS Lake Formation
 
+- Regional service.
 - AWS Lake Formation is a fully managed service that simplifies the creation, security, and management of data lakes.
 
 ### Amazon Managed Service for Apache Flink
 
+- Regional service.
 - Amazon Managed Service for Apache Flink (M) is a fully managed service that simplifies building and running Apache Flink applications for real-time data processing.
 
 ### Amazon Managed Streaming for Apache Kafka (Amazon MSK)
 
+- Regional service.
 - Amazon Managed Streaming for Apache Kafka (MSK) is a fully managed service by Amazon Web Services (AWS) that simplifies the setup, operation, and management of Apache Kafka clusters.
 
 ### Amazon OpenSearch Service
 
+- Regional service.
 - Amazon OpenSearch Service is a managed service that makes it easy to deploy, operate, and scale OpenSearch clusters in the AWS Cloud. Amazon OpenSearch Service supports OpenSearch and legacy Elasticsearch OSS (up to 7.10, the final open-source version of the software). When you create a cluster, you have the option of which search engine to use.
 - OpenSearch Dashboards is an open-source visualization tool designed to work with OpenSearch. Amazon OpenSearch Service provides an installation of OpenSearch Dashboards with every OpenSearch Service domain. You can find a link to Dashboards on your domain dashboard on the OpenSearch Service console.
 - OpenSearch Service offers three storage tiers:
@@ -3469,16 +3478,19 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ### Amazon QuickSight
 
+- Regional service in standard and global service in enterprise.
 - Amazon QuickSight is a fast, cloud-powered business intelligence (BI) service that simplifies data analysis and visualization. It allows users to create interactive dashboards, conduct ad-hoc analysis, and derive insights from various data sources.
 
 ## Application Integration
 
 ### Amazon AppFlow
 
+- Regional service.
 - Amazon AppFlow is used to securely transfer data between Software-as-a-Service (SaaS) applications like Salesforce, SAP, Zendesk, Slack, and ServiceNow, and AWS services.
 
 ### AWS AppSync
 
+- Regional service.
 - AWS AppSync is a fully managed service that makes it easy to develop GraphQL APIs by handling the heavy lifting of securely connecting to data sources like Amazon DynamoDB, Lambda, and more. Adding caches to improve performance, subscriptions to support real-time updates, and client-side data stores that keep offline clients in sync are just as easy. Once deployed, AWS AppSync automatically scales your GraphQL API execution engine up and down to meet API request volumes.
 - With managed GraphQL subscriptions, AWS AppSync can push real-time data updates over Websockets to millions of clients. For mobile and web applications, AppSync also provides local data access when devices go offline, and data synchronization with customizable conflict resolution, when they are back online.
 - AppSync supports real-time chat applications. You can build conversational mobile or web applications that support multiple private chat rooms, offer access to conversation history, and queue outbound messages, even when a device is offline.
@@ -3486,18 +3498,22 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ### Amazon EventBridge
 
+- Regional service.
 - Amazon EventBridge is a serverless event bus service that simplifies building event-driven applications and integrating services.
 
 ### Amazon MQ
 
+- Regional service. Can be single-AZ or multi-AZ.
 - Amazon MQ is a managed message broker service that provides compatibility with many popular message brokers. AWS recommends Amazon MQ for migrating applications from existing message brokers that rely on compatibility with APIs such as JMS or protocols such as AMQP, MQTT, OpenWire, and STOMP.
 
 ### Amazon Simple Notification Service (Amazon SNS)
 
+- Regional service.
 - With Amazon SNS Mobile Push Notifications, you have the ability to send push notification messages directly to apps on mobile devices. Push notification messages sent to a mobile endpoint can appear in the mobile app as message alerts, badge updates, or even sound alerts.
 
 ### Amazon Simple Queue Service (Amazon SQS)
 
+- Regional service.
 - Amazon SQS supports dead-letter queues (DLQ), which other queues (source queues) can target for messages that can't be processed (consumed) successfully.
 - Occasionally, producers and consumers might fail to interpret aspects of the protocol that they use to communicate, causing message corruption or loss. Also, the consumer's hardware errors might corrupt message payload. If a message can't be consumed successfully, you can send it to a dead-letter queue (DLQ). Dead-letter queues let you isolate problematic messages to determine why they are failing.
 - The Maximum receives value determines when a message will be sent to the DLQ. If the ReceiveCount for a message exceeds the maximum receive count for the queue, Amazon SQS moves the message to the associated DLQ (with its original message ID).
@@ -3505,6 +3521,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ### AWS Step Functions
 
+- Regional service.
 - You can use to coordinate the components of distributed applications and microservices using visual workflows.
 - Standard workflows for long-running, durable and auditable workflows.
 - Express workflows for high-volume, event-processing workloads such as IoT data ingestion, streaming data processing and transformation, and mobile application backends. 
@@ -3542,7 +3559,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ### AWS Cost Explorer
 
-TODO
+- UI-based spending analysis and visualziation for quick visual reviews.
 
 ### Savings Plans
 
@@ -3555,6 +3572,7 @@ TODO
 
 ### AWS App Runner
 
+- Regional service.
 - AWS App Runner builds and deploys web applications automatically, load balances traffic with encryption, scales to meet your traffic needs, and allows for the configuration of how services are accessed and communicate with other AWS applications in a private Amazon VPC.
 - Requires a container image.
 - It is a regional service. If you require to do a multiple region deployment, you need to set up cross-region replication to the second region for the ECR images, deploy App Runner to the second Region and set up a Route 53 routing policy and use a global database like Aurora global database with write forwarding or DynamoDB global table.
@@ -3566,10 +3584,12 @@ TODO
 
 ### AWS Batch
 
+- Regional service. Single-AZ or multi-AZ depending on compute resources (EC2 or Fargate).
 - AWS Batch enables developers, scientists, and engineers to easily and efficiently run hundreds of thousands of batch computing jobs on AWS. AWS Batch dynamically provisions the optimal quantity and type of compute resources (e.g., CPU or memory optimized instances) based on the volume and specific resource requirements of the batch jobs submitted. With AWS Batch, there is no need to install and manage batch computing software or server clusters that you use to run your jobs, allowing you to focus on analyzing results and solving problems.
 
 ### AWS Elastic Beanstalk
 
+- Regional service. Can deploy Single-AZ or Multi-AZ.
 - AWS Elastic Beanstalk is an easy-to-use service for deploying and scaling web applications and services developed with Java, .NET, PHP, Node.js, Python, Ruby, Go, and Docker on familiar servers such as Apache, Nginx, Passenger, and IIS.
 - The `.ebextensions` configuration files are used to customize the software that runs on the EC2 instances of your Elastic Beanstalk environment. You can use `.ebextensions` configuration files to mount the EFS onto the EC2 instances.
 - It has different deployment policies:
@@ -3583,6 +3603,7 @@ TODO
 
 ### Amazon Elastic Compute Cloud (Amazon EC2)
 
+- Regional service where each instance is in a single AZ, AMIs are regional. Cluster placement groups are single-AZ.
 - Setting up a diversified allocation strategy for your Spot Fleet is a best practice to increase the chances that a spot request can be fulfilled by EC2 capacity in the event of an outage in one of the Availability Zones. You can include each AZ available to you in the launch specification. And instead of using the same subnet each time, use three unique subnets (each mapping to a different AZ).
 - Elastic Fabric Adapter (EFA) is a network interface for Amazon EC2 instances that enables customers to run applications requiring high levels of inter-node communications at scale on AWS. 
 - You can use placement groups to influence the placement of a group of interdependent instances to meet the needs of your workload.
@@ -3594,6 +3615,7 @@ TODO
 
 ### Amazon EC2 Auto Scaling
 
+- Regional service.
 - EC2 Auto Scaling provides several methods:
   - Manual Scaling: You can manually adjust the desired capacity of your Auto -Scaling group. This method is useful when you need to make immediate changes to your group's capacity.
   - Scheduled Scaling: This method allows you to set up scheduled actions to scale your group at specific times. It's ideal for predictable load changes that occur at fixed times.
@@ -3605,10 +3627,12 @@ TODO
 
 ### AWS Fargate
 
+- Regional service.
 - AWS Fargate only supports the "awsvpc" network mode. Each task is allocated its own elastic network interface (ENI) that is used for communication inside the VPC.
 
 ### AWS Lambda
 
+- Regional service.
 - Can run up to 15 min.
 - In scenarios where you need more than 15 min for async tasks maybe you can solve the problem using ECS task triggered from lambda.
 - Lambda function URLs are HTTP(S) endpoints dedicated to your Lambda function. You can easily create and set up a function URL using the Lambda console or API. Once created, Lambda generates a unique URL endpoint for your use. Function URLs are dual stack-enabled, supporting IPv4 and IPv6. After you configure a function URL for your function, you can invoke your function through its HTTP(S) endpoint via a web browser, curl, Postman, or any HTTP client.
@@ -3617,6 +3641,7 @@ TODO
 
 ### Amazon Lightsail
 
+- Regional service with Single-AZ.
 - VPS provider and is a useful way to get started with AWS for users who need a solution to build and host their applications on AWS Cloud.
 - Provides low-cost, pre-configured cloud resources for simple workloads just starting on AWS.
 
@@ -3629,16 +3654,19 @@ TODO
 
 ### AWS Wavelength
 
+- Regional service.
 - AWS Wavelength helps you build and deploy applications that meet your data residency, security, and low-latency requirements leveraging AWS services and APIs for digital transformation and using familiar tools for automation, deployments, security, and operational consistency enabling you to support telecom, finance, public sector, healthcare, and gaming use cases.
 
 ## Containers
 
 ### Amazon Elastic Container Registry (Amazon ECR)
 
+- Regional service.
 - Container registry.
 
 ### Amazon Elastic Container Service (Amazon ECS)
 
+- Regional service.
 - ECS task execution role is for the ECS agent (pull images from ECS, using the awslogs, etc) and the ECS task role is for the task itself (services that the code needs, like S3 for example). 
 - If Amazon ECS Spot Instance draining is enabled on the instance, ECS receives the Spot Instance interruption notice and places the instance in DRAINING status. When a container instance is set to DRAINING, Amazon ECS prevents new tasks from being scheduled for placement on the container instance. Service tasks on the draining container instance that are in the PENDING state are stopped immediately. If there are container instances in the cluster that are available, replacement service tasks are started on them. Spot Instance draining is disabled by default and must be manually enabled by adding the line `ECS_ENABLE_SPOT_INSTANCE_DRAINING=true` on your `/etc/ecs/ecs.config file`.
 - Amazon ECS enables you to inject sensitive data into your containers by storing your sensitive data in either AWS Secrets Manager secrets or AWS Systems Manager Parameter Store parameters and then referencing them in your container definition. This feature is supported by tasks using both the EC2 and Fargate launch types.
@@ -3654,6 +3682,7 @@ TODO
 
 ### Amazon Elastic Kubernetes Service (Amazon EKS)
 
+- Regional service.
 - A solution to use when needs Kubernetes comatibility.
 - Main solution to use if the requiremens mention multi-cloud configuration that runs additional clusters on other cloud service providers to further improve the site’s performance.
 
@@ -3672,6 +3701,7 @@ TODO
 
 ### Amazon Aurora
 
+- Regional service.
 - Offers high availability by default.
 - Amazon Aurora Global Database is designed for globally distributed applications, allowing a single Amazon Aurora database to span multiple AWS regions. It replicates your data with no impact on database performance, enables fast local reads with low latency in each region, and provides disaster recovery from region-wide outages. This provides your application with an effective Recovery Point Objective (RPO) of 1 second and a Recovery Time Objective (RTO) of less than 1 minute, providing a strong foundation for a global business continuity plan.
 - You can set auto scaling for replica database but not for master.
@@ -3694,6 +3724,7 @@ TODO
 
 ### Amazon DocumentDB (with MongoDB compatibility)
 
+- Regional service.
 - Amazon DocumentDB interacts with the Apache 2.0 open source MongoDB 3.6, 4.0, and 5.0 APIs.
 - You can switch your existing database clusters once every 30 days to Amazon DocumentDB I/O-Optimized. You can switch back to Amazon DocumentDB standard storage configurations at any time.
 - Amazon DocumentDB Elastic Clusters enables you to elastically scale your document database to handle millions of writes and reads, with petabytes of storage capacity.
@@ -3701,6 +3732,7 @@ TODO
 
 ### Amazon DynamoDB
 
+- Regional service.
 - Amazon DynamoDB global tables provide you with a fully managed, multi-region and multi-active database.
 - DynamoDB Accelerator is used for caching requests if you need response times in microseconds.
 - Amazon DynamoDB Time to Live (TTL) allows you to define a per-item timestamp to determine when an item is no longer needed. Shortly after the date and time of the specified timestamp, DynamoDB deletes the item from your table without consuming any write throughput. TTL is provided at no extra cost as a means to reduce stored data volumes by retaining only the items that remain current for your workload’s needs.
@@ -3708,6 +3740,7 @@ TODO
 
 ### Amazon ElastiCache
 
+- Regional service. Single-AZ only for Memcache.
 - ElastiCache offers fully managed Valkey, Memcached, and Redis OSS for your most demanding applications that require submillisecond response times.
 - ElastiCache Serverless continuously monitors your cache’s memory, compute, and network utilization to instantly scale.
 - Global Datastore is a feature of ElastiCache that provides fully managed, fast, reliable and security-focused cross-Region replication. With Global Datastore, you can write to your cache in one Region and have the data available for read in up to two other cross-Region replica clusters, thereby enabling low-latency reads and disaster recovery across Regions.
@@ -3716,15 +3749,18 @@ TODO
 
 ### Amazon Keyspaces (for Apache Cassandra)
 
+- Regional service.
 - Amazon Keyspaces is designed to be compatible with Apache Cassandra databases.
 
 ### Amazon Neptune
 
+- Regional service.
 - Graph database.
 - Supports Gremlin (Apache TinkerPop), openCypher and RDF/SPARQL.
 
 ### Amazon Relational Database Service (Amazon RDS)
 
+- Regional service. Supports Single-AZ and Multi-AZ.
 - Used for OLTP scenarios.
 - Amazon RDS does not support certain features in Oracle such as Multitenant Database, Real Application Clusters (RAC), RMAN, Unified Auditing, Database Vault, and many more.
 - Amazon RDS Proxy is a fully managed, highly available database proxy for Amazon Relational Database Service (RDS) that makes applications more scalable, more resilient to database failures, and more. Amazon RDS Proxy sits between your application and your relational database to efficiently manage connections to the database and improve the scalability of the application. Amazon RDS Proxy can be enabled for most applications with no code changes.
@@ -3733,6 +3769,7 @@ TODO
 
 ### Amazon Redshift
 
+- Regional service.
 - WS KMS keys are specific to a region. If you want to enable cross-region snapshot copy for an AWS KMS-encrypted cluster, you must configure a `snapshot copy grant` for a master key in the destination region so that Amazon Redshift can perform encryption operations in the destination region.
 - Used for OLAP scenarios.
 - Redshift is configured with automatic snapshot by default but you need to enable cross-region snapshot if you require it.
@@ -3742,6 +3779,7 @@ TODO
 
 ### Amazon Timestream 
 
+- Regional service.
 - Amazon Timestream offers fully managed InfluxDB, one of the most popular open source time-series databases in the market, and LiveAnalytics, a serverless time-series database built for scale.
 - Amazon Timestream for InfluxDB should be used for use cases that require near real-time time-series queries and when you need InfluxDB features or open source APIs. The existing Timestream engine, Amazon Timestream for LiveAnalytics, should be used when you need to ingest more than tens of gigabytes of time-series data per minute and run SQL queries on terabytes of time-series data in seconds.
 
@@ -3775,10 +3813,12 @@ TODO
 
 ### Amazon AppStream 2.0
 
+- Regional service.
 - Amazon AppStream 2.0 is a fully managed application streaming service. You centrally manage your desktop applications on AppStream 2.0 and securely deliver them to any computer. You can easily scale to any number of users across the globe without acquiring, provisioning, and operating hardware or infrastructure.
 
 ### Amazon WorkSpaces
 
+- Regional service.
 - Amazon WorkSpaces allows you to control which IP addresses your WorkSpaces can be accessed from. By using IP address-based control groups, you can define and manage groups of trusted IP addresses and only allow users to access their WorkSpaces when connected to a trusted network.
 - An IP access control group acts as a virtual firewall that controls the IP addresses from which users are allowed to access their WorkSpaces. To specify the CIDR address ranges, add rules to your IP access control group and then associate the group with your directory. You can associate each IP access control group with one or more directories. You can create up to 100 IP access control groups per Region per AWS account. However, you can only associate up to 25 IP access control groups with a single directory.
 
@@ -3792,6 +3832,7 @@ TODO
 
 ### Amazon API Gateway
 
+- Regional service.
 - Caching the API requests should be done on the API Gateway. The default TTL value for API caching is 300 seconds. The maximum TTL value is 3600 seconds. TTL=0 means caching is disabled.
 - Switching the existing Amazon API Gateway from a Regional endpoint to an Edge-Optimized endpoint would enhance API call performance for users worldwide.
 - API Gateway supports multiple mechanisms for controlling and managing access:
@@ -3814,6 +3855,7 @@ TODO
 
 ### AWS IoT Core
 
+- Regional service.
 - AWS IoT Core is the central component of AWS IoT that provides the communication infrastructure for connecting IoT devices to the AWS cloud. Supports MQTT, MQTT over WSS, HTTPS and LoRaWAN. The data plane endpoints are specific to each AWS account and AWS Region (the Data-ATS). 
 - AWS IoT Core Basic Ingest is specifically designed for high-volume data ingestion, allowing devices to publish messages directly to the AWS IoT Rules Engine without maintaining a persistent connection, which helps reduce overhead.
 
@@ -3849,49 +3891,60 @@ TODO
 
 ### Amazon Comprehend
 
+- Regional service.
 - You can use Amazon Comprehend to identify the language of the text, extract key phrases, places, people, brands, or events, understand sentiment about products or services, and identify the main topics from a library of documents.
 
 ### Amazon Fraud Detector
 
+- Regional service.
 - To cover use cases like suspicious payments, new account frauds, trial and loyalty program abuse and account takeover.
 
 ### Amazon Kendra
 
+- Regional service.
 - Amazon Kendra is a highly accurate and easy-to-use enterprise search service that’s powered by machine learning (ML). It allows developers to add search capabilities to their applications so their end users can discover information stored within the vast amount of content spread across their company.
 - Multiple data origins likeS3, Microsoft SharePoint, Salesforce, ServiceNow, RDS databases, or Microsoft OneDrive.
 - Amazon Kendra does not support questions where the answers require cross-document passage aggregation or calculations.
 
 ### Amazon Lex
 
+- Regional service.
 - Amazon Lex uses AWS Lambda functions to query your business applications and make updates as requested.
 - Amazon Lex chatbots also maintain context and manage the dialogue, dynamically adjusting responses based on the conversation.
 
 ### Amazon Personalize
 
+- Regional service.
 - Amazon Personalize is a fully managed machine learning (ML) service that uses your data to generate product and content recommendations for your users. You provide data about your end-users (e.g., age, location, device type), items in your catalog (e.g., genre, price) and interactions between users and items (e.g., clicks, purchases). Personalize uses this data to train custom, private models that generate recommendations which can be surfaced via an API.
 
 ### Amazon Polly
 
+- Regional service.
 - Used to convert text to audio.
 
 ### Amazon Rekognition
 
+- Regional service.
 - Supports the IndexFaces operation. To store facial information, you must first create (CreateCollection) a face collection in one of the AWS Regions in your account. You specify this face collection when you call the IndexFaces operation. After you create a face collection and store facial feature information for all faces, you can search the collection for face matches. To search for faces in an image, call SearchFacesByImage. To search for faces in a stored video, call StartFaceSearch. To search for faces in a streaming video, call CreateStreamProcessor.
 
 ### Amazon SageMaker AI (previously known as Amazon SageMaker)
 
+- Regional service.
 - Used to train and refine your ML models.
 
 ### Amazon Textract
 
+- Regional service.
 - Used to extract text from documents.
 
 ### Amazon Transcribe
 
+- Regional service.
 - Used to convert audio to text.
 
 ### Amazon Translate
 
+- Regional service.
 - Used to translate text between languages.
 
 ## Management and Governance
@@ -3916,9 +3969,19 @@ TODO
 ### Amazon CloudWatch
 
 - A CloudWatch alarm to detect service quota near it's limits can be created using the expression `metricid/SERVICE_QUOTA(metricid)*100` from the metrics in the `AWS/Usage` namespace.
+- Use CloudWatch Application Signals to automatically instrument your applications on AWS so that you can monitor current application health and track long-term application performance against your business objectives. Creating SLOs is very important for getting the most benefit from CloudWatch Application Signals.
+- Transaction Search is an interactive analytics experience you can use to get complete visibility of your application transaction spans.
+- You can use Amazon CloudWatch Synthetics to create canaries, configurable scripts that run on a schedule, to monitor your endpoints and APIs. Offers different blueprints:
+  - Heartbeat monitor: load specified URL, store screenshot and HAR file.
+  - API canary: rest calls.
+  - Broken link checker: collects all the links in a url (including itself) to the configured limit.
+  - Visual monitoring: compares screenshots taken during a canary run with a baseline canary run. Uses a threshold to determine differences and fail.
+  - Canary recorder: you use Syntethics Recorder to record your click and type actions.
+  - GUI Workflow: you define steps to click, input text and verify selector and text.
 
 ### Amazon CloudWatch Logs
 
+- Regional service.
 - To collect logs from your Amazon EC2 instances and on-premises servers into CloudWatch Logs, AWS offers the unified CloudWatch agent.
 
 ### AWS Command Line Interface (AWS CLI)
@@ -3934,12 +3997,14 @@ TODO
 
 ### AWS Config
 
+- Regional service.
 - AWS Config provides AWS managed rules, which are predefined, customizable rules that AWS Config uses to evaluate whether your AWS resources comply with common best practices.
 - You can use AWS Config data aggegator (resource type that collects AWS Config data from multiple source accounts and regions) to montior the compliance of your AWS organizations, IAM, etc, and EventBridge and SNS to send alerts when changes are detected.
 - With Config, you can review changes in configurations and relationships between AWS resources, dive into detailed resource configuration histories, and determine your overall compliance against the configurations specified in your internal guidelines.
 
 ### AWS Control Tower
 
+- Regional service.
 - Automates setup of a secure multi-account AWS environment (landing zone).
 - Uses AWS Organizations to manage organizational units (OUs) and accounts.
 - Creates baseline accounts: Management, Log Archive, and Audit.
@@ -3957,16 +4022,19 @@ TODO
 
 ### AWS License Manager
 
+- Regional service.
 - AWS License Manager is used to create customized licensing rules that emulate the terms of their licensing agreements and then enforce these rules.
 - It is not used for storing software licenses.
 
 ### Amazon Managed Grafana 
 
+- Regional service.
 - Build, package, and deploy workspaces that are provisioned, set up, scaled, and maintained for you.
 - Migrate from your self-managed Grafana environment, so there’s no need to start from scratch.
 
 ### Amazon Managed Service for Prometheus
 
+- Regional service.
 - Amazon Managed Service for Prometheus is a serverless monitoring service for metrics compatible with open source Prometheus, making it easier for you to securely monitor and alert on container environments.
 - The Amazon Managed Service for Prometheus collector is an agentless scraper that enables customers to automatically discover and monitor their Amazon EKS applications and infrastructure by removing the undifferentiated heavy lifting of managing Prometheus agents to collect Prometheus metrics.
 
@@ -3976,6 +4044,7 @@ TODO
 
 ### AWS Organizations
 
+- Global service.
 - You can use organizational units (OUs) to group accounts together to administer as a single unit.
 - Service control policies (SCPs) are a type of organization policy that you can use to manage permissions in your organization. SCPs do not grant permissions to the IAM users and IAM roles in your organization. No permissions are granted by an SCP. An SCP defines a permission guardrail, or sets limits, on the actions that the IAM users and IAM roles in your organization can perform.
 - You attach SCPs to the root, OUs, or directly to accounts.
@@ -3988,10 +4057,12 @@ TODO
 
 ### AWS Proton
 
-1- AWS Proton is a deployment workflow tool for modern applications. It can be used to manage Infrastructure as Code (IaC) templates build using tools like CloudFormation or Terraform.
+- Regional service.
+- AWS Proton is a deployment workflow tool for modern applications. It can be used to manage Infrastructure as Code (IaC) templates build using tools like CloudFormation or Terraform.
 
 ### AWS Service Catalog
 
+- Regional service.
 - Allows organizations to create and manage catalogs of IT services that are approved for use on AWS. These IT services can include everything from virtual machine images, servers, software, and databases to complete multi-tier application architectures. AWS Service Catalog allows you to centrally manage deployed IT services and your applications, resources, and metadata.
 - With AWS Service Catalog, you define your own catalog of AWS services and AWS Marketplace software and make them available for your organization. Then, end users can quickly discover and deploy IT services using a self-service portal.
 - AWS Service Catalog enables a self-service capability for users, allowing them to provision the services they need while also helping you to maintain consistent governance – including the application of required tags and tag values.
@@ -4001,7 +4072,8 @@ TODO
 - A DynamoDB RCU is up to 4 KB for a 1 strong or 2 eventually consisten reads per second.
 - A DynamoDB WCU is up to 1 KB for writes per second.
 - Lambda can run up to 15 minutes.
-- In Kinesis Data Streams the max amount of data per shard is 1 MB/s.
+- In Kinesis Data Streams the max amount of data per shard is 1 MB/s or 1000 RPS.
+- In Kinesis Data Streams retention period is from 24h to 1 week.
 - Max standard SQS delay is 15 minutes.
 - Max SQS message payload is 256 Kb.
 - Max SQS retention is 14 days.
@@ -4011,9 +4083,15 @@ TODO
 - Max number of Aurora replicas are 15.
 - DocumentDB minimum storage is 10 GiB, automatically grows by 10 GiB increments up to 128 TiB.
 - Max number of DocumentDB replicas are 15.
+- Smallest VPC range is /28 and larges /16.
+- AWS reserves 5 ips in each subnet (first 4 for network, local router, dns, and nothing and last for broadcast).
+- Up to 10 VPN connections can terminate to the same virtual private gateway.
+- Maximum 50 VIFs (virtual interfaces) per Direct Connect connection.
+- Direct connect gatewat can associate up to 10 virtual private gateways globally and cross account.
 
 ### AWS Systems Manager
 
+- Regional service.
 - Systems Manager Run Command service enables you to automate common administrative tasks and perform ad hoc configuration changes at scale.
 - The AWS Systems Manager Maintenance Windows feature lets you define a schedule for when to perform potentially disruptive actions on your instances such as patching an operating system, updating drivers, or installing software or patches. Each Maintenance Window has a schedule, a maximum duration, a set of registered targets (the instances that are acted upon), and a set of registered tasks.
 - AWS Systems Manager Patch Manager automates the process of patching managed instances with security-related updates. For Linux-based instances, you can also install patches for non-security updates. You can patch fleets of Amazon EC2 instances or your on-premises servers and virtual machines (VMs) by operating system type.
@@ -4037,10 +4115,12 @@ TODO
 
 ### Amazon Elastic Transcoder
 
+- Regional service.
 - Amazon Elastic Transcoder uses pipelines to manage transcoding jobs. When you create a job, you specify the pipeline that you want to submit the job to. Pipelines are closely tied to an S3 bucket that you specify. Queues in AWS Elemental MediaConvert are similar to pipelines. The number of concurrent jobs processed in a given queue is determined based on the number of queues in your account. However, one of the key differences is that queues are not tied to a specific S3 bucket. This means that you can submit jobs that reference input files in different S3 buckets to the same queue. In Elastic Transcoder, you select the playlist version upon job creation. In MediaConvert, the HLS version will change as you enable features that require a specific version.
 
 ### Amazon Kinesis Video Streams 
 
+- Regional service.
 - Amazon Kinesis Video Streams makes it easy to securely stream video from connected devices to AWS for analytics, machine learning (ML), playback, and other processing. Kinesis Video Streams automatically provisions and elastically scales all the infrastructure needed to ingest streaming video data from millions of devices.
 - Kinesis Video Streams also supports WebRTC, an open-source project that enables real-time media streaming and interaction between web browsers, mobile applications, and connected devices via simple APIs.
 
@@ -4073,6 +4153,7 @@ TODO
 
 ### AWS Database Migration Service (AWS DMS)
 
+- AWS Database Migration Service helps you migrate databases to AWS quickly and securely. The source database remains fully operational during the migration, minimizing downtime to applications that rely on the database.
 - You can configure a local task and AWS DMS task to replicate the ongoing updates in your local database to the AWS database service.
 
 ### AWS DataSync
@@ -4110,12 +4191,14 @@ TODO
 
 ### AWS Transfer Family 
 
+- Regional service. Each server endpoint exists in a Single-AZ.
 - Used to create FTP, FTPS and SFTP linked to S3.
 
 ## Networking and Content Delivery
 
 ### Amazon CloudFront
 
+- Global service.
 - In CloudFront you can configure your origin to add a `Cache-Control max-age` directive to your objects, and specify the longest practical value for `max-age` to increase your cache hit ratio.
 - CloudFront supports Server Name Indication (SNI) for custom SSL certificates, along with the ability to take incoming HTTP requests and redirect them to secure HTTPS requests to ensure that clients are always directed to the secure version of your website.
 - If you configure CloudFront to serve HTTPS requests using SNI, CloudFront associates your alternate domain name with an IP address for each edge location. The IP address to your domain name is determined during the SSL/TLS handshake negotiation and isn’t dedicated to your distribution.
@@ -4128,17 +4211,20 @@ TODO
 
 ### AWS Direct Connect
 
+- Global service.
 - AWS Direct Connect is a cloud service solution that makes it easy to establish a dedicated network connection from your premises to AWS.
 - This dedicated connection can be partitioned into multiple virtual interfaces.
 - You can use an AWS Direct Connect gateway to connect your AWS Direct Connect connection over a private virtual interface to one or more VPCs in your account that are located in the same or different Regions. You associate a Direct Connect gateway with the virtual private gateway for the VPC. Then, create a private virtual interface for your AWS Direct Connect connection to the Direct Connect gateway. You can attach multiple private virtual interfaces to your Direct Connect gateway.
 - With Direct Connect Gateway, you no longer need to establish multiple BGP sessions for each VPC; this reduces your administrative workload as well as the load on your network devices.
 - Public virtual interfaces are used to connect to AWS resources reachable by public IP.
 - Private virtual interfaces are used to connect to your resources hosted in one VPC usin private IP.
+- If you want to encrypt the traffic flowing through Direct Connect, you will need to use the public virtual interface of DX to create a VPN connection that will allow access to AWS services such as S3, EC2, and other services, with a private interface this will not work.
 - Transit virtual interfaces are used to connect to your resources hosted in multiple VPCs usin private IP, for hub and spoke or multi-vpc architectures.
 - The prefix list, which includes IPv4 and IPv6 addresses, is a filter that permits the same or a smaller range of CIDRs to be promoted to the Direct Connect gateway. When setting up a Direct Connect gateway, it’s important to set the allowed prefixes to a range that is the same or wider than the VPC CIDR block. This ensures that all IP addresses within the VPC can be reached from the local servers.
 
 ### Elastic Load Balancing (ELB)
 
+- Regional service.
 - You can either terminate the SSL on the ELB side or on the EC2 instance. If you choose the former, the X.509 certificate will only be present in the ELB and if you choose the latter, the X.509 certificate will be stored inside the EC2 instance.
 - In ALB, Client Port Preservation simply preserves the source client port, allowing backend applications to see the original client-side source port.
 - In ALB, Sticky sessions enable the load balancer to bind a user's session to a specific instance, ensuring that all requests from the user during the session are sent to the same instance.
@@ -4146,16 +4232,20 @@ TODO
 
 ### AWS Global Accelerator
 
+- Global service.
 - You create accelerators to improve the performance of your applications for local and global users.
 - With a standard accelerator, you can improve the availability of your internet applications that are used by a global audience. With a standard accelerator, Global Accelerator directs traffic over the AWS global network to endpoints in the nearest Region to the client.
 - With a custom routing accelerator, you can map one or more users to a specific destination among many destinations.
 
 ### AWS PrivateLink
 
-TODO
+- Regional service. Each endpoint exists in one AZ.
+- Enables private connectivity between VPCs and AWS services without exposing traffic to internet.
+- The VPC endpoints can be interface nedpoints (powered by private link with a private ENI) or gateway endpoints (for services like S3 and DynamoDB) where it uses route table entries instead of ENIs.
 
 ### Amazon Route 53
 
+- Global service.
 - Amazon allows you to enable Domain Name System Security Extensions (DNSSEC) signing for all existing and new public hosted zones, and enable DNSSEC validation for Amazon Route 53 Resolver.
 - A Route 53 Resolver Endpoint is a customer-managed resolver consisting of one or more Elastic Network Interfaces (ENIs) deployed on your VPC. Resolver Endpoints are classified into two types inboudn endpoint and outbound endpoint.
 - An Inbound Endpoint provides DNS resolution of AWS resources, such as EC2 instances, for your corporate network.
@@ -4182,6 +4272,7 @@ TODO
 
 ### AWS Transit Gateway
 
+- Regional service.
 - A transit gateway enables you to attach VPCs and VPN connections in the same Region and route traffic between them. A transit gateway works across AWS accounts, and you can use AWS RAM to share your transit gateway with other accounts. After you share a transit gateway with another AWS account, the account owner can attach their VPCs to your transit gateway. A user from either account can delete the attachment at any time.
 - You can enable multicast on a transit gateway, and then create a transit gateway multicast domain that allows multicast traffic to be sent from your multicast source to multicast group members over VPC attachments that you associate with the domain.
 - Each VPC or VPN attachment is associated with a single route table. That route table decides the next hop for the traffic coming from that resource attachment. A route table inside the transit gateway allows for both IPv4 or IPv6 CIDRs and targets. The targets are VPCs and VPN connections. When you attach a VPC or create a VPN connection on a transit gateway, the attachment is associated with the default route table of the transit gateway.
@@ -4191,24 +4282,28 @@ TODO
 
 ### Amazon Virtual Private Cloud (Amazon VPC)
 
-TODO
+- Regional service. Subnets are Single-AZ. Security groups are regional. Elastic IP address are regional and ENI are Single-AZ.
 
 ### AWS VPN 
 
+- Regional service, can be Single-AZ and Multi-AZ (recommended).
 - Secure Sockets Layer (SSL) VPN is an emerging technology that provides remote-access VPN capability, using the SSL function that is already built into a modern web browser. SSL VPN allows users from any Internet-enabled location to launch a web browser to establish remote-access VPN connections, thus promising productivity enhancements and improved availability, as well as further IT cost reduction for VPN client software and support.
 
 ## Security, Identity, and Compliance
 
 ### AWS Artifact
 
+- Global service.
 - Self-service portal that provides access to on-demand AWS compliance documentation. This service offers a comprehensive repository of AWS's security and compliance reports, including certifications, attestations, and agreements. These documents are essential for customers in highly regulated industries, such as healthcare, finance, and biotechnology, as they prove AWS's adherence to industry standards and regulatory requirements. AWS Artifact helps organizations ensure that their data hosted on AWS complies with frameworks like HIPAA, GDPR, and PCI DSS.
 
 ### AWS Audit Manager
 
+- Regional service.
 - AWS Audit Manager is used to map compliance requirements to AWS usage data with prebuilt and custom frameworks and automated evidence collection.
 
 ### AWS Certificate Manager (ACM)
 
+- Global service for CloudFront, Regional service for other services.
 - Used to store certificates.
 - With AWS Certificate Manager, you can generate public or private SSL/TLS certificates that you can use to secure your site.
 - Public SSL/TLS certificates provisioned through AWS Certificate Manager are free. You pay only for the AWS resources that you create to run your application.
@@ -4217,19 +4312,23 @@ TODO
 
 ### AWS CloudHSM
 
+- Regional service. Supports single-AZ and multi-AZ (recommended).
 - AWS CloudHSM is a cloud-based hardware security module (HSM) that enables you to easily generate and use your own encryption keys on the AWS Cloud.
 - You can use AWS CloudHSM to offload SSL/TLS processing for your web servers. Using CloudHSM for this processing reduces the burden on your web server and provides extra security by storing your web server’s private key in CloudHSM. Secure Sockets Layer (SSL) and Transport Layer Security (TLS) are used to confirm the identity of web servers and establish secure HTTPS connections over the Internet.
 
 ### Amazon Cognito
 
+- Regional service.
 - Idp.
 
 ### Amazon Detective
 
+- Regional service.
 - Amazon Detective automatically collects log data from your AWS resources and uses machine learning (ML), statistical analysis, and graph theory to build a dataset that you can use to conduct more efficient security investigations.
 
 ### AWS Directory Service
 
+- Regional service.
 - AWS Directory Service helps you to set up and run a standalone AWS Managed Microsoft AD directory hosted in the AWS Cloud. You can also use AWS Directory Service to connect your AWS resources with an existing on-premises Microsoft Active Directory. To configure AWS Directory Service to work with your on-premises Active Directory, you must first set up trust relationships to extend authentication from on-premises to the cloud.
 - AWS Directory Service supports several directory types:
   - Simple AD allows you to easily launch a new Active Directory forest in the AWS cloud.
@@ -4241,15 +4340,18 @@ TODO
 
 ### AWS Firewall Manager
 
+- Regional service.
 - AWS Firewall Manager is primarily used to manage your Firewall across multiple AWS accounts under your AWS Organizations.
 
 ### Amazon GuardDuty
 
+- Regional service.
 - Amazon GuardDuty is a security monitoring service that analyzes and processes certain types of AWS logs, such as AWS CloudTrail data event logs for Amazon S3 and CloudTrail management event logs.
 - It uses threat intelligence feeds, such as lists of malicious IP addresses and domains, and machine learning to identify unexpected and potentially unauthorized and malicious activity within your AWS environment.
 
 ### AWS IAM Identity Center
 
+- Global service.
 - AWS IAM Identity Center (successor to AWS SSO) expands the capabilities of AWS Identity and Access Management (IAM) to provide a central place that brings together administration of users and their access to AWS accounts and cloud applications. Has integration with Microsoft AD through the AWS Directory Service.
 - AWS IAM Identity Center supports only SAML 2.0–based applications
 - IAM Identity Center supports automatic provisioning (synchronization) of user and group information from your identity provider (IdP) into IAM Identity Center using the System for Cross-domain Identity Management (SCIM) v2.0 protocol. When you configure SCIM synchronization, you create a mapping of your identity provider (IdP) user attributes to the named attributes in IAM Identity Center. This causes the expected attributes to match between IAM Identity Center and your IdP.
@@ -4257,6 +4359,7 @@ TODO
 
 ### AWS Identity and Access Management (IAM)
 
+- Global service.
 - Supports federated identity with SAML 2.0-compatible IdP.
 - For other scenarios like LDAP you need to create an identiy broker that authenticates to LDAP and then calls STS to assume a role.
 - For administrators you can use the `AdministratorAccess` policiy.
@@ -4264,23 +4367,28 @@ TODO
 - IAM Access Analyzer can analyze your CloudTrail events to identify actions and services used by an IAM entity (user or role).
 - You can store SSL certificates in IAM but is preffered to use AWS Certificate Manager (ACM).
 - IAM trust policies for IAM roles specify which entities, like users, roles, or services, can assume a role and request temporary credentials, whether across multiple accounts or within a single one.
+- If you need to interact with AWS from GithubActions, instead of using hardcoded credentials, you can configure an IAM OpenID Connect (OIDC) Identity Provider (IdP) in AWS IAM, associated with GitHub. Create an IAM role with a trust policy for the sts:AssumeRoleWithWebIdentity AWS STS API calls from the GitHub OIDC IdP. Modify the GitHub Actions CI/CD pipeline to use this IAM role for its deployment processes. This uses ` aws-actions/configure-aws-credentials@v1` with `role-to-assume`, `role-session-name` and `aws-region`. You can define a role with the condition to only allow the sub to match the repo name to avoid that other CIs assume the same role.
 
 ### Amazon Inspector
 
+- Regional service.
 - An automated security assessment service that helps improve the security and compliance of applications deployed on AWS.
 - Amazon Inspector is used as an automated vulnerability management service that continually scans AWS workloads for software vulnerabilities.
 - You can use Amazon Inspector to conduct a detailed scan for CVE in your fleet of EC2 instances.
 
 ### AWS Key Management Service (AWS KMS)
 
+- Regional service.
 - Key management service to be used by other services and applications.
 
 ### Amazon Macie
 
+- Regional service.
 - Macie automates the discovery of sensitive data, such as personally identifiable information (PII), personal health information (PHI) and financial data, to provide you with a better understanding of the types of data in Amazon S3.
 
 ### AWS Network Firewall
 
+- Regional service.
 - Deploys network security access for your VPC.
 
 ### AWS Resource Access Manager (AWS RAM)
@@ -4292,10 +4400,12 @@ TODO
 
 ### AWS Secrets Manager
 
+Regional service.
 - This service enables you to easily rotate, manage, and retrieve database credentials, API keys, and other secrets throughout their lifecycle.
 
 ### AWS Security Hub
 
+- Regional service.
 - AWS Organizations allows central management of multiple AWS accounts. It supports service delegation, enabling specific accounts to act as delegated administrators for various AWS services, including Security Hub. This helps streamline security operations by consolidating security management into a single account. A delegated administrator account is a member account within an AWS Organization that has been assigned the authority to manage specific services on behalf of the management account. For AWS Security Hub, the delegated administrator can:
   - Enable Security Hub across all member accounts.
   - Aggregate findings from all accounts into the delegated administrator account.
@@ -4319,11 +4429,13 @@ TODO
 
 ### AWS Backup
 
+- Regional service.
 - A fully-managed service that makes it easy to centralize and automate data protection across AWS services, in the cloud and on-premises. Using this service, you can configure backup policies and monitor activity for your AWS resources in one place. It allows you to automate and consolidate backup tasks that were previously performed service-by-service and remove the need to create custom scripts and manual processes.
 - Supports continuous backups and point-in-time recovery (PITR) in addition to snapshot backups. With continuous backups, you can restore your AWS Backup-supported resource by rewinding it back to a specific time that you choose within 1 second of precision (going back a maximum of 35 days). Continuous backup works by first creating a full backup of your resource and then constantly backing up your resource’s transaction logs. PITR restore works by accessing your full backup and replaying the transaction log to the time that you tell AWS Backup to recover.
 
 ### Amazon Elastic Block Store (Amazon EBS)
 
+- Tied to one AZ. The EBS snapshots are regional.
 - Block storage.
 - Can attach multiple volumes to one instance.
 - We can de-attach from one instance and attach to another.
@@ -4341,6 +4453,7 @@ TODO
 
 ### Amazon Elastic File System (Amazon EFS)
 
+- Regional service.
 - File storage.
 - Operates as a Regional service.
 - Automatically grows and shrinks as you add and remove files.
@@ -4348,6 +4461,8 @@ TODO
 - You can connect tens, hundreds, and even thousands of compute instances to an Amazon EFS file system at the same time.
 
 ### Amazon FSx (for all types)
+
+- Regional service with Multi-AZ (except Lustre).
 
 #### FSx for Lustre
 
@@ -4376,6 +4491,7 @@ TODO
 
 ### Amazon Simple Storage Service (Amazon S3)
 
+- Global service but data is stored regional.
 - Amazon S3 Cross-Region Replication (CRR) is used to copy objects across Amazon S3 buckets in different AWS Regions.
 - A bucket owner can configure a bucket to be a Requester Pays bucket. With Requester Pays buckets, the requester instead of the bucket owner pays the cost of the request and the data download from the bucket. The bucket owner always pays the cost of storing data.
 - Amazon S3 Transfer Acceleration enables fast, easy, and secure transfers of files over long distances between your client and an S3 bucket. Transfer Acceleration takes advantage of Amazon CloudFront’s globally distributed edge locations. As the data arrives at an edge location, data is routed to Amazon S3 over an optimized network path.
@@ -4394,10 +4510,13 @@ TODO
 
 ### Amazon S3 Glacier
 
+- Global service but data is stored regional.
 - Archival storage solution.
 - You can use instant retrieval, flexible retriebal (retrieval time of 1-5 min expedited, or 5-12 h free) and deep archive (retrieval time of 12 h).
 
 ### AWS Storage Gateway
+
+- Regional service.
 
 #### S3 File gateway
 
