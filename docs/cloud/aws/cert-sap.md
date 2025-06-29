@@ -3707,6 +3707,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - You can set auto scaling for replica database but not for master.
 - You can switch your existing database clusters once every 30 days to Aurora I/O-Optimized. You can switch back to Aurora Standard at any time.
 - Encrypting an existing unencrypted Aurora instance is not supported. To use Amazon Aurora encryption for an existing unencrypted database, create a new DB Instance with encryption enabled and migrate your data into it.
+- Aurora Auto Scaling uses a scaling policy to adjust the number of Aurora Replicas in an Aurora DB cluster.
 
 ### Amazon Aurora Serverless
 
