@@ -3500,6 +3500,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 - Regional service.
 - Amazon EventBridge is a serverless event bus service that simplifies building event-driven applications and integrating services.
+- You can configure rules to react to events.
 
 ### Amazon MQ
 
@@ -3621,6 +3622,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
   - Scheduled Scaling: This method allows you to set up scheduled actions to scale your group at specific times. It's ideal for predictable load changes that occur at fixed times.
   - Dynamic Scaling: This approach automatically adjusts capacity in response to changing demand. There are three types of dynamic scaling policies: a. Target Tracking Scaling: Adjusts capacity to maintain a specific metric at a target value. b. Step Scaling: Uses step adjustments to scale based on the size of the alarm breach. c. Simple Scaling: Adjusts capacity based on a single scaling adjustment.
   - Predictive Scaling: This method uses machine learning to forecast future traffic and automatically provisions the right number of EC2 instances in advance. It's useful for handling cyclical traffic patterns.
+- You can suspend the EC2 termination if you need to investigate the ASG unhealty EC2.
 - When Amazon EC2 Auto Scaling responds to a scale out event, it launches one or more instances. These instances start in the `Pending` state. If you added an `autoscaling:EC2_INSTANCE_LAUNCHING` lifecycle hook to your Auto Scaling group, the instances move from the `Pending` state to the `Pending:Wait` state. After you complete the lifecycle action, the instances enter the `Pending:Proceed` state. When the instances are fully configured, they are attached to the Auto Scaling group and they enter the InService state.
 - When Amazon EC2 Auto Scaling responds to a scale in event, it terminates one or more instances. These instances are detached from the Auto Scaling group and enter the `Terminating` state. If you added an `autoscaling:EC2_INSTANCE_TERMINATING` lifecycle hook to your Auto Scaling group, the instances move from the `Terminating` state to the `Terminating:Wait` state. After you complete the lifecycle action, the instances enter the `Terminating:Proceed` state. When the instances are fully terminated, they enter the `Terminated` state.
 - If you want to keep the last logs of an EC2 from a terminated instance in Auto Scaling Group, you can dd a lifecycle hook to the Auto Scaling Group for the `autoscaling:EC2_INSTANCE_TERMINATING` event and set the default result to `CONTINUE`. Implement a script using an AWS Systems Manager Automation document to backup log data to an Amazon S3 bucket. Create an Amazon EventBridge rule that invokes a Lambda function when an instance is in the `Terminating:Wait` state. Configure the function to call the `SendCommand` API to run the automation document.
@@ -3707,7 +3709,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - You can set auto scaling for replica database but not for master.
 - You can switch your existing database clusters once every 30 days to Aurora I/O-Optimized. You can switch back to Aurora Standard at any time.
 - Encrypting an existing unencrypted Aurora instance is not supported. To use Amazon Aurora encryption for an existing unencrypted database, create a new DB Instance with encryption enabled and migrate your data into it.
-- Aurora Auto Scaling uses a scaling policy to adjust the number of Aurora Replicas in an Aurora DB cluster.
+- Aurora Auto Scaling uses a scaling policy to adjust the number of Aurora Read Replicas in an Aurora DB cluster.
 
 ### Amazon Aurora Serverless
 
@@ -3963,9 +3965,10 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 ### AWS CloudTrail
 
+- Can be used to monitor management events (operations in aws, the control plane) and data events (operations in a service like S3, SQS, DynamoDB, Lambda, the data plane). Can optionally perform anomaly detection with insights events.
 - You can use CloudTrail to montior calls to AWS Organizations and EventBridge and SNS to raise events when certain actions occur.
 - An organizational trail in AWS CloudTrail is a type of trail that logs and monitors activity across all AWS accounts within an AWS Organization. The management account or delegated admin can create an organization trail that automatically enables logging in all current and future member accounts of the organization.
-- - You can create an AWS CloudTrail train in a new (to avoid current permissions causing a confidentiality breach) S3 bucket to persist logs about the actions performed to the resources. With `--is-multi-region-trail` you enable all the region services, and with `--include-global-service-events` you include the global services. This logs can be encrypted using KMS. Also you can enable MFA for S3 removal and restrict access configuring bucket policies.
+- You can create an AWS CloudTrail train in a new (to avoid current permissions causing a confidentiality breach) S3 bucket to persist logs about the actions performed to the resources. With `--is-multi-region-trail` you enable all the region services, and with `--include-global-service-events` you include the global services. This logs can be encrypted using KMS. Also you can enable MFA for S3 removal and restrict access configuring bucket policies.
 
 ### Amazon CloudWatch
 
@@ -4249,10 +4252,8 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - Global service.
 - Amazon allows you to enable Domain Name System Security Extensions (DNSSEC) signing for all existing and new public hosted zones, and enable DNSSEC validation for Amazon Route 53 Resolver.
 - A Route 53 Resolver Endpoint is a customer-managed resolver consisting of one or more Elastic Network Interfaces (ENIs) deployed on your VPC. Resolver Endpoints are classified into two types inboudn endpoint and outbound endpoint.
-- An Inbound Endpoint provides DNS resolution of AWS resources, such as EC2 instances, for your corporate network.
-- An Outbound Endpoint provides resolution of specific DNS names that you configure using forwarding rules to your VPC.
-- Outbound Resolver Endpoints host Forwarding Rules that forward queries for specified domain names to specific IP addresses. You create forwarding rules when you want to forward DNS queries for specified domain names to DNS resolvers on your network.
-- When Outbound Endpoint and Forwarding Rule are created, any resource in the VPC that queries the AmazonProvidedDNS as its DNS resolver is able to seamlessly resolve for AWS Managed Microsoft AD domain’s FQDN, as well as any AWS resources on the VPC such as (interface) VPC Endpoints.
+- Inbound Resolver endpoints allow DNS queries to your VPC from your on-premises network or another VPC.
+- Outbound Resolver endpoints allow DNS queries from your VPC to your on-premises network or another VPC.
 - To use your custom domain name with Global Accelerator when you use Route 53 as your DNS service, you create an alias record that points your custom domain name to the DNS name assigned to your accelerator.
 - Route 53 is designed to propagate updates you make to your DNS records to its worldwide network of authoritative DNS servers within 60 seconds under normal conditions.
 - You can use the Amazon Route 53 console to associate more VPCs with a private hosted zone if you created the hosted zone and the VPCs by using the same AWS account. Additionally, you can associate a VPC from one account with a private hosted zone in a different account. Using the account that created the hosted zone, authorize the association of the VPC with the private hosted zone. After associating the VPC is recommended to delete the authorization.
@@ -4361,6 +4362,9 @@ StackSet: a named set of stacks that use the same template, but applied across d
 ### AWS Identity and Access Management (IAM)
 
 - Global service.
+- A trust policy is attached to a role and defines who can assume the role.
+- A permissions policy is attached to a role and defines what the role can do.
+- A permissions boundary is attached to a role/user and limits the permissions, even if policies allow more.
 - Supports federated identity with SAML 2.0-compatible IdP.
 - For other scenarios like LDAP you need to create an identiy broker that authenticates to LDAP and then calls STS to assume a role.
 - For administrators you can use the `AdministratorAccess` policiy.
@@ -4461,6 +4465,7 @@ Regional service.
 - Automatically grows and shrinks as you add and remove files.
 - Can grow to petabyte scale.
 - You can connect tens, hundreds, and even thousands of compute instances to an Amazon EFS file system at the same time.
+- Supports elastic, bursting and provisioned throughput.
 
 ### Amazon FSx (for all types)
 
