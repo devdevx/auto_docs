@@ -4092,6 +4092,8 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - Up to 10 VPN connections can terminate to the same virtual private gateway.
 - Maximum 50 VIFs (virtual interfaces) per Direct Connect connection.
 - Direct connect gatewat can associate up to 10 virtual private gateways globally and cross account.
+- The default limit for shared VPC subnets is 100.
+- The default limit of VPC peering for each VPC is 50.
 
 ### AWS Systems Manager
 
