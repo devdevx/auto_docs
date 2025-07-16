@@ -4253,8 +4253,8 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - Global service.
 - Amazon allows you to enable Domain Name System Security Extensions (DNSSEC) signing for all existing and new public hosted zones, and enable DNSSEC validation for Amazon Route 53 Resolver.
 - A Route 53 Resolver Endpoint is a customer-managed resolver consisting of one or more Elastic Network Interfaces (ENIs) deployed on your VPC. Resolver Endpoints are classified into two types inboudn endpoint and outbound endpoint.
-- Inbound Resolver endpoints allow DNS queries to your VPC from your on-premises network or another VPC.
-- Outbound Resolver endpoints allow DNS queries from your VPC to your on-premises network or another VPC.
+- Inbound endpoint allows DNS queries to your VPC from your on-premises network or another VPC.
+- Outbound endpoint allows DNS queries from your VPC to your on-premises network or another VPC.
 - To use your custom domain name with Global Accelerator when you use Route 53 as your DNS service, you create an alias record that points your custom domain name to the DNS name assigned to your accelerator.
 - Route 53 is designed to propagate updates you make to your DNS records to its worldwide network of authoritative DNS servers within 60 seconds under normal conditions.
 - You can use the Amazon Route 53 console to associate more VPCs with a private hosted zone if you created the hosted zone and the VPCs by using the same AWS account. Additionally, you can associate a VPC from one account with a private hosted zone in a different account. Using the account that created the hosted zone, authorize the association of the VPC with the private hosted zone. After associating the VPC is recommended to delete the authorization.
