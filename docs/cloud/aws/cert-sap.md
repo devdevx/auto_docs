@@ -3525,14 +3525,15 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - Regional service.
 - You can use to coordinate the components of distributed applications and microservices using visual workflows.
 - Standard workflows for long-running, durable and auditable workflows.
-- Express workflows for high-volume, event-processing workloads such as IoT data ingestion, streaming data processing and transformation, and mobile application backends. 
+- Express workflows for high-volume, event-processing workloads such as IoT data ingestion, streaming data processing and transformation, and mobile application backends.
+- Only Express Workflow allow multiple concurrent requests with the same name.
 
 ## Blockchain
 
 ### Amazon Managed Blockchain
 
 - Amazon Managed Blockchain is a fully managed service that helps build and manage Web3 applications with blockchain frameworks. With Amazon Managed Blockchain, you can securely transact and share data on a distributed and immutable ledger.
-- For private data, you store it in other store and publish the hah in the blockchain.
+- For private data, you store it in other store and publish the hash in the blockchain.
 
 ## Business Applications
 
@@ -3577,6 +3578,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - AWS App Runner builds and deploys web applications automatically, load balances traffic with encryption, scales to meet your traffic needs, and allows for the configuration of how services are accessed and communicate with other AWS applications in a private Amazon VPC.
 - Requires a container image.
 - It is a regional service. If you require to do a multiple region deployment, you need to set up cross-region replication to the second region for the ECR images, deploy App Runner to the second Region and set up a Route 53 routing policy and use a global database like Aurora global database with write forwarding or DynamoDB global table.
+- Billed per second, when idle not answering requests you pay only the memory, when answer requests you pay the vCpu too.
 
 ### AWS Auto Scaling
 
@@ -3639,7 +3641,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - In scenarios where you need more than 15 min for async tasks maybe you can solve the problem using ECS task triggered from lambda.
 - Lambda function URLs are HTTP(S) endpoints dedicated to your Lambda function. You can easily create and set up a function URL using the Lambda console or API. Once created, Lambda generates a unique URL endpoint for your use. Function URLs are dual stack-enabled, supporting IPv4 and IPv6. After you configure a function URL for your function, you can invoke your function through its HTTP(S) endpoint via a web browser, curl, Postman, or any HTTP client.
 - CloudWatch Lambda Insights is primarily designed for monitoring and troubleshooting Lambda functions. It provides deeper visibility into the execution environment of your Lambda functions, allowing you to diagnose and resolve issues more efficiently.
-- You can use a lambda function to update an ASG capacity limit and promote a RDS read replica to primary for DR, it will be triggered with SNS linkes to Route 53 health check.
+- You can use a lambda function to update an ASG capacity limit and promote a RDS read replica to primary for DR, it will be triggered with SNS linked to Route 53 health check.
 
 ### Amazon Lightsail
 
@@ -3908,7 +3910,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 
 - Regional service.
 - Amazon Kendra is a highly accurate and easy-to-use enterprise search service that’s powered by machine learning (ML). It allows developers to add search capabilities to their applications so their end users can discover information stored within the vast amount of content spread across their company.
-- Multiple data origins likeS3, Microsoft SharePoint, Salesforce, ServiceNow, RDS databases, or Microsoft OneDrive.
+- Multiple data origins like S3, Microsoft SharePoint, Salesforce, ServiceNow, RDS databases, or Microsoft OneDrive.
 - Amazon Kendra does not support questions where the answers require cross-document passage aggregation or calculations.
 
 ### Amazon Lex
@@ -4056,6 +4058,7 @@ StackSet: a named set of stacks that use the same template, but applied across d
 - You attach SCPs to the root, OUs, or directly to accounts.
 - It is not recommended to attach the SCPs to the root of the organization.
 - By default, an SCP named `FullAWSAccess` is attached to every root, OU, and account.
+- For SCPs to be available, you must enable all features in the organization.
 - SCPs do not affect any service-linked role. Service-linked roles enable other AWS services to integrate with AWS Organizations and can't be restricted by SCPs.
 - You can use trusted access to enable an AWS service that you specify, called the trusted service, to perform tasks in your organization and its accounts on your behalf. This involves granting permissions to the trusted service but does not otherwise affect the permissions for IAM users or roles. When you enable access, the trusted service can create an IAM role called a service-linked role in every account in your organization. That role has a permissions policy that allows the trusted service to do the tasks that are described in that service's documentation. This enables you to specify settings and configuration details that you would like the trusted service to maintain in your organization's accounts on your behalf.
 - For billing purposes, the consolidated billing feature of AWS Organizations treats all the accounts in the organization as one account. This means that all accounts in the organization can receive the hourly cost-benefit of Reserved Instances (RI) that are purchased by any other account. In the master account, you can turn off Reserved Instance discount sharing on the Preferences page on the Billing and Cost Management console for the desired accounts.
